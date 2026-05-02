@@ -94,15 +94,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function checkWin() {
-        // Very basic win check: just verify no empty cells
         const cells = document.querySelectorAll('.sudoku .excel-cell');
-        let isFull = true;
+        let filledCount = 0;
         cells.forEach(c => {
-            if (c.textContent === '') isFull = false;
+            if (c.textContent !== '') filledCount++;
         });
 
-        if (isFull) {
+        // Update fake dashboard
+        const progressDisplay = document.getElementById('sudoku-progress-display');
+        if (progressDisplay) {
+            progressDisplay.textContent = `${filledCount} / 81`;
+        }
+
+        if (filledCount === 81) {
             formulaInput.value = '=WIN("축하합니다! 스도쿠를 완료했습니다.")';
         }
     }
+    
+    // Initial progress update
+    checkWin();
 });

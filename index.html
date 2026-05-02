@@ -16,6 +16,7 @@
                     <span class="file-name">업무용 데이터 종합 관리.xlsx - Excel</span>
                 </div>
                 <div class="window-controls">
+                    <div class="theme-toggle" id="theme-toggle" title="계정 설정">JH</div>
                     <span>—</span>
                     <span>□</span>
                     <span>✕</span>
@@ -74,12 +75,43 @@
                 <div class="grid-content" id="grid-content">
                     <!-- 게임 1: 스도쿠 보드 -->
                     <div id="sudoku-sheet" class="sheet-view active">
-                        <div id="sudoku-grid" class="game-grid sudoku"></div>
+                        <div class="sheet-layout">
+                            <div id="sudoku-grid" class="game-grid sudoku"></div>
+                            <div class="fake-dashboard">
+                                <div class="fake-table">
+                                    <div class="fake-table-header">프로젝트 Task 진행 현황</div>
+                                    <div class="fake-table-row"><span class="label">기획 단계</span><span class="value">완료 (100%)</span></div>
+                                    <div class="fake-table-row"><span class="label">디자인 단계</span><span class="value">완료 (100%)</span></div>
+                                    <div class="fake-table-row"><span class="label">개발 단계</span><span class="value">진행 중</span></div>
+                                    <div class="fake-table-row total"><span class="label">전체 해결된 Task 수</span><span class="value" id="sudoku-progress-display">0 / 81</span></div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- 게임 2: 2048 보드 -->
                     <div id="game2048-sheet" class="sheet-view" style="display: none;">
-                        <div id="game2048-grid" class="game-grid g2048"></div>
+                        <div class="sheet-layout">
+                            <div id="game2048-grid" class="game-grid g2048"></div>
+                            <div class="fake-dashboard">
+                                <div class="fake-table">
+                                    <div class="fake-table-header">2026년도 부서별 실적 요약</div>
+                                    <div class="fake-table-row"><span class="label">1분기 매출 (천원)</span><span class="value">45,210</span></div>
+                                    <div class="fake-table-row"><span class="label">2분기 매출 (천원)</span><span class="value">38,900</span></div>
+                                    <div class="fake-table-row"><span class="label">3분기 매출 (천원)</span><span class="value">51,040</span></div>
+                                    <div class="fake-table-row total"><span class="label">총 누적 실적 (목표치 반영)</span><span class="value" id="fake-score-display">0</span></div>
+                                </div>
+                                <div class="fake-chart">
+                                    <div class="chart-title">분기별 달성률 추이</div>
+                                    <div class="chart-bars">
+                                        <div class="bar-container"><div class="bar" style="height: 60%;"></div><span>1Q</span></div>
+                                        <div class="bar-container"><div class="bar" style="height: 45%;"></div><span>2Q</span></div>
+                                        <div class="bar-container"><div class="bar" style="height: 75%;"></div><span>3Q</span></div>
+                                        <div class="bar-container"><div class="bar" id="fake-score-bar" style="height: 5%;"></div><span>Total</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- 더미 데이터 (위장용) -->

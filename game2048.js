@@ -73,6 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
         if (document.getElementById('game2048-sheet').style.display !== 'none') {
             formulaInput.value = `=SUM(A1:D4)*${score}`;
         }
+
+        // Update fake dashboard elements
+        const fakeScoreDisplay = document.getElementById('fake-score-display');
+        const fakeScoreBar = document.getElementById('fake-score-bar');
+        if (fakeScoreDisplay) {
+            fakeScoreDisplay.textContent = score.toLocaleString();
+        }
+        if (fakeScoreBar) {
+            let maxTile = Math.max(...board.flat());
+            let percent = Math.min(100, Math.max(5, (maxTile / 2048) * 100));
+            fakeScoreBar.style.height = `${percent}%`;
+        }
     }
 
     // Logic for sliding and merging

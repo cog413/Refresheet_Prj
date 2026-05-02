@@ -88,4 +88,12 @@ document.addEventListener('DOMContentLoaded', () => {
         colHeaders.scrollLeft = gridContent.scrollLeft;
         rowHeadersBox.scrollTop = gridContent.scrollTop;
     });
+
+    // 6. Theme Toggle Logic
+    const themeToggle = document.getElementById('theme-toggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+    }
 });
