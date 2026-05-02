@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>업무용 데이터 종합 관리.xlsx - Excel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="excel-app">
+        <!-- 상단 리본 메뉴 -->
+        <header class="ribbon">
+            <div class="ribbon-top">
+                <div class="title-bar">
+                    <span class="excel-icon">📗</span>
+                    <span class="file-name">업무용 데이터 종합 관리.xlsx - Excel</span>
+                </div>
+                <div class="window-controls">
+                    <span>—</span>
+                    <span>□</span>
+                    <span>✕</span>
+                </div>
+            </div>
+            <div class="menu-tabs">
+                <span class="menu-tab">파일</span>
+                <span class="menu-tab active">홈</span>
+                <span class="menu-tab">삽입</span>
+                <span class="menu-tab">페이지 레이아웃</span>
+                <span class="menu-tab">수식</span>
+                <span class="menu-tab">데이터</span>
+                <span class="menu-tab">검토</span>
+                <span class="menu-tab">보기</span>
+            </div>
+            <div class="toolbar">
+                <div class="tool-group">
+                    <button class="tool-btn paste-btn">📋 붙여넣기</button>
+                    <div class="tool-subgroup">
+                        <button class="tool-btn small">✂️ 자르기</button>
+                        <button class="tool-btn small">📄 복사</button>
+                    </div>
+                </div>
+                <div class="tool-group font-group">
+                    <select class="font-select"><option>맑은 고딕</option></select>
+                    <select class="size-select"><option>11</option></select>
+                    <div class="font-styles">
+                        <button class="tool-btn small bold">가</button>
+                        <button class="tool-btn small italic">가</button>
+                        <button class="tool-btn small underline">가</button>
+                    </div>
+                </div>
+                <div class="tool-group align-group">
+                    <button class="tool-btn small">왼쪽</button>
+                    <button class="tool-btn small">가운데</button>
+                    <button class="tool-btn small">오른쪽</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- 수식 입력줄 -->
+        <div class="formula-bar">
+            <div class="name-box" id="current-cell">A1</div>
+            <div class="fx-icon">fx</div>
+            <input type="text" class="formula-input" id="formula-input" readonly value="">
+        </div>
+
+        <!-- 메인 스프레드시트 영역 -->
+        <div class="spreadsheet-container">
+            <div class="corner-header">◢</div>
+            <div class="column-headers" id="col-headers"></div>
+            
+            <div class="spreadsheet-body">
+                <div class="row-headers" id="row-headers"></div>
+                
+                <div class="grid-content" id="grid-content">
+                    <!-- 게임 1: 스도쿠 보드 -->
+                    <div id="sudoku-sheet" class="sheet-view active">
+                        <div id="sudoku-grid" class="game-grid sudoku"></div>
+                    </div>
+                    
+                    <!-- 게임 2: 2048 보드 -->
+                    <div id="game2048-sheet" class="sheet-view" style="display: none;">
+                        <div id="game2048-grid" class="game-grid g2048"></div>
+                    </div>
+
+                    <!-- 더미 데이터 (위장용) -->
+                    <div id="dummy-cells" class="dummy-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 하단 시트 탭 -->
+        <footer class="sheet-tabs">
+            <div class="tab-controls">◀ ▶</div>
+            <div class="tabs">
+                <div class="tab active" data-sheet="sudoku">Sheet1</div>
+                <div class="tab" data-sheet="game2048">Sheet2</div>
+                <div class="tab add-tab">+</div>
+            </div>
+            <div class="status-bar">
+                <span>준비</span>
+                <span class="boss-key-hint" style="margin-left: auto; color: #666; font-size: 11px; margin-right: 20px;">긴급 전환: Esc</span>
+                <span class="zoom-slider">- [========|==] + 100%</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 스크립트 로드 -->
+    <script src="sudoku.js"></script>
+    <script src="game2048.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>

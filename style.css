@@ -1,0 +1,372 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    user-select: none; /* Prevent text selection to look more like an app */
+}
+
+body {
+    background-color: #fff;
+    color: #333;
+    font-size: 14px;
+    overflow: hidden;
+}
+
+#excel-app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+/* Ribbon Menu */
+.ribbon {
+    background-color: #f3f2f1;
+    border-bottom: 1px solid #d2d0ce;
+}
+
+.ribbon-top {
+    display: flex;
+    justify-content: space-between;
+    background-color: #217346;
+    color: white;
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+.window-controls span {
+    margin-left: 15px;
+    cursor: pointer;
+}
+
+.menu-tabs {
+    display: flex;
+    padding-top: 5px;
+    background-color: #f3f2f1;
+}
+
+.menu-tab {
+    padding: 4px 15px;
+    font-size: 13px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+}
+
+.menu-tab.active {
+    background-color: #fff;
+    border-color: #d2d0ce;
+    color: #217346;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+    z-index: 1;
+}
+
+.toolbar {
+    background-color: #fff;
+    padding: 8px 10px;
+    display: flex;
+    gap: 15px;
+    border-bottom: 1px solid #e1dfdd;
+    align-items: center;
+}
+
+.tool-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    border-right: 1px solid #e1dfdd;
+    padding-right: 15px;
+}
+
+.tool-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 4px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+.tool-btn:hover {
+    background-color: #f3f2f1;
+    border-color: #c8c6c4;
+}
+
+/* Formula Bar */
+.formula-bar {
+    display: flex;
+    align-items: center;
+    padding: 4px 10px;
+    background-color: #fff;
+    border-bottom: 1px solid #d2d0ce;
+}
+
+.name-box {
+    width: 100px;
+    border: 1px solid #c8c6c4;
+    padding: 2px 5px;
+    text-align: center;
+    font-size: 12px;
+}
+
+.fx-icon {
+    color: #666;
+    font-style: italic;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.formula-input {
+    flex-grow: 1;
+    border: 1px solid #c8c6c4;
+    padding: 2px 5px;
+    outline: none;
+    font-size: 13px;
+}
+
+/* Spreadsheet Area */
+.spreadsheet-container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+.spreadsheet-body {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+    position: relative;
+}
+
+.corner-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 30px;
+    height: 25px;
+    background-color: #f3f2f1;
+    border-right: 1px solid #c8c6c4;
+    border-bottom: 1px solid #c8c6c4;
+    z-index: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 10px;
+    color: #a19f9d;
+}
+
+.column-headers {
+    display: flex;
+    margin-left: 30px;
+    background-color: #f3f2f1;
+    border-bottom: 1px solid #c8c6c4;
+    overflow: hidden;
+}
+
+.col-header {
+    width: 80px; /* Default cell width */
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-right: 1px solid #c8c6c4;
+    font-size: 12px;
+    color: #333;
+    flex-shrink: 0;
+}
+
+.grid-content {
+    display: flex;
+    flex-grow: 1;
+    overflow: auto;
+    position: relative;
+}
+
+.row-headers {
+    display: flex;
+    flex-direction: column;
+    width: 30px;
+    background-color: #f3f2f1;
+    border-right: 1px solid #c8c6c4;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.row-header {
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #c8c6c4;
+    font-size: 12px;
+    color: #333;
+}
+
+/* Game Grids positioned like Excel cells */
+.sheet-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    /* We align the games inside the dummy grid by just rendering them as grids */
+}
+
+.game-grid {
+    display: grid;
+    background-color: #fff;
+}
+
+/* Base cell styling to look like Excel */
+.excel-cell {
+    width: 80px;
+    height: 25px;
+    border-right: 1px solid #e1dfdd;
+    border-bottom: 1px solid #e1dfdd;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Numbers right-aligned */
+    padding: 0 4px;
+    font-size: 14px;
+    position: relative;
+    cursor: cell;
+}
+
+.excel-cell.selected {
+    border: 2px solid #217346;
+    z-index: 10;
+}
+
+/* -------------------
+   SUDOKU STYLES
+   ------------------- */
+.sudoku {
+    grid-template-columns: repeat(9, 80px);
+    grid-template-rows: repeat(9, 25px);
+}
+
+.sudoku .excel-cell {
+    justify-content: center; /* Center Sudoku numbers */
+    font-weight: normal;
+    color: #000;
+}
+
+.sudoku .excel-cell.fixed {
+    color: #333; /* Darker for fixed numbers */
+}
+
+.sudoku .excel-cell.user-input {
+    color: #0052cc; /* Blue for user input */
+    font-weight: bold;
+}
+
+/* Thicker borders for 3x3 blocks */
+.sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
+.sudoku .excel-cell:nth-child(9n) { border-right: 1px solid #e1dfdd; } /* reset last col */
+.sudoku .excel-cell:nth-child(n+19):nth-child(-n+27),
+.sudoku .excel-cell:nth-child(n+46):nth-child(-n+54),
+.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
+    border-bottom: 2px solid #a19f9d;
+}
+
+/* -------------------
+   2048 STYLES
+   ------------------- */
+.g2048 {
+    grid-template-columns: repeat(4, 80px);
+    grid-template-rows: repeat(4, 25px);
+}
+
+.g2048 .excel-cell {
+    justify-content: right; /* Numbers right-aligned like money */
+    font-weight: normal;
+    transition: all 0.1s;
+}
+
+/* 2048 Colors disguised as financial data */
+.val-2 { color: #333; }
+.val-4 { color: #333; font-weight: bold; }
+.val-8 { background-color: #fce4d6; } /* Light orange */
+.val-16 { background-color: #f8cbad; }
+.val-32 { background-color: #f4b084; color: white;}
+.val-64 { background-color: #ed7d31; color: white; font-weight: bold;}
+.val-128 { background-color: #fff2cc; } /* Light yellow */
+.val-256 { background-color: #ffe699; }
+.val-512 { background-color: #ffd966; }
+.val-1024 { background-color: #e2efda; } /* Light green */
+.val-2048 { background-color: #c6e0b4; font-weight: bold;}
+
+
+/* Bottom Tabs */
+.sheet-tabs {
+    display: flex;
+    flex-direction: column;
+    background-color: #f3f2f1;
+    border-top: 1px solid #c8c6c4;
+}
+
+.tabs-row {
+    display: flex;
+    align-items: center;
+}
+
+.tab-controls {
+    padding: 0 10px;
+    color: #666;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.tabs {
+    display: flex;
+    overflow-x: auto;
+}
+
+.tab {
+    padding: 5px 20px;
+    font-size: 12px;
+    cursor: pointer;
+    border-right: 1px solid #c8c6c4;
+    background-color: #e1dfdd;
+    color: #333;
+}
+
+.tab.active {
+    background-color: #fff;
+    color: #217346;
+    font-weight: 500;
+    border-bottom: 2px solid #217346;
+}
+
+.status-bar {
+    display: flex;
+    padding: 2px 10px;
+    font-size: 11px;
+    color: #333;
+    background-color: #f3f2f1;
+    border-top: 1px solid #e1dfdd;
+    align-items: center;
+}
+
+/* Boss Key Mode (Safe Mode) */
+.safe-mode .game-grid {
+    display: none !important;
+}
+.safe-mode .dummy-grid {
+    display: block !important;
+}
+.safe-mode .sheet-view { display: none !important; }
+
+/* In normal mode, dummy grid is a background */
+.dummy-grid {
+    position: absolute;
+    top: 0;
+    left: 0; /* Offset removed since row-headers are outside */
+    z-index: -1;
+    width: 2000px;
+    height: 1000px;
+    background-image: 
+        linear-gradient(to right, #e1dfdd 1px, transparent 1px),
+        linear-gradient(to bottom, #e1dfdd 1px, transparent 1px);
+    background-size: 80px 25px; /* Matches col/row size */
+}
