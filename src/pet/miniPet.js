@@ -1,15 +1,13 @@
 // =====================================================
 //  miniPet.js - 미니미 (셀구리) 등반 애니메이션 엔진
-//  서식지: 실적장표(20행×5열) + 막대그래프
-//  크기: 엑셀 셀(80×25px) 보다 작게 유지 (20×20px)
+//  핵심 수정: display:none 상태에서 getBoundingClientRect() 금지
+//  → 탭 클릭 시점에 초기화하도록 변경
 // =====================================================
 
-const ROW_H = 25;       // 엑셀 셀 높이 (px)
-const COL_W = 80;       // 엑셀 셀 너비 (px)
+const ROW_H     = 25;   // 엑셀 셀 1행 높이 (px) - CSS와 일치
 const TABLE_ROWS = 20;  // 실적장표 데이터 행 수
 const CHART_BARS = 6;   // 막대그래프 바 개수
 
-// 실적장표 데이터 (한국 직장인 위장용)
 const TABLE_DATA = {
     headers: ['부서명', 'Q1', 'Q2', 'Q3', 'Q4'],
     rows: [
@@ -37,44 +35,86 @@ const TABLE_DATA = {
 };
 
 const CHART_DATA = [
-    { label: 'Q1', height: 55, value: '162.3억' },
-    { label: 'Q2', height: 68, value: '174.1억' },
-    { label: 'Q3', height: 74, value: '183.5억' },
-    { label: 'Q4', height: 88, value: '200.3억' },
-    { label: '목표', height: 95, value: '210억' },
+    { label: 'Q1',  height: 55,  value: '162.3억' },
+    { label: 'Q2',  height: 68,  value: '174.1억' },
+    { label: 'Q3',  height: 74,  value: '183.5억' },
+    { label: 'Q4',  height: 88,  value: '200.3억' },
+    { label: '목표', height: 95, value: '210억'   },
     { label: '합계', height: 100, value: '720.2억' },
 ];
 
-// 미니미가 할 말 (상황별)
 const SPEECHES = {
-    idle:    ['...', '(・・ )', '쉿!', '조용히...', '( ˘ ˘ )'],
-    climb:   ['낑낑', '영차!', '우웁..', '후우..', '힘들어', '낑!'],
-    top:     ['야호!', '정상이다!', '( ˘▽˘)/', '드디어!', '쉬자...'],
-    fall:    ['으악!', '미끄러!', '꺄악!', '아이고!', '으아아'],
+    idle:      ['...', '(・・ )', '쉿!', '조용히...', '( ˘ ˘ )'],
+    climb:     ['낑낑', '영차!', '우웁..', '후우..', '힘들어', '낑!'],
+    top:       ['야호!', '정상이다!', '( ˘▽˘)/', '드디어!', '쉬자...'],
+    fall:      ['으악!', '미끄러!', '꺄악!', '아이고!', '으아아'],
     celebrate: ['✨', '( ˘▽˘)☆', '최고야!', '성공!'],
 };
 
-function getRandom(arr) {
-    return arr[Math.floor(Math.random() * arr.length)];
-}
+function getRandom(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+let domBuilt   = false;
+let loopActive = false;
+let tickTimer  = null;
+
+let climbState = {
+    phase: 'table',
+    row: 0,
+    barIndex: 0,
+    barProgress: 0,
+};
+
+// ── 외부에서 호출: DOM만 미리 구축하고 루프는 탭 활성화 때 시작 ──
 
 export function initMiniPet() {
-    buildHabitatDOM();
-    startClimbLoop();
+    buildHabitatDOM(); // DOM 구조만 생성 (레이아웃 계산 없음)
+
+    // '미니미' 탭 클릭 감지 → 그 때 루프 시작
+    document.querySelectorAll('.tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            if (tab.dataset.sheet === 'mini-pet') {
+                // display:block 전환이 완료된 다음 프레임에서 시작
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        startOrResume();
+                    });
+                });
+            } else {
+                pauseLoop();
+            }
+        });
+    });
 }
 
-// ── DOM 생성 ──────────────────────────────────────────
+function startOrResume() {
+    if (loopActive) return;
+    loopActive = true;
+
+    animateBarsIn();
+
+    // 셀구리 위치 초기화 후 등반 시작
+    climbState = { phase: 'table', row: 0, barIndex: 0, barProgress: 0 };
+    placeAtTableRow(0);
+    showSpeech(getRandom(SPEECHES.idle), 1500);
+    tickTimer = setTimeout(tickClimb, 2000);
+}
+
+function pauseLoop() {
+    loopActive = false;
+    clearTimeout(tickTimer);
+}
+
+// ── DOM 생성 ───────────────────────────────────────────
 
 function buildHabitatDOM() {
     const habitat = document.getElementById('mini-pet-habitat');
-    if (!habitat) return;
+    if (!habitat || domBuilt) return;
+    domBuilt = true;
 
-    // 실적장표 생성
-    const table = buildTable();
-    // 막대 그래프 생성
-    const chart = buildChart();
+    habitat.appendChild(buildTable());
+    habitat.appendChild(buildChart());
 
-    // 미니미 캐릭터
+    // 셀구리 캐릭터
     const pet = document.createElement('div');
     pet.id = 'mini-pet-sprite';
     pet.className = 'mini-pet-sprite';
@@ -82,8 +122,8 @@ function buildHabitatDOM() {
         <div class="mps-body">
             <div class="mps-antenna"></div>
             <div class="mps-eyes">
-                <div class="mps-eye mps-eye-l"></div>
-                <div class="mps-eye mps-eye-r"></div>
+                <div class="mps-eye"></div>
+                <div class="mps-eye"></div>
             </div>
             <div class="mps-cheeks">
                 <div class="mps-cheek"></div>
@@ -100,10 +140,7 @@ function buildHabitatDOM() {
     const bubble = document.createElement('div');
     bubble.id = 'mini-pet-bubble';
     bubble.className = 'mini-pet-bubble';
-    bubble.textContent = '';
 
-    habitat.appendChild(table);
-    habitat.appendChild(chart);
     habitat.appendChild(pet);
     habitat.appendChild(bubble);
 }
@@ -112,7 +149,6 @@ function buildTable() {
     const wrapper = document.createElement('div');
     wrapper.className = 'mini-habitat-table';
 
-    // 헤더
     const headerRow = document.createElement('div');
     headerRow.className = 'mht-row mht-header';
     TABLE_DATA.headers.forEach(h => {
@@ -123,11 +159,9 @@ function buildTable() {
     });
     wrapper.appendChild(headerRow);
 
-    // 데이터 행
     TABLE_DATA.rows.forEach((row, i) => {
         const rowEl = document.createElement('div');
         rowEl.className = 'mht-row' + (i % 2 === 0 ? ' mht-even' : '');
-        rowEl.dataset.rowIndex = i;
         row.forEach((cell, j) => {
             const cellEl = document.createElement('div');
             cellEl.className = 'mht-cell' + (j > 0 ? ' mht-num' : '');
@@ -159,7 +193,7 @@ function buildChart() {
 
         const bar = document.createElement('div');
         bar.className = 'mhc-bar';
-        bar.style.height = '0%'; // 처음엔 0, 애니메이션으로
+        bar.style.height = '0%';
         bar.dataset.targetHeight = d.height;
 
         const val = document.createElement('div');
@@ -180,54 +214,24 @@ function buildChart() {
     return wrapper;
 }
 
-// ── 등반 루프 ─────────────────────────────────────────
+// ── 위치 계산: getBoundingClientRect는 시트가 보일 때만 호출 ──
 
-let climbState = {
-    phase: 'table',   // 'table' | 'chart' | 'fall' | 'celebrate'
-    row: TABLE_ROWS,  // 시작 위치: 맨 아래 (TABLE_ROWS = 맨 밑)
-    barIndex: 0,
-    barProgress: 0,   // 0~100
-};
-
-function getPet()    { return document.getElementById('mini-pet-sprite'); }
-function getBubble() { return document.getElementById('mini-pet-bubble'); }
-
-function showSpeech(text, duration = 1200) {
-    const bubble = getBubble();
-    if (!bubble) return;
-    bubble.textContent = text;
-    bubble.classList.add('visible');
-    clearTimeout(bubble._timer);
-    bubble._timer = setTimeout(() => bubble.classList.remove('visible'), duration);
+function placeAtTableRow(rowFromTop) {
+    const pet = document.getElementById('mini-pet-sprite');
+    if (!pet) return;
+    // 테이블 헤더(1행) + rowFromTop 번째 행의 top 위치
+    // habitat padding-top = 25px (CSS 기준)
+    const HEADER_H = ROW_H; // 헤더 1행
+    const PADDING_TOP = 25; // .mini-pet-habitat padding-top
+    const topPx = PADDING_TOP + HEADER_H + (TABLE_ROWS - 1 - rowFromTop) * ROW_H - 2;
+    pet.style.top  = topPx + 'px';
+    pet.style.left = '84px'; // padding-left(80px) + 4px
 }
 
-function setTablePosition(rowFromBottom) {
-    // rowFromBottom: 0 = 맨 아래, TABLE_ROWS = 맨 위
-    const pet = getPet();
+function placeAtChartBar(barIndex, progressPct) {
+    const pet = document.getElementById('mini-pet-sprite');
     if (!pet) return;
-    const habitat = document.getElementById('mini-pet-habitat');
-    const table   = habitat?.querySelector('.mini-habitat-table');
-    if (!table) return;
 
-    const tableRect  = table.getBoundingClientRect();
-    const habitatRect = habitat.getBoundingClientRect();
-    // 테이블 맨 아래 = 헤더(1행) + 20행 데이터
-    const tableBottom = tableRect.bottom - habitatRect.top;
-    const tableTop    = tableRect.top    - habitatRect.top;
-    const totalH      = tableBottom - tableTop - ROW_H; // 헤더 제외
-
-    const bottom = tableBottom - habitatRect.top
-        - (rowFromBottom * ROW_H)
-        - 20; // creature 높이 보정
-
-    pet.style.bottom = '';
-    pet.style.top = (tableTop + totalH - rowFromBottom * ROW_H) + 'px';
-    pet.style.left = (tableRect.left - habitatRect.left + 4) + 'px';
-}
-
-function setChartPosition(barIndex, progressPct) {
-    const pet = getPet();
-    if (!pet) return;
     const habitat = document.getElementById('mini-pet-habitat');
     const chart   = habitat?.querySelector('.mini-habitat-chart');
     if (!chart) return;
@@ -235,13 +239,13 @@ function setChartPosition(barIndex, progressPct) {
     const cols = chart.querySelectorAll('.mhc-col');
     if (!cols[barIndex]) return;
 
-    const col         = cols[barIndex];
-    const barEl       = col.querySelector('.mhc-bar');
+    const col     = cols[barIndex];
+    const barEl   = col.querySelector('.mhc-bar');
+
     const habitatRect = habitat.getBoundingClientRect();
     const colRect     = col.getBoundingClientRect();
     const barRect     = barEl.getBoundingClientRect();
 
-    // 막대 하단에서 progressPct만큼 올라간 위치
     const barBottom = barRect.bottom - habitatRect.top;
     const barHeight = barRect.height;
     const targetTop = barBottom - (barHeight * progressPct / 100) - 20;
@@ -251,54 +255,58 @@ function setChartPosition(barIndex, progressPct) {
 }
 
 function animateBarsIn() {
-    const bars = document.querySelectorAll('.mhc-bar');
-    bars.forEach((bar, i) => {
+    document.querySelectorAll('#mini-pet-habitat .mhc-bar').forEach((bar, i) => {
         const target = bar.dataset.targetHeight;
+        bar.style.height = '0%';
         setTimeout(() => {
             bar.style.transition = 'height 0.8s ease-out';
             bar.style.height = target + '%';
-        }, i * 120);
+        }, i * 130);
     });
 }
 
-function startClimbLoop() {
-    // 막대 입장 애니메이션
-    setTimeout(animateBarsIn, 600);
+// ── 말풍선 ─────────────────────────────────────────────
 
-    // 초기 위치: 테이블 맨 아래
-    setTimeout(() => {
-        setTablePosition(0);
-        showSpeech(getRandom(SPEECHES.idle), 1500);
-        climbState.row = 0;
+function showSpeech(text, duration = 1200) {
+    const bubble = document.getElementById('mini-pet-bubble');
+    const pet    = document.getElementById('mini-pet-sprite');
+    if (!bubble || !pet) return;
 
-        // 등반 시작
-        setTimeout(tickClimb, 1800);
-    }, 500);
+    bubble.textContent = text;
+    bubble.classList.add('visible');
+
+    // 말풍선 위치를 캐릭터 위에 맞춤
+    const petTop  = parseFloat(pet.style.top  || 0);
+    const petLeft = parseFloat(pet.style.left || 0);
+    bubble.style.top  = (petTop  - 28) + 'px';
+    bubble.style.left = (petLeft - 10) + 'px';
+
+    clearTimeout(bubble._timer);
+    bubble._timer = setTimeout(() => bubble.classList.remove('visible'), duration);
 }
 
-let tickTimer = null;
+// ── 등반 루프 ──────────────────────────────────────────
 
 function tickClimb() {
-    const pet = getPet();
+    if (!loopActive) return;
+    const pet = document.getElementById('mini-pet-sprite');
     if (!pet) return;
 
     if (climbState.phase === 'table') {
-        // 테이블 한 행 올라감
         climbState.row++;
-
-        // struggle 클래스 적용
         pet.classList.add('mps-struggle');
         showSpeech(getRandom(SPEECHES.climb), 700);
 
         setTimeout(() => {
-            setTablePosition(climbState.row);
+            if (!loopActive) return;
+            placeAtTableRow(climbState.row);
             pet.classList.remove('mps-struggle');
 
             if (climbState.row >= TABLE_ROWS) {
-                // 테이블 정상!
                 pet.classList.add('mps-celebrate');
                 showSpeech(getRandom(SPEECHES.top), 1200);
                 setTimeout(() => {
+                    if (!loopActive) return;
                     pet.classList.remove('mps-celebrate');
                     climbState.phase = 'chart';
                     climbState.barIndex = 0;
@@ -311,27 +319,26 @@ function tickClimb() {
         }, 300);
 
     } else if (climbState.phase === 'chart') {
-        // 막대 그래프 등반
-        climbState.barProgress += 20 + Math.random() * 15;
+        climbState.barProgress += 22 + Math.random() * 15;
         pet.classList.add('mps-struggle');
         showSpeech(getRandom(SPEECHES.climb), 600);
 
         setTimeout(() => {
-            setChartPosition(climbState.barIndex, Math.min(climbState.barProgress, 98));
+            if (!loopActive) return;
+            placeAtChartBar(climbState.barIndex, Math.min(climbState.barProgress, 98));
             pet.classList.remove('mps-struggle');
 
             if (climbState.barProgress >= 100) {
-                // 이 막대 정상
                 if (climbState.barIndex < CHART_BARS - 1) {
                     showSpeech(getRandom(SPEECHES.top), 700);
                     climbState.barIndex++;
                     climbState.barProgress = 0;
                     tickTimer = setTimeout(tickClimb, 900);
                 } else {
-                    // 전체 정상! 축하
                     pet.classList.add('mps-celebrate');
                     showSpeech(getRandom(SPEECHES.celebrate), 1500);
                     setTimeout(() => {
+                        if (!loopActive) return;
                         pet.classList.remove('mps-celebrate');
                         fallDown();
                     }, 1800);
@@ -340,28 +347,23 @@ function tickClimb() {
             }
             tickTimer = setTimeout(tickClimb, 500 + Math.random() * 400);
         }, 300);
-
     }
 }
 
 function fallDown() {
-    const pet = getPet();
+    const pet = document.getElementById('mini-pet-sprite');
     if (!pet) return;
 
     pet.classList.add('mps-fall');
     showSpeech(getRandom(SPEECHES.fall), 1000);
 
-    // 테이블 맨 아래로 빠르게 이동
-    setTimeout(() => {
-        setTablePosition(0);
-    }, 100);
+    setTimeout(() => placeAtTableRow(0), 100);
 
     setTimeout(() => {
+        if (!loopActive) return;
         pet.classList.remove('mps-fall');
         showSpeech(getRandom(SPEECHES.idle), 1200);
-        // 다시 등반
-        climbState.phase = 'table';
-        climbState.row = 0;
+        climbState = { phase: 'table', row: 0, barIndex: 0, barProgress: 0 };
         tickTimer = setTimeout(tickClimb, 2000);
     }, 1200);
 }
