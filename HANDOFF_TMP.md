@@ -1,132 +1,93 @@
 # Handoff Temporary Context
 
 ## 1. Current Status
-- Date/time: 2026-05-04 17:59:37 +09:00
+- Date/time: 2026-05-04 18:39:25 +09:00
 - Branch: `sub`
 - Git status before this handoff refresh:
-  - `docs/Sudoku_bulk_seed_README.md` modified
-  - `package.json` modified
   - `scripts/generate_sudoku_bank.mjs` modified
-  - `data/sudoku_bank.csv` untracked
-  - `scripts/fetch_sudoku_hf_bank.mjs` untracked
-  - `sudoku_bulk_seed.sql` untracked
+  - `sudoku_bulk_seed.sql` modified
+  - `.gitignore` untracked
 - Repository path: `C:\Users\user\.gemini\antigravity\scratch\Refresheet_Prj`
 - Encoding note: keep this file ASCII-friendly where possible so future agents can read it reliably in PowerShell.
 
 ## 2. Latest User Request
-The user requested actual Sudoku problem data, not only scripts:
+The user attempted:
 
-- Do not create or drop `sudoku_puzzles`.
-- Insert real problem data only.
-- Use at least 3,000 open/public-license Sudoku puzzles.
-- Generate `sudoku_bulk_seed.sql`.
-- Use `INSERT OR IGNORE INTO sudoku_puzzles`.
-- Target columns:
-  - `puzzle_id`
-  - `level`
-  - `puzzle`
-  - `solution`
-  - `source_url`
-  - `clue_count`
-  - `is_active`
-  - `metadata_json`
-- Puzzle and solution must each be 81 characters.
-- IDs must be sequential from `sudoku_bulk_000001`.
-- Execute:
-  `npx wrangler d1 execute DB --remote --file=./sudoku_bulk_seed.sql`
+`npx wrangler d1 execute db_game_info --remote --file=.\sudoku_bulk_seed.sql`
+
+Cloudflare D1 rejected the file because it contained explicit transaction statements:
+
+- `BEGIN TRANSACTION;`
+- `COMMIT;`
+
+D1 error said to use Durable Object transaction APIs instead of SQL BEGIN/SAVEPOINT statements.
 
 ## 3. Completed Work
-- Used public Hugging Face dataset `Ritvik19/Sudoku-Dataset`.
-  - Source URL: `https://huggingface.co/datasets/Ritvik19/Sudoku-Dataset`
-  - Dataset card declares Apache-2.0.
-  - Dataset exposes 81-character `puzzle` and `solution` fields.
-- Added `scripts/fetch_sudoku_hf_bank.mjs`.
-  - Fetches 3,000 rows from Hugging Face Datasets Server.
-  - Writes normalized source CSV to `data/sudoku_bank.csv`.
-  - Maps clue count to game level 1-5.
-- Updated `scripts/generate_sudoku_bank.mjs`.
-  - Outputs requested columns exactly.
-  - Uses `INSERT OR IGNORE INTO sudoku_puzzles`.
-  - Does not emit CREATE TABLE or DROP TABLE.
-  - Preserves source info in `metadata_json`.
-- Added actual source data file:
-  - `data/sudoku_bank.csv`
-  - 3,000 rows
-- Generated actual seed file:
-  - `sudoku_bulk_seed.sql`
-  - 3,000 INSERT rows
-  - First ID: `sudoku_bulk_000001`
-  - Last ID: `sudoku_bulk_003000`
-- Updated `docs/Sudoku_bulk_seed_README.md`.
-  - Added fetch command, seed command, D1 command, and `CLOUDFLARE_API_TOKEN` note.
-- Updated `package.json`.
-  - Added `fetch:sudoku`.
-- Attempted Cloudflare D1 execution.
-  - Failed because `CLOUDFLARE_API_TOKEN` is not set in this non-interactive environment.
+- Removed explicit transaction statements from `scripts/generate_sudoku_bank.mjs`.
+- Regenerated `sudoku_bulk_seed.sql`.
+- Confirmed `sudoku_bulk_seed.sql` no longer contains:
+  - `BEGIN TRANSACTION`
+  - `COMMIT`
+  - `CREATE TABLE`
+  - `DROP TABLE`
+- Confirmed `sudoku_bulk_seed.sql` still contains exactly 3,000 `INSERT OR IGNORE INTO sudoku_puzzles` statements.
+- Added `.gitignore` with `.wrangler/` because Wrangler created local cache files during user execution.
 - Refreshed this handoff file.
 
 ## 4. Modified Files
-- `package.json`
+- `.gitignore`
 - `scripts/generate_sudoku_bank.mjs`
-- `scripts/fetch_sudoku_hf_bank.mjs`
-- `docs/Sudoku_bulk_seed_README.md`
-- `data/sudoku_bank.csv`
 - `sudoku_bulk_seed.sql`
 - `HANDOFF_TMP.md`
 
 ## 5. Remaining Work
-- Commit and push these changes to `sub`.
-- Cherry-pick the same commit to `main` and push `main` if keeping both branches aligned.
-- Cloudflare D1 remote execution must be rerun in an environment with `CLOUDFLARE_API_TOKEN`.
+- Commit and push this D1-compatible seed SQL fix to `sub`.
+- Cherry-pick the same commit to `main` and push `main`.
+- User should rerun:
+  `npx wrangler d1 execute db_game_info --remote --file=.\sudoku_bulk_seed.sql`
+- Then verify:
+  `npx wrangler d1 execute db_game_info --remote --command="SELECT COUNT(*) AS count FROM sudoku_puzzles WHERE puzzle_id LIKE 'sudoku_bulk_%';"`
 
 ## 6. Important Decisions / Constraints
 - Never revert user changes unless explicitly asked.
 - Actual file state and `git status` take priority over this handoff text.
 - Always run `git status --short --branch` before editing.
 - Before finishing a task, remove any existing handoff file and create a new `HANDOFF_TMP.md` with current information.
-- Do not emit table creation or table drop SQL for this task.
+- Do not emit table creation, table drop, BEGIN TRANSACTION, or COMMIT statements for this D1 seed file.
 - The seed SQL targets the user-provided `sudoku_puzzles` columns with `level`, `source_url`, `clue_count`, and `metadata_json`.
+- Cloudflare DB name: `db_game_info`.
 - Cloudflare DB ID from prior context: `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`.
 
 ## 7. Verification
 Commands run:
-- `npm run fetch:sudoku`
-  - Result: wrote 3,000 rows to `data/sudoku_bank.csv`.
 - `npm run seed:sudoku`
-  - Result: wrote 3,000 INSERT rows to `sudoku_bulk_seed.sql`.
+  - Result: regenerated `sudoku_bulk_seed.sql` with 3,000 inserts.
+- `Select-String -Path sudoku_bulk_seed.sql,scripts/generate_sudoku_bank.mjs -Pattern "BEGIN TRANSACTION|COMMIT|CREATE TABLE|DROP TABLE"`
+  - Result: no matches.
+- `(Select-String -Path sudoku_bulk_seed.sql -Pattern "INSERT OR IGNORE INTO sudoku_puzzles").Count`
+  - Result: 3000.
 - Custom Node SQL validation:
   - `rowCount`: 3000
-  - `forbidden`: false for CREATE/DROP
+  - `forbidden`: false
   - `bad`: 0
   - `first`: `sudoku_bulk_000001`
   - `last`: `sudoku_bulk_003000`
-  - level distribution: 1=375, 2=243, 3=792, 4=1546, 5=44
-  - clue count range: 28-80
-- `node --check scripts/generate_sudoku_bank.mjs`
-  - Result: passed.
-- `node --check scripts/fetch_sudoku_hf_bank.mjs`
-  - Result: passed.
-- `npx wrangler d1 execute DB --remote --file=./sudoku_bulk_seed.sql`
-  - Result: failed because `CLOUDFLARE_API_TOKEN` is not set.
 
 Not verified:
-- Actual D1 insert completion, due missing Cloudflare token.
+- Actual D1 insert completion after removing transaction statements. User needs to rerun with their local Cloudflare token.
 
 ## 8. Recommended Next Step
 - Run `git status --short --branch`.
 - Run `git diff --check`.
 - Commit:
-  - `package.json`
+  - `.gitignore`
   - `scripts/generate_sudoku_bank.mjs`
-  - `scripts/fetch_sudoku_hf_bank.mjs`
-  - `docs/Sudoku_bulk_seed_README.md`
-  - `data/sudoku_bank.csv`
   - `sudoku_bulk_seed.sql`
   - `HANDOFF_TMP.md`
 - Push to `sub`.
 - Cherry-pick to `main` and push `main`.
-- To load D1, run with token:
-  `npx wrangler d1 execute DB --remote --file=./sudoku_bulk_seed.sql`
+- Tell user to rerun:
+  `npx wrangler d1 execute db_game_info --remote --file=.\sudoku_bulk_seed.sql`
 
 ## 9. Handoff Rule For Next LLM
 
