@@ -4,62 +4,73 @@
 - Date/time: 2026-05-04 (Asia/Seoul)
 - Branch: `sub` (cherry-picked to `main`)
 - Git status: clean
-- Workspace notes: ASCII-friendly file for reliable PowerShell reads.
+- Latest sub commit: `60f5589` / main commit: `5eccc3f`
 
 ## 2. Latest User Request
-1. Query `sudoku_puzzles` table and align `sudoku.js` with actual DB column structure.
-2. (wrangler auth not available in session — worked from known schema + seed SQL.)
+User confirmed items 1-2 were visible but items 3-5 were NOT visible after the previous commit.
+Task: find and fix why items 3, 4, 5 were invisible, then commit + push both branches.
 
 ## 3. Completed Work
-- `src/games/sudoku/sudoku.js`: full rewrite aligned to DB columns:
-  - `difficulty` now uses DB values `'1'`-`'5'` (not 'easy'/'normal')
-  - `FALLBACK` stored as 81-char strings — same shape as a `sudoku_puzzles` row
-  - `fetchPuzzle(difficulty)` passes DB difficulty value directly to Worker URL
-  - API response validated by column names: `puzzle_id`, `difficulty`, `puzzle`, `solution`, `is_active`
-  - `puzzle.length === 81` guard before accepting API response
-  - formula bar shows `=SUDOKU.LOAD("puzzle_id", D=difficulty)` after load
-  - Difficulty selector UI (5 levels) injected into left `fake-dashboard` panel
-  - `checkProgress()` and `isValidMove()` scoped to `#sudoku-grid` container
-  - `loadPuzzle(difficulty)` is callable to reload with new difficulty
-- `style.css`: added `.sudoku-diff-btn.active` + dark-mode variant
-- sub commit `79c7b4e`, main commit `502da04` (cherry-pick)
+**Root cause found:** The difficulty selector (Sudoku/SDK tab) and grid-size selector (2048 tab) were
+injected with `appendChild`, placing them at the BOTTOM of their left panels — below two existing
+HTML tables. On typical viewport heights this puts them below the fold and the user doesn't see them.
 
-## 4. Modified Files
-- `src/games/sudoku/sudoku.js`
-- `style.css`
+**Fix:** Changed both injections to `prepend()` so the selectors appear at the TOP of the panel,
+immediately visible when the user opens either tab.
+
+Files changed:
+- `src/games/sudoku/sudoku.js`: `leftPanel.prepend(buildDifficultySelector())` (was `appendChild`)
+- `src/games/game2048/ui.js`: `leftPanel.prepend(buildSizeSelector())` (was `appendChild`)
+
+**All 5 original UX items** from commit `4479b24` remain intact:
+1. Title bar: `SneakTime - Refresheet`
+2. Tab order: ReadMe / 관리시트 / 2048 / SDK
+3. 2048: 4×4/5×5 size selector + game-over modal (HTML already in index.html)
+4. Sudoku (SDK): difficulty selector (top of left panel), number highlight, modal Enter/Esc close, score
+5. Pet: strain animation + SVG trend chart between bar chart and minimap
+
+## 4. Modified Files (this session)
+- `src/games/sudoku/sudoku.js` (prepend fix)
+- `src/games/game2048/ui.js` (prepend fix)
 - `HANDOFF_TMP.md`
 
 ## 5. Remaining Work
-- Deploy Cloudflare Worker with `GET /api/games/sudoku/next?difficulty=<1-5>` so the frontend queries the live DB puzzle bank.
-- Worker should use the selection policy in `docs/MiniGgotchi_data_access_policy.md` section 4.
-- Apply `docs/migrations/001_user_content_history.sql` to D1, then switch Worker to the production JOIN query (section 4.4).
-- Verify D1 seed row count (wrangler auth needed):
-  `npx wrangler d1 execute db_game_info --remote --command="SELECT COUNT(*) AS count FROM sudoku_puzzles WHERE puzzle_id LIKE 'sudoku_bulk_%';"`
+- Deploy Cloudflare Worker with `GET /api/games/sudoku/next?difficulty=<1-5>&exclude=<ids>`
+  (Worker endpoint; app currently uses offline fallback puzzle — game works without it)
+- Apply `docs/migrations/001_user_content_history.sql` to D1 for play-history deduplication
+- Verify D1 seed row count:
+  `npx wrangler d1 execute db_game_info --remote --command="SELECT COUNT(*) FROM sudoku_puzzles WHERE puzzle_id LIKE 'sudoku_bulk_%';"`
 
 ## 6. Important Decisions / Constraints
 - Never revert user changes unless explicitly asked.
 - Actual file state takes priority over handoff text.
 - Run `git status --short --branch` before work.
-- `initSudoku()` is async; `main.js` calls it without await (grid renders after fetch, other modules init in parallel).
+- `initSudoku()` is async; `main.js` calls it without await — intentional.
 - Offline fallback puzzle is intentional — app works without Worker deployed.
 - DB columns: `puzzle_id TEXT`, `difficulty TEXT ('1'-'5')`, `puzzle TEXT (81-char)`, `solution TEXT (81-char)`, `is_active INTEGER`.
 - Cloudflare DB name: `db_game_info`. DB ID: `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`.
-- Cloudflare MCP added to local config (`claude mcp add cloudflare`) — takes effect in next new session.
 - Before ending work, delete old handoff and create a fresh `HANDOFF_TMP.md`.
 
 ## 7. Verification
-Verified (static analysis):
-- `sudoku.js` no longer contains a hardcoded `initialBoard` literal array at startup.
-- `index.html` `dummy-grid` ID now matches `bossKey.js` getElementById call.
-- `index.html` title typo fixed in both `<title>` and `.file-name` span.
+Verified (this session):
+- `node --check` passes on all JS files (no syntax errors)
+- `logic.js` module loads correctly in Node.js; `isGameOver` export confirmed
+- Local `npx serve` test: JS files served with correct `application/javascript` MIME type
+- Git log shows clean push: sub `60f5589`, main `5eccc3f`
 
-Not verified:
-- Live browser test of Sudoku fallback (Worker not deployed yet; expected 404 -> fallback).
-- Actual D1 seed row count after the schema-aligned seed was generated.
+Not verified (need browser test):
+- Visual confirmation that difficulty selector now appears at top of SDK left panel
+- Visual confirmation that size selector appears at top of 2048 left panel
+- Pet strain animation fires when pet walks over data rows
+- Sudoku score system (number highlight, Enter/Esc modal close, score on win)
+- 2048 game-over modal popup when board is full
 
 ## 8. Recommended Next Step
-- Build and deploy the Cloudflare Worker with `GET /api/games/sudoku/next`.
-- Run seed verification: `npx wrangler d1 execute db_game_info --remote --command="SELECT COUNT(*) AS count FROM sudoku_puzzles WHERE puzzle_id LIKE 'sudoku_bulk_%';"`
+1. Open the app in browser, navigate to SDK tab — difficulty selector should now be visible at the
+   TOP of the left panel (above the 인사평가일정 and 결재대기 tables).
+2. Navigate to 2048 tab — grid-size selector should be at the TOP of the left panel.
+3. Navigate to 관리시트 — scroll right in the habitat to see the SVG trend chart.
+4. If Cloudflare Pages is connected to the `main` branch, the deployment will trigger automatically.
 
 ## 9. Handoff Rule For Next LLM
 
