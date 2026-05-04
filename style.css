@@ -1054,6 +1054,203 @@ body.dark-mode .sudoku .excel-cell.same-number { background-color: #1a2a4a; }
 body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; color: #90cdf4; }
 
 /* =====================================================
+   ReadMe Sheet v2 (rm-* prefix)
+   ===================================================== */
+.rm-sheet {
+    padding: 25px 40px 60px;
+    width: 720px;
+    font-size: 12px;
+    font-family: 'Segoe UI', Calibri, sans-serif;
+    color: #333;
+}
+
+/* Section headers */
+.rm-section-hd {
+    padding: 5px 10px;
+    font-weight: 700;
+    font-size: 13px;
+    border: 1px solid #a9d18e;
+    margin-top: 20px;
+    first-of-type { margin-top: 0; }
+}
+.rm-sheet .rm-section-hd:first-child { margin-top: 0; }
+.rm-hd-green {
+    background: #d9ead3;
+    color: #217346;
+    border-color: #a9d18e;
+}
+.rm-hd-caution {
+    background: #fff2cc;
+    color: #c00000;
+    border-color: #ffd966;
+    font-weight: 700;
+}
+
+/* ── KPI cards ───────────────────────────────────── */
+.rm-kpi-row {
+    display: flex;
+    border: 1px solid #c6e0b4;
+    border-top: none;
+}
+.rm-kpi-card {
+    flex: 1;
+    padding: 14px 14px 12px;
+    border-right: 1px solid #c6e0b4;
+    background: #fff;
+}
+.rm-kpi-card:last-child { border-right: none; }
+.rm-kpi-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: #217346;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #d9ead3;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+.rm-kpi-val {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 6px 0;
+}
+.rm-need-login {
+    font-size: 12px;
+    color: #b0b0b0;
+    font-style: italic;
+}
+.rm-kpi-number {
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+}
+.rm-kpi-zero    { color: #b0b0b0; }
+.rm-kpi-mid     { color: #0052cc; }
+.rm-kpi-good    { color: #217346; }
+.rm-kpi-desc {
+    font-size: 11px;
+    color: #333;
+    margin-top: 4px;
+    line-height: 1.35;
+}
+.rm-kpi-sub {
+    font-size: 10px;
+    color: #888;
+    margin-top: 3px;
+    line-height: 1.3;
+}
+
+/* ── SOP ─────────────────────────────────────────── */
+.rm-sop {
+    border: 1px solid #e1dfdd;
+    border-top: none;
+}
+.rm-sop-item {
+    padding: 7px 10px;
+    border-bottom: 1px solid #e1dfdd;
+}
+.rm-sop-item:last-child { border-bottom: none; }
+.rm-sop-title {
+    font-weight: 700;
+    color: #1f3864;
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+.rm-sop-body {
+    font-style: italic;
+    color: #444;
+    font-size: 11px;
+    line-height: 1.5;
+    padding-left: 8px;
+}
+
+/* ── 시트 안내 ────────────────────────────────────── */
+.rm-guide {
+    border: 1px solid #e1dfdd;
+    border-top: none;
+}
+.rm-guide-item {
+    display: grid;
+    grid-template-columns: 72px 18px 1fr;
+    height: 25px;
+    align-items: center;
+    border-bottom: 1px solid #e1dfdd;
+}
+.rm-guide-item:last-child { border-bottom: none; }
+.rm-guide-label {
+    background: #f2f2f2;
+    font-weight: 600;
+    color: #1f3864;
+    padding: 0 6px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #e1dfdd;
+    font-size: 12px;
+}
+.rm-guide-sep {
+    text-align: center;
+    color: #888;
+    font-size: 12px;
+    border-right: 1px solid #e1dfdd;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.rm-guide-text {
+    padding-left: 8px;
+    font-size: 12px;
+    color: #333;
+}
+
+/* ── 참고사항 ─────────────────────────────────────── */
+.rm-notes {
+    border: 1px solid #ffd966;
+    border-top: none;
+    background: #fffef2;
+}
+.rm-note-item {
+    padding: 5px 10px;
+    font-size: 11px;
+    color: #7f6000;
+    font-weight: 600;
+    border-bottom: 1px solid #ffd966;
+    min-height: 25px;
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
+}
+.rm-note-item:last-child { border-bottom: none; }
+
+/* ── Dark mode ────────────────────────────────────── */
+body.dark-mode .rm-sheet { color: #d4d4d4; }
+body.dark-mode .rm-hd-green { background: #1f4e2f; color: #b7e1c0; border-color: #2f6f44; }
+body.dark-mode .rm-hd-caution { background: #4d3b13; color: #f98080; border-color: #b8860b; }
+body.dark-mode .rm-kpi-row { border-color: #2f6f44; }
+body.dark-mode .rm-kpi-card { background: #2d2d2d; border-color: #2f6f44; }
+body.dark-mode .rm-kpi-name { color: #4CAF50; border-color: #2f6f44; }
+body.dark-mode .rm-need-login { color: #666; }
+body.dark-mode .rm-kpi-zero { color: #666; }
+body.dark-mode .rm-kpi-mid  { color: #90cdf4; }
+body.dark-mode .rm-kpi-good { color: #b7e1c0; }
+body.dark-mode .rm-kpi-desc { color: #ccc; }
+body.dark-mode .rm-kpi-sub  { color: #888; }
+body.dark-mode .rm-sop { border-color: #444; }
+body.dark-mode .rm-sop-item { border-color: #444; }
+body.dark-mode .rm-sop-title { color: #90cdf4; }
+body.dark-mode .rm-sop-body { color: #bbb; }
+body.dark-mode .rm-guide { border-color: #444; }
+body.dark-mode .rm-guide-item { border-color: #444; }
+body.dark-mode .rm-guide-label { background: #333; color: #90cdf4; border-color: #444; }
+body.dark-mode .rm-guide-sep { color: #666; border-color: #444; }
+body.dark-mode .rm-guide-text { color: #ccc; }
+body.dark-mode .rm-notes { background: #2f2a16; border-color: #b8860b; }
+body.dark-mode .rm-note-item { color: #ffe699; border-color: #b8860b; }
+
+/* =====================================================
    KPI Display (ReadMe 로그인 후)
    ===================================================== */
 .readme-kpi-row {
