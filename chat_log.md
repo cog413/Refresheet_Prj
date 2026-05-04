@@ -368,3 +368,34 @@ AI는 아래를 판단해야 한다:
 
 **6. 반영 필요 사항 (중요)**
 - 게임 보드는 flex stretch로 늘리지 않고 실제 셀 크기에 맞춰 `align-self: flex-start`를 유지한다.
+---
+
+### [2026-05-04 23:42] (CLI: codex)
+
+**1. 목표**
+- Google 로그인 시 `Missing environment variable: GOOGLE_CLIENT_ID` 오류가 뜨는 원인을 확인하고 수정한다.
+
+**2. 현재 상태**
+- 실제 배포 대상은 Cloudflare Pages 프로젝트 `refresheet-prj` 및 `refresheet-prj-global-prod`이다.
+- `npx.cmd wrangler pages secret list --project-name refresheet-prj` 결과 production secrets가 비어 있었다.
+- `npx.cmd wrangler pages secret list --project-name refresheet-prj-global-prod` 결과 production secrets가 비어 있었다.
+
+**3. 문제**
+- Pages Function 환경에 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`이 등록되어 있지 않아 OAuth 시작 단계에서 실패했다.
+- 기존 `wrangler.toml`은 Worker용 `main` 설정과 Pages용 설정이 혼재되어 Pages 설정 검증에서 충돌했다.
+
+**4. 시도한 것**
+- `wrangler secret list`를 실행했으나 Worker `refresheet-prj`가 없어 실패했다. 이는 Worker 배포가 아니라 Pages 배포임을 시사한다.
+- `wrangler pages project list`로 Pages 프로젝트 `refresheet-prj`, `refresheet-prj-global-prod`를 확인했다.
+- `wrangler.toml`을 Pages 기준으로 정리했다: `main` 제거, `pages_build_output_dir = "."` 추가.
+- `src/worker/index.js`에서 Google OAuth env 누락 시 `internal_error` 대신 `auth_config_missing` 503 응답을 반환하도록 보완했다.
+- `package.json`의 배포 스크립트를 Worker deploy에서 Pages deploy로 변경했다.
+
+**5. 해결 / 인사이트**
+- 코드 라우팅은 정상화됐지만, 실제 Google 로그인 성공에는 Cloudflare Pages production secret 등록이 반드시 필요하다.
+- 등록해야 할 값은 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`이며 선택적으로 `GOOGLE_REDIRECT_URI`도 등록할 수 있다.
+- OAuth 값은 프로젝트 코드에서 추론할 수 없어 사용자가 제공하거나 Cloudflare Dashboard/CLI에서 설정해야 한다.
+
+**6. 반영 필요 사항 (중요)**
+- 이 프로젝트는 Pages 배포 기준이므로 `wrangler.toml`에 `pages_build_output_dir = "."`를 유지하고 Worker용 `main`과 혼용하지 않는다.
+- Google 로그인 활성화 전 `refresheet-prj` Pages production 환경에 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`을 반드시 설정한다.

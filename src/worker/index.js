@@ -52,6 +52,15 @@ function getRequiredEnv(env, key) {
 }
 
 function startGoogleLogin(request, env) {
+    const missing = getMissingGoogleEnv(env);
+    if (missing.length > 0) {
+        return json({
+            error: 'auth_config_missing',
+            message: `Google login is not configured. Missing: ${missing.join(', ')}`,
+            missing,
+        }, 503);
+    }
+
     const url = new URL(request.url);
     const redirectUri = getRedirectUri(request, env);
     const state = crypto.randomUUID();
@@ -87,6 +96,15 @@ function startGoogleLogin(request, env) {
 }
 
 async function handleGoogleCallback(request, env) {
+    const missing = getMissingGoogleEnv(env);
+    if (missing.length > 0) {
+        return json({
+            error: 'auth_config_missing',
+            message: `Google login is not configured. Missing: ${missing.join(', ')}`,
+            missing,
+        }, 503);
+    }
+
     const url = new URL(request.url);
     const code = url.searchParams.get('code');
     const state = url.searchParams.get('state');
@@ -115,6 +133,10 @@ async function handleGoogleCallback(request, env) {
     headers.append('Set-Cookie', expireCookie('oauth_return_to', '/api/auth/google'));
 
     return new Response(null, { status: 302, headers });
+}
+
+function getMissingGoogleEnv(env) {
+    return ['GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET'].filter((key) => !env[key]);
 }
 
 async function handleMe(request, env) {
