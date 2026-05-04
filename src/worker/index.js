@@ -16,6 +16,9 @@ export default {
             if (url.pathname === '/api/auth/google/start') {
                 return startGoogleLogin(request, env);
             }
+            if (url.pathname === '/api/auth/google/debug') {
+                return handleGoogleDebug(request, env);
+            }
             if (url.pathname === '/api/auth/google/callback') {
                 return handleGoogleCallback(request, env);
             }
@@ -45,10 +48,11 @@ function getDb(env) {
 }
 
 function getRequiredEnv(env, key) {
-    if (!env[key]) {
+    const raw = env[key];
+    if (!raw) {
         throw new Error(`Missing environment variable: ${key}`);
     }
-    return env[key];
+    return typeof raw === 'string' ? raw.trim() : raw;
 }
 
 function startGoogleLogin(request, env) {
@@ -133,6 +137,24 @@ async function handleGoogleCallback(request, env) {
     headers.append('Set-Cookie', expireCookie('oauth_return_to', '/api/auth/google'));
 
     return new Response(null, { status: 302, headers });
+}
+
+function handleGoogleDebug(request, env) {
+    const rawId = env.GOOGLE_CLIENT_ID || '';
+    const rawSecret = env.GOOGLE_CLIENT_SECRET || '';
+    const trimmedId = rawId.trim();
+    const trimmedSecret = rawSecret.trim();
+    return withCors(json({
+        client_id_set: Boolean(trimmedId),
+        client_id_length: trimmedId.length,
+        client_id_prefix: trimmedId.slice(0, 12),
+        client_id_suffix: trimmedId.slice(-27),
+        client_id_has_whitespace: rawId !== trimmedId,
+        client_secret_set: Boolean(trimmedSecret),
+        client_secret_length: trimmedSecret.length,
+        client_secret_has_whitespace: rawSecret !== trimmedSecret,
+        redirect_uri: getRedirectUri(request, env),
+    }));
 }
 
 function getMissingGoogleEnv(env) {
