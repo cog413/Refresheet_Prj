@@ -1145,6 +1145,8 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 /* ── SOP ─────────────────────────────────────────── */
 .rm-sop {
     background: #fff;
+    border: 1px solid #c6e0b4;
+    border-top: none;
 }
 .rm-sop-item {
     padding: 7px 10px;
@@ -1167,6 +1169,8 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 /* ── 시트 안내 ────────────────────────────────────── */
 .rm-guide {
     background: #fff;
+    border: 1px solid #c6e0b4;
+    border-top: none;
 }
 .rm-guide-item {
     display: grid;
@@ -1231,10 +1235,10 @@ body.dark-mode .rm-kpi-mid  { color: #90cdf4; }
 body.dark-mode .rm-kpi-good { color: #b7e1c0; }
 body.dark-mode .rm-kpi-desc { color: #ccc; }
 body.dark-mode .rm-kpi-sub  { color: #888; }
-body.dark-mode .rm-sop { background: #2d2d2d; }
+body.dark-mode .rm-sop { background: #2d2d2d; border-color: #2f6f44; }
 body.dark-mode .rm-sop-title { color: #90cdf4; }
 body.dark-mode .rm-sop-body { color: #bbb; }
-body.dark-mode .rm-guide { background: #2d2d2d; }
+body.dark-mode .rm-guide { background: #2d2d2d; border-color: #2f6f44; }
 body.dark-mode .rm-guide-label { color: #90cdf4; }
 body.dark-mode .rm-guide-sep { color: #666; }
 body.dark-mode .rm-guide-text { color: #ccc; }
