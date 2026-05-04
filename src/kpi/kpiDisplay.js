@@ -2,66 +2,49 @@ export async function refreshKpiDisplay() {
     const auth = window.refresheetAuth;
 
     if (!auth?.authenticated) {
-        renderLoggedOutKpi();
+        setNeedLogin('kpi-focus-val');
+        setNeedLogin('kpi-endurance-val');
+        setNeedLogin('kpi-care-val');
         return;
     }
 
     try {
         const res = await fetch('/api/scores/today', { credentials: 'include' });
-        if (!res.ok) { renderLoggedOutKpi(); return; }
+        if (!res.ok) {
+            setNeedLogin('kpi-focus-val');
+            setNeedLogin('kpi-endurance-val');
+            setNeedLogin('kpi-care-val');
+            return;
+        }
         const data = await res.json();
-        renderLoggedInKpi(auth, data);
+        renderKpi(auth, data);
     } catch {
-        renderLoggedOutKpi();
+        setNeedLogin('kpi-focus-val');
+        setNeedLogin('kpi-endurance-val');
+        setNeedLogin('kpi-care-val');
     }
 }
 
-function renderLoggedOutKpi() {
-    const kpiGrid = document.getElementById('kpi-values-row');
-    if (kpiGrid) kpiGrid.style.display = 'none';
-    const kpiDef = document.getElementById('kpi-def-row');
-    if (kpiDef) kpiDef.style.display = '';
-}
-
-function renderLoggedInKpi(auth, data) {
+function renderKpi(auth, data) {
     const scores = data.scores || [];
     const minimeCared = data.minime_cared_today || false;
 
-    // 집중 Index: 오늘 게임 완료 수 × 33%, 최대 100%
+    // 집중 Index: 당일 게임 완료 판수 × 33%, 최대 100%
     const gameCount = scores.length;
     const focusIndex = Math.min(100, gameCount * 33);
 
-    // 존버 Index: 현재 시간 기준 출퇴근 대비 진행률
+    // 존버 Index: (현재시각 - 출근) / (퇴근 - 출근) × 100%
     const commuteStart = auth.commute_start || '09:00';
-    const commuteEnd = auth.commute_end || '18:00';
+    const commuteEnd   = auth.commute_end   || '18:00';
     const enduranceIndex = calcEnduranceIndex(commuteStart, commuteEnd);
 
-    // 케어 Index: 미니미 오늘 상호작용 여부
-    const careIndex = minimeCared ? 100 : 0;
+    // 케어 Index: 0→0%, 1회 이상→50%, 2종 이상→100%
+    // 현재는 단일 활동 타입만 지원 → 1회 이상 시 50%
+    const careIndex = minimeCared ? 50 : 0;
 
-    const kpiDef = document.getElementById('kpi-def-row');
-    if (kpiDef) kpiDef.style.display = 'none';
-
-    const kpiValues = document.getElementById('kpi-values-row');
-    if (!kpiValues) return;
-    kpiValues.style.display = '';
-
-    setKpiValue('kpi-focus-val', `${focusIndex}%`, getFocusStatus(gameCount));
-    setKpiValue('kpi-endurance-val', `${enduranceIndex}%`, getEnduranceStatus(enduranceIndex));
-    setKpiValue('kpi-care-val', careIndex === 100 ? '완료 ✓' : '미완료', careIndex === 100 ? 'good' : 'pending');
-
-    // 게임 기록 요약
-    const gameList = document.getElementById('kpi-game-list');
-    if (gameList) {
-        if (scores.length === 0) {
-            gameList.textContent = '오늘 플레이 기록 없음';
-        } else {
-            const summary = scores.map(s =>
-                `${s.game_type === 'sudoku' ? 'SDK' : '2048'} ${s.score.toLocaleString()}점`
-            ).join(' · ');
-            gameList.textContent = `오늘: ${summary}`;
-        }
-    }
+    setKpiNumber('kpi-focus-val', `${focusIndex}%`, getColorClass(focusIndex));
+    setKpiNumber('kpi-endurance-val', `${enduranceIndex}%`, getColorClass(enduranceIndex));
+    setKpiNumber('kpi-care-val', `${careIndex}%`, getColorClass(careIndex));
 }
 
 function calcEnduranceIndex(startStr, endStr) {
@@ -69,29 +52,28 @@ function calcEnduranceIndex(startStr, endStr) {
     const [sh, sm] = startStr.split(':').map(Number);
     const [eh, em] = endStr.split(':').map(Number);
     const startMins = sh * 60 + sm;
-    const endMins = eh * 60 + em;
-    const nowMins = now.getHours() * 60 + now.getMinutes();
+    const endMins   = eh * 60 + em;
+    const nowMins   = now.getHours() * 60 + now.getMinutes();
 
     if (nowMins <= startMins) return 0;
-    if (nowMins >= endMins) return 100;
+    if (nowMins >= endMins)   return 100;
     return Math.round(((nowMins - startMins) / (endMins - startMins)) * 100);
 }
 
-function getFocusStatus(count) {
-    if (count === 0) return 'zero';
-    if (count >= 3) return 'good';
-    return 'mid';
+function getColorClass(pct) {
+    if (pct === 0)   return 'rm-kpi-zero';
+    if (pct >= 70)   return 'rm-kpi-good';
+    return 'rm-kpi-mid';
 }
 
-function getEnduranceStatus(pct) {
-    if (pct < 30) return 'zero';
-    if (pct >= 80) return 'good';
-    return 'mid';
-}
-
-function setKpiValue(id, text, status) {
+function setNeedLogin(id) {
     const el = document.getElementById(id);
     if (!el) return;
-    el.textContent = text;
-    el.className = `readme-kpi-value kpi-status-${status}`;
+    el.innerHTML = '<span class="rm-need-login">로그인 필요</span>';
+}
+
+function setKpiNumber(id, text, colorClass) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.innerHTML = `<span class="rm-kpi-number ${colorClass}">${text}</span>`;
 }
