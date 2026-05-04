@@ -1,33 +1,40 @@
 # Handoff Temporary Context
 
 ## 1. Current Status
-- Date/time: 2026-05-04 15:57:44 +09:00
+- Date/time: 2026-05-04 16:28:22 +09:00
 - Branch: `sub`
-- Git status before this file: clean on `sub...origin/sub`
+- Git status before this handoff refresh:
+  - `docs/MiniGgotchi_PRD.md` modified
+  - `docs/MiniGgotchi_schema.sql` untracked
 - Repository path: `C:\Users\user\.gemini\antigravity\scratch\Refresheet_Prj`
 - Encoding note: keep this file ASCII-friendly where possible so future agents can read it reliably in PowerShell.
 
 ## 2. Latest User Request
-The user wants a persistent temporary handoff file for future LLM continuity.
+The user provided a baseline SQL schema and then clarified:
 
-Core requirement:
-- At the start of work, the next LLM must look for and read a handoff file.
-- At the end of work, the LLM must delete the previous handoff file and create a fresh `HANDOFF_TMP.md`.
-- The handoff file must include the handoff rules themselves, so another LLM can continue even if context is lost.
-- The file should summarize recent changes, current repo status, remaining work, verification, and recommended next steps.
+- Cloudflare DB has already been created.
+- Cloudflare DB ID: `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`
+- The tables have already been created using the user-provided SQL.
+
+The correct repo response is to document the applied Cloudflare baseline schema as-is, not to silently replace it with a stronger recommended schema.
 
 ## 3. Completed Work
-- Created `HANDOFF_TMP.md`.
-- Added a reusable handoff protocol inside the file.
-- Recorded the latest repo state and user intent.
-- Rewrote the handoff in ASCII-friendly English to avoid Korean mojibake in Windows PowerShell.
+- Read existing `HANDOFF_TMP.md` before work.
+- Created `docs/MiniGgotchi_schema.sql`.
+- Adjusted `docs/MiniGgotchi_schema.sql` to match the exact applied user-provided baseline schema.
+- Added Cloudflare DB ID and baseline schema status to `docs/MiniGgotchi_PRD.md` section 8.
+- Documented future migration candidates separately in the SQL file comments.
+- Refreshed this handoff file with the latest state and instructions.
 
 ## 4. Modified Files
+- `docs/MiniGgotchi_PRD.md`
+- `docs/MiniGgotchi_schema.sql`
 - `HANDOFF_TMP.md`
 
 ## 5. Remaining Work
-- Commit and push this handoff file if the user wants the protocol preserved in Git.
-- If applying to both branches, add the same file to `main` and `sub`.
+- Commit and push these changes to `sub`.
+- Apply the same commit to `main` if the user wants both branches kept aligned, consistent with prior workflow.
+- Optional future work: create explicit migration files for indexes, CHECK constraints, report/hidden fields for company tags, and additional foreign keys.
 
 ## 6. Important Decisions / Constraints
 - Never revert user changes unless explicitly asked.
@@ -38,25 +45,30 @@ Core requirement:
   - `HANDOFF_TMP.md`
   - `.handoff_tmp.md`
   - `tmp_handoff.md`
-- This file is intentionally temporary in content, but the user wants the protocol to persist across context loss.
+- The applied DB schema must match what exists in Cloudflare. Do not add constraints or columns to `docs/MiniGgotchi_schema.sql` unless a migration has actually been applied.
+- Cloudflare DB ID to preserve in docs: `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`.
 
 ## 7. Verification
-Commands already run:
+Commands run:
 - `git status --short --branch`
-  - Result before creating this file: `## sub...origin/sub`
-- `Get-ChildItem -Force -Filter '*handoff*'`
-  - Result before creating this file: no handoff files existed.
+  - Result at start: `## sub...origin/sub`
+- `Get-Content -Raw HANDOFF_TMP.md`
+  - Result: existing handoff read successfully.
+- `Get-Date -Format "yyyy-MM-dd HH:mm:ss zzz"`
+  - Result: `2026-05-04 16:28:22 +09:00`
 - `git diff --check`
-  - Result after creating this file: no whitespace errors.
+  - Result before handoff refresh: no whitespace errors, only CRLF warnings for Markdown.
 
 Not yet verified:
-- Final `git status` after this rewrite.
-- Commit/push status for this handoff file.
+- Final `git status` after this handoff refresh.
+- Commit/push status for the schema documentation changes.
 
 ## 8. Recommended Next Step
 - Run `git status --short --branch`.
-- If the user asked to "reflect/apply" this process permanently, commit this file.
-- If needed on both branches, push to current branch, then cherry-pick or recreate the commit on the other branch.
+- Run `git diff --check`.
+- Commit `docs/MiniGgotchi_PRD.md`, `docs/MiniGgotchi_schema.sql`, and `HANDOFF_TMP.md`.
+- Push to `sub`.
+- Cherry-pick the commit to `main` and push `main` if keeping both branches aligned.
 
 ## 9. Handoff Rule For Next LLM
 

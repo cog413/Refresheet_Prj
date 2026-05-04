@@ -317,7 +317,22 @@ A rewarded session must include:
 
 ## 8. Data & Analytics
 
-### 8.1 Logging Structure
+### 8.1 Current Database Baseline
+
+The current MiniGgotchi database has been created on Cloudflare.
+
+| Item | Value |
+| --- | --- |
+| Provider | Cloudflare database |
+| Database ID | `5c560a75-93a5-4414-88fc-0bd8e9ff4e26` |
+| Applied schema file | `docs/MiniGgotchi_schema.sql` |
+| Status | Baseline tables created by user-provided SQL |
+
+The baseline schema covers users, profiles, pets, game results, point wallets, point ledger, Sudoku puzzles, typing prompts, scenario nodes/buttons, company tags, user-company tag mapping, and event logs.
+
+Implementation note: the applied schema is intentionally documented as-is. Additional constraints, indexes, hidden/report fields for company tags, and stricter foreign keys should be handled as explicit future migrations rather than silently changing the baseline schema document.
+
+### 8.2 Logging Structure
 
 Core events:
 
@@ -334,7 +349,7 @@ Core events:
 | `tag_reported` | reporterId, tagId, reason |
 | `ranking_updated` | userId, rankingType, score, period |
 
-### 8.2 Performance Tracking
+### 8.3 Performance Tracking
 
 Track performance by:
 
@@ -346,7 +361,7 @@ Track performance by:
 - Session duration.
 - Completion and abandonment rate.
 
-### 8.3 Optimization Hooks
+### 8.4 Optimization Hooks
 
 Use analytics to tune:
 
