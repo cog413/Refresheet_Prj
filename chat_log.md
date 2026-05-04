@@ -242,3 +242,28 @@ AI는 아래를 판단해야 한다:
 **6. 반영 필요 사항 (중요)**
 - D1 migration 파일 위치가 `docs/migrations`인 경우 `wrangler.toml`의 `[[d1_databases]]`에 `migrations_dir = "docs/migrations"`를 반드시 유지한다.
 - D1 명령은 database name보다 binding 이름 `DB` 기준으로 실행한다.
+
+---
+
+### [2026-05-04 22:54] (CLI: codex)
+
+**1. 목표**
+- 2048 및 SDK 시트에서 게임 활성화 영역 아래로 보이는 흰 박스를 제거한다.
+- 기능 저하가 생기지 않도록 보완책을 판단하고 main/sub 양쪽에 커밋/푸시한다.
+
+**2. 현재 상태**
+- 2048, SDK 게임 보드는 `.sheet-layout` 내부 flex item인 `.game-grid`로 렌더링된다.
+
+**3. 문제**
+- `.sheet-layout`의 기본 flex 동작인 `align-items: stretch` 때문에 `.game-grid`가 좌우 대시보드 높이만큼 세로로 늘어났다.
+- 실제 게임 셀 아래 남는 영역이 `.game-grid`의 흰 배경으로 표시되어 엑셀 시트 격자가 아닌 흰 박스처럼 보였다.
+
+**4. 시도한 것**
+- `.game-grid`에 `align-self: flex-start`를 추가했다.
+
+**5. 해결 / 인사이트**
+- 게임 보드는 실제 셀 높이만큼만 렌더링되고, 아래쪽 빈 영역은 기존 dummy-grid 엑셀 배경이 보인다.
+- 게임 셀, 키보드 입력, 클릭 영역은 줄어들지 않으므로 서비스 기능 저하는 없다.
+
+**6. 반영 필요 사항 (중요)**
+- 게임 보드는 flex stretch로 늘리지 않고 실제 셀 크기에 맞춰 `align-self: flex-start`를 유지한다.

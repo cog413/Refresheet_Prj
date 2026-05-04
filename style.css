@@ -215,6 +215,7 @@ body {
 
 .game-grid {
     display: grid;
+    align-self: flex-start;
     background-color: #fff;
     border-top: 1px solid #e1dfdd;
     border-left: 1px solid #e1dfdd;
