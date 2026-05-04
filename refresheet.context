@@ -64,3 +64,12 @@
 - 리본의 붙여넣기, 자르기, 복사, 정렬, 폰트 등 가짜 Excel 컨트롤은 hover 반응을 주지 않는다.
 - 실제 동작하는 영역은 `보기` 탭, 로그인 버튼, 하단 시트 탭, 미니미 대화 버튼, 2048 그리드 크기 선택, SDK 난이도 선택이다.
 - 미니미 수동 대화가 표시되는 5초 동안 자동 말풍선은 억제하고, 새 수동 입력은 즉시 새 문구로 교체한다.
+---
+
+## Pages OAuth Secret Rules
+
+- 이 프로젝트는 Cloudflare Pages 배포 기준이다.
+- `wrangler.toml`에는 `pages_build_output_dir = "."`를 유지하고 Worker용 `main` 설정과 혼용하지 않는다.
+- Google 로그인 활성화에는 Pages production secret `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`이 필요하다.
+- 필요 시 `GOOGLE_REDIRECT_URI`도 Pages production secret 또는 env var로 등록한다.
+- secret이 없으면 Worker는 `auth_config_missing` 503을 반환해야 하며 raw `internal_error`로 노출하지 않는다.
