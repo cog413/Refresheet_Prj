@@ -1,9 +1,9 @@
 # Handoff Temporary Context
 
 ## 1. Current Status
-- Date/time: 2026-05-04 21:59 (Asia/Seoul)
-- Branch: `sub` during cherry-pick of Google OAuth/D1 auth work
-- Git status: resolving cherry-pick conflict in `HANDOFF_TMP.md`; `.claude/` remains unrelated and untracked
+- Date/time: 2026-05-04 22:34 (Asia/Seoul)
+- Branch: `sub`
+- Git status: pending follow-up commit for D1 migration apply verification; `.claude/` remains unrelated and untracked
 - Workspace notes: Root policy files are `refresheet.context` and `chat_log.md`; read them before new work.
 
 ## 2. Latest User Request
@@ -22,6 +22,8 @@ Summary: Implement Google OAuth login persistence in Cloudflare D1 so signup, lo
 - Added package scripts for Worker deploy and Google auth migration.
 - Updated docs and project policy files.
 - `main` has been committed and pushed with commit `f57a90d`.
+- Added `migrations_dir = "docs/migrations"` to `wrangler.toml` after confirming Wrangler was looking for `./migrations`.
+- Applied D1 migrations remotely with `npx.cmd wrangler d1 migrations apply DB --remote`; both `001_user_content_history.sql` and `002_google_auth.sql` succeeded.
 
 ## 4. Modified Files
 - `docs/migrations/002_google_auth.sql`
@@ -38,9 +40,7 @@ Summary: Implement Google OAuth login persistence in Cloudflare D1 so signup, lo
 - `HANDOFF_TMP.md`
 
 ## 5. Remaining Work
-- Complete the `sub` cherry-pick and push `sub`.
-- Cloudflare API rejected the remote D1 migration with authentication error code 10000. Re-run after fixing Cloudflare token/session:
-  `npx.cmd wrangler d1 execute db_game_info --remote --file=./docs/migrations/002_google_auth.sql`
+- Commit and push the follow-up `wrangler.toml`/log/handoff update to both branches.
 - Set Worker secrets before real OAuth use:
   `GOOGLE_CLIENT_ID`
   `GOOGLE_CLIENT_SECRET`
@@ -64,13 +64,19 @@ Verified:
 - `node --check .\src\auth\authState.js`
 - `node -e "JSON.parse(require('fs').readFileSync('package.json','utf8')); console.log('package ok')"`
 - `npx.cmd wrangler --version` returned `4.87.0`
+- `npx.cmd wrangler whoami` showed OAuth login for `jhchae9080@gmail.com` and `d1 (write)` permission.
+- `npx.cmd wrangler d1 list` showed `db_game_info` with ID `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`.
+- `npx.cmd wrangler d1 migrations list DB --remote` initially failed because no `./migrations` folder existed.
+- After adding `migrations_dir = "docs/migrations"`, `npx.cmd wrangler d1 migrations apply DB --remote` succeeded for `001_user_content_history.sql` and `002_google_auth.sql`.
+- Final `npx.cmd wrangler d1 migrations list DB --remote` returned `No migrations to apply!`
+- `PRAGMA table_info(users);` shows `google_sub` and `updated_at`.
+- `PRAGMA table_info(user_profiles);` shows `avatar_url` and `updated_at`.
 
 Not verified:
-- Remote D1 migration did not apply due to Cloudflare API authentication error code 10000.
-- Worker was not deployed because D1 migration/auth setup is blocked and OAuth secrets are not configured in this session.
+- Worker was not deployed because OAuth secrets are not configured in this session.
 
 ## 8. Recommended Next Step
-- Fix Cloudflare Wrangler authentication/token state, apply `docs/migrations/002_google_auth.sql`, set Google OAuth secrets, deploy Worker, then test first-time login, returning login, `/api/me`, and logout event rows.
+- Set Google OAuth secrets, deploy Worker, then test first-time login, returning login, `/api/me`, and logout event rows.
 
 ## 9. Handoff Rule For Next LLM
 The next LLM must read this file first.

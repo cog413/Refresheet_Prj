@@ -172,3 +172,73 @@ AI는 아래를 판단해야 한다:
 
 **6. 반영 필요 사항 (중요)**
 - Google OAuth/D1 인증 정책: `users.google_sub` 우선 식별, email-only 기존 유저 연결, `auth_events` 기반 signup/login/logout 기록, 프론트와 Worker 필드명 일치.
+
+---
+
+### [2026-05-04 22:34] (CLI: codex)
+
+**1. 목표**
+- Cloudflare D1 migration apply 실패를 토큰 없음으로 단정하지 않고, 현재 세션 인증, Wrangler 설정, D1 binding/account mismatch, migration 경로 문제를 순서대로 점검한다.
+- 실제 D1 반영 여부를 명확히 확인한다.
+
+**2. 현재 상태**
+- 현재 실행 환경에서 `npx.cmd wrangler whoami`는 정상 동작했다.
+- Wrangler는 OAuth Token으로 로그인되어 있으며 계정은 `jhchae9080@gmail.com`, Account ID는 `6c58daf51e3d34cdfd6cb85bd1f158ae`로 확인됐다.
+- Token Permissions에 `d1 (write)`가 표시됐다.
+- PowerShell 환경변수 `$env:CLOUDFLARE_API_TOKEN`은 현재 세션에서는 `not set`이지만, Wrangler OAuth 로그인은 정상 인식됐다.
+- 설정 파일은 `wrangler.jsonc`가 아니라 `wrangler.toml`만 존재한다.
+- D1 binding은 `DB`, database_name은 `db_game_info`, database_id는 `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`로 확인됐다.
+- `npx.cmd wrangler d1 list`에서도 동일한 DB `db_game_info` / `5c560a75-93a5-4414-88fc-0bd8e9ff4e26`가 조회됐다.
+
+**3. 문제**
+- 최초 실패 로그:
+  - 명령: `npx.cmd wrangler d1 execute db_game_info --remote --file=./docs/migrations/002_google_auth.sql`
+  - 결과: Cloudflare API `/accounts/6c58daf51e3d34cdfd6cb85bd1f158ae/d1/database/5c560a75-93a5-4414-88fc-0bd8e9ff4e26/import` 요청 실패
+  - 오류: `Authentication error [code: 10000]`
+- migration list 실패 로그:
+  - 명령: `npx.cmd wrangler d1 migrations list DB --remote`
+  - 결과: `No migrations folder found. Set migrations_dir in your wrangler.toml file to choose a different path.`
+  - 오류: `No migrations present at ...\Refresheet_Prj\migrations.`
+  - 원인: migration 파일은 `docs/migrations`에 있었지만 Wrangler 기본값은 `./migrations`였다.
+
+**4. 시도한 것**
+- `npx.cmd wrangler whoami` 실행: OAuth 로그인 및 `d1 (write)` 권한 확인.
+- `$env:CLOUDFLARE_API_TOKEN` 확인: 현재 PowerShell 세션에는 env token 없음 확인.
+- `wrangler.toml` 확인: D1 binding/name/id가 실제 D1과 일치함 확인.
+- `npx.cmd wrangler d1 list` 실행: 실제 DB 목록에서 `db_game_info` 확인.
+- `npx.cmd wrangler d1 execute DB --remote --command "SELECT name FROM sqlite_master WHERE type='table';"` 실행: 직접 execute 성공 및 기존 테이블 존재 확인.
+- `wrangler.toml`에 `migrations_dir = "docs/migrations"` 추가.
+- `npx.cmd wrangler d1 migrations list DB --remote` 재실행: `001_user_content_history.sql`, `002_google_auth.sql` pending 확인.
+- `npx.cmd wrangler d1 migrations apply DB --remote` 실행: 두 migration 모두 성공.
+- 적용 후 확인 쿼리 실행:
+  - `SELECT name FROM sqlite_master WHERE type='table';`
+  - `PRAGMA table_info(users);`
+  - `PRAGMA table_info(user_profiles);`
+  - `npx.cmd wrangler d1 migrations list DB --remote`
+
+**5. 해결 / 인사이트**
+- 실제 D1 반영 완료.
+- 적용된 신규 테이블:
+  - `d1_migrations`
+  - `user_content_history`
+  - `auth_events`
+  - `auth_sessions`
+- `users` 컬럼 확인 결과:
+  - `user_id`
+  - `email`
+  - `created_at`
+  - `google_sub`
+  - `updated_at`
+- `user_profiles` 컬럼 확인 결과:
+  - `user_id`
+  - `nickname`
+  - `last_login_at`
+  - `created_at`
+  - `avatar_url`
+  - `updated_at`
+- `npx.cmd wrangler d1 migrations list DB --remote` 최종 결과: `No migrations to apply!`
+- 결론: 토큰/권한 자체 문제가 아니라, migration command에서는 `migrations_dir` 설정 누락이 핵심 원인이었다. 직접 execute by binding `DB`는 정상 동작했다.
+
+**6. 반영 필요 사항 (중요)**
+- D1 migration 파일 위치가 `docs/migrations`인 경우 `wrangler.toml`의 `[[d1_databases]]`에 `migrations_dir = "docs/migrations"`를 반드시 유지한다.
+- D1 명령은 database name보다 binding 이름 `DB` 기준으로 실행한다.
