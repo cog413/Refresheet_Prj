@@ -558,6 +558,7 @@ body.dark-mode .pet-interaction-panel {
 #fake-score-bar {
     background-color: #ed7d31;
 }
+.bar.bar-green { background-color: #70ad47; }
 
 /* Excel Data Validation Modal */
 .modal-overlay {
