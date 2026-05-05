@@ -431,3 +431,68 @@ AI는 아래를 판단해야 한다:
 - Cloudflare Wrangler 인증 성공과 Google OAuth 앱 secret 등록은 별개로 판단한다.
 - OAuth 로그인 장애 점검 시 `whoami` 성공 후에도 반드시 `wrangler pages secret list` 및 production `/api/auth/google/start` 응답을 확인한다.
 - `refresheetkr.com`은 `refresheet-prj`의 최신 API 라우터를 사용하고, `refresheet.com`은 글로벌 프로젝트 배포 상태를 별도 확인해야 한다.
+
+---
+
+### [2026-05-05 01:xx] (CLI: gpt)
+
+**1. 목표**
+- Cloudflare Pages + Google OAuth 로그인 정상 동작
+
+**2. 현재 상태**
+- OAuth 구현 완료 (Worker + D1 + Pages Function 라우터)
+- `/api/auth/google/debug` 엔드포인트로 환경 변수 확인 가능
+
+**3. 문제**
+- `/api/auth/google/debug` 결과에서 `client_id_length = 1`, `client_secret_length = 1`
+- 저장된 값이 `` (Ctrl+V 특수문자)로 확인됨
+- PowerShell에서 `wrangler pages secret put` 실행 중 Ctrl+V로 붙여넣기 시 실제 값이 아닌 제어 문자가 입력된 것이 원인
+
+**4. 시도한 것**
+- `wrangler pages secret put`으로 secret 등록 및 "Success! Uploaded secret" 확인
+- 재배포 후 debug endpoint로 값 검증
+
+**5. 해결 / 인사이트**
+- PowerShell 파이프 방식으로 해결:
+  ```powershell
+  $cid = Get-Clipboard
+  $cid | npx.cmd wrangler pages secret put GOOGLE_CLIENT_ID --project-name refresheet-prj
+
+  $csec = Get-Clipboard
+  $csec | npx.cmd wrangler pages secret put GOOGLE_CLIENT_SECRET --project-name refresheet-prj
+  ```
+- 재배포 후 debug 결과: `client_id_length: 72`, suffix `.apps.googleusercontent.com`, whitespace: false
+
+**6. 반영 필요 사항 (중요)**
+- PowerShell에서 Wrangler secret 입력 시 Ctrl+V 직접 입력 금지 — 반드시 `Get-Clipboard` 파이프 방식 사용
+- Pages secret 변경 후 반드시 재배포 필요
+- `/api/auth/google/debug` 엔드포인트는 운영 검증용으로 유지
+
+---
+
+### [2026-05-05 21:12] (CLI: codex)
+
+**1. 목표**
+- Google OAuth secret 반영 이후 로그인 시작 동작을 재확인하고, ReadMe 오른쪽 컬럼 폭 수정 작업을 main/sub 양쪽에 반영한다.
+
+**2. 현재 상태**
+- `refresheet-prj` production Pages secrets에 `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`이 등록되어 있다.
+- `https://refresheetkr.com/api/auth/google/start`가 503 대신 Google OAuth URL로 302 redirect를 반환한다.
+- main에는 `style.css`의 `.rm-col-side` 폭을 340px에서 420px로 넓힌 커밋 `c3a8763`이 이미 반영되어 있다.
+
+**3. 문제**
+- ReadMe 오른쪽 영역이 340px 폭에서 좁게 꺾여 콘텐츠가 깨져 보였다.
+- sub 브랜치에는 아직 해당 폭 수정 및 최신 확인 기록 반영이 필요하다.
+
+**4. 시도한 것**
+- `wrangler pages secret list --project-name refresheet-prj`로 OAuth secrets 존재 확인.
+- `curl.exe -i -L --max-redirs 0 https://refresheetkr.com/api/auth/google/start`로 production redirect 확인.
+- main의 ReadMe 오른쪽 컬럼 폭 변경 커밋 상태를 확인했다.
+
+**5. 해결 / 인사이트**
+- `refresheetkr.com` 기준 Google 로그인 시작 단계는 정상화됐다.
+- ReadMe 오른쪽 컬럼은 420px 기준으로 유지하면 SOP 텍스트가 덜 깨지고 엑셀 시트 레이아웃 안에서 안정적으로 보인다.
+
+**6. 반영 필요 사항 (중요)**
+- ReadMe 오른쪽 보조 컬럼은 최소 420px 수준을 유지한다.
+- Google OAuth 점검은 secret list뿐 아니라 production `/api/auth/google/start`의 302 redirect 여부까지 확인한다.
