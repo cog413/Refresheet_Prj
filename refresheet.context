@@ -123,3 +123,11 @@
 - Google 로그인 장애 점검 시 `npx.cmd wrangler whoami`가 성공하더라도 Pages production secret `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` 존재 여부를 따로 확인한다.
 - `refresheet-prj` production에서 `/api/auth/google/start`가 `auth_config_missing`을 반환하면 코드 문제가 아니라 런타임 OAuth secret 누락을 우선 의심한다.
 - `refresheetkr.com`과 `refresheet.com`은 서로 다른 Pages 프로젝트 상태일 수 있으므로 API 라우터 반영 여부를 도메인별로 확인한다.
+
+---
+
+## Google OAuth Secret Input Rule
+
+- PowerShell에서 `wrangler pages secret put` 실행 시 Ctrl+V 직접 입력으로 제어 문자가 들어갈 수 있으므로 `Get-Clipboard` 파이프 방식으로 값을 넣는다.
+- Pages secret 변경 후에는 production 배포와 `/api/auth/google/start` 302 redirect 여부를 확인한다.
+- ReadMe 오른쪽 보조 컬럼은 SOP/안내 텍스트가 깨지지 않도록 420px 수준의 폭을 유지한다.
