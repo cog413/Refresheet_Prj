@@ -41,7 +41,7 @@ export const pattieWorldConfig = {
         decisionMs: 3600,
         initialIdleMs: 1500,
         sleepAfterMs: 45000,
-        spriteSize: 25,
+        spriteSize: 32,
         jumpDurationMs: 980,
         jumpArcPx: 25,
         maxJumpDistancePx: 62,

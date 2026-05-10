@@ -154,8 +154,8 @@ async function renderChoices() {
             const scaleX = (anim.renderWidth || anim.frameWidth) / anim.frameWidth;
             const scaleY = (anim.renderHeight || anim.frameHeight) / anim.frameHeight;
             card.style.backgroundImage = `url("${anim.src}")`;
-            card.style.backgroundPosition = `-${(anim.sourcePaddingX || 0) * scaleX}px -${(anim.sourcePaddingY || 0) * scaleY}px`;
-            card.style.backgroundSize = `${(anim.imageWidth || anim.frameCount * anim.frameWidth) * scaleX}px ${(anim.imageHeight || anim.frameHeight) * scaleY}px`;
+            card.style.backgroundPosition = `-${Math.round((anim.sourcePaddingX || 0) * scaleX)}px -${Math.round((anim.sourcePaddingY || 0) * scaleY)}px`;
+            card.style.backgroundSize = `${Math.round((anim.imageWidth || anim.frameCount * anim.frameWidth) * scaleX)}px ${Math.round((anim.imageHeight || anim.frameHeight) * scaleY)}px`;
         }
     }
 }

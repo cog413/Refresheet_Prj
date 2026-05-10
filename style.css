@@ -792,8 +792,8 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
     position: absolute;
     left: 0;
     top: 0;
-    width: 25px;
-    height: 25px;
+    width: 32px;
+    height: 32px;
     image-rendering: pixelated;
     pointer-events: auto;
     z-index: 130;
@@ -806,13 +806,13 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 .pattie-equipped-item {
     position: absolute;
     inset: 0;
-    width: 25px;
-    height: 25px;
+    width: 32px;
+    height: 32px;
     background-repeat: no-repeat;
     image-rendering: pixelated;
 }
 .pattie-equipped-item {
-    background-size: 25px 25px;
+    background-size: 32px 32px;
 }
 .pattie-sprite:hover {
     outline: 1px dotted #217346;

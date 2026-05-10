@@ -93,8 +93,8 @@ export class PattieSprite {
         this.baseEl.style.width = `${renderWidth}px`;
         this.baseEl.style.height = `${renderHeight}px`;
         this.baseEl.style.backgroundImage = `url("${this.animation.src}")`;
-        this.baseEl.style.backgroundPosition = `-${sourceX * scaleX}px -${sourceY * scaleY}px`;
-        this.baseEl.style.backgroundSize = `${imageWidth * scaleX}px ${imageHeight * scaleY}px`;
+        this.baseEl.style.backgroundPosition = `-${Math.round(sourceX * scaleX)}px -${Math.round(sourceY * scaleY)}px`;
+        this.baseEl.style.backgroundSize = `${Math.round(imageWidth * scaleX)}px ${Math.round(imageHeight * scaleY)}px`;
         this.itemLayer.style.width = `${renderWidth}px`;
         this.itemLayer.style.height = `${renderHeight}px`;
     }

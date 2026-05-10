@@ -10,8 +10,8 @@
     "framePaddingPx": 1,
     "frameSpacingX": 0,
     "frameSpacingY": 0,
-    "renderWidth": 25,
-    "renderHeight": 25,
+    "renderWidth": 32,
+    "renderHeight": 32,
     "frameCountMode": "infer-from-image-size"
   },
   "characters": {
