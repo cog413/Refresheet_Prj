@@ -22,13 +22,13 @@ const PROJECT_ROWS = [
 ];
 
 const WEEKLY_SALES = [
-    { label: 'W1', online: 28, offline: 20, onlineVal: '2.8', offlineVal: '2.0' },
-    { label: 'W2', online: 55, offline: 44, onlineVal: '5.5', offlineVal: '4.4' },
-    { label: 'W3', online: 42, offline: 33, onlineVal: '4.2', offlineVal: '3.3' },
-    { label: 'W4', online: 70, offline: 59, onlineVal: '7.0', offlineVal: '5.9' },
-    { label: 'W5', online: 58, offline: 47, onlineVal: '5.8', offlineVal: '4.7' },
-    { label: 'W6', online: 80, offline: 68, onlineVal: '8.0', offlineVal: '6.8' },
-    { label: 'W7', online: 38, offline: 28, onlineVal: '3.8', offlineVal: '2.8' },
+    { label: 'W1', online: 22, offline: 15, onlineVal: '2.2', offlineVal: '1.5' },
+    { label: 'W2', online: 48, offline: 38, onlineVal: '4.8', offlineVal: '3.8' },
+    { label: 'W3', online: 35, offline: 26, onlineVal: '3.5', offlineVal: '2.6' },
+    { label: 'W4', online: 62, offline: 50, onlineVal: '6.2', offlineVal: '5.0' },
+    { label: 'W5', online: 50, offline: 40, onlineVal: '5.0', offlineVal: '4.0' },
+    { label: 'W6', online: 72, offline: 60, onlineVal: '7.2', offlineVal: '6.0' },
+    { label: 'W7', online: 28, offline: 20, onlineVal: '2.8', offlineVal: '2.0' },
 ];
 
 const TREND_TARGET = [72, 75, 78, 80, 83, 86];
@@ -73,6 +73,7 @@ async function startScene() {
         return;
     }
     await waitForVisibleChart(chart);
+    updateChartTitle(world.profile.nickname);
     // The chart is visible here, so floor/platform dimensions are non-zero.
     world.placeAtFirstZone();
     world.start();
@@ -108,6 +109,23 @@ function bindExternalSpeech() {
     document.addEventListener('refresheet:pet-say', event => {
         if (event.detail?.manual) getPattieWorld()?.happy();
     });
+    document.addEventListener('refresheet:pattie-profile-updated', event => {
+        updateChartTitle(event.detail?.nickname);
+    });
+}
+
+function updateChartTitle(nickname) {
+    const titleEl = document.getElementById('mp-chart-title');
+    if (!titleEl) return;
+    const name = truncateName(nickname || 'Mong');
+    titleEl.textContent = `주간 매출 추이  ·  프로덕트명 : ${name}`;
+}
+
+function truncateName(name) {
+    if (!name) return '';
+    const hasKorean = /[가-힣]/.test(name);
+    const maxLen = hasKorean ? 10 : 20;
+    return name.length > maxLen ? name.slice(0, maxLen) : name;
 }
 
 function buildDOM() {
@@ -153,6 +171,7 @@ function buildWeeklySalesChart() {
     chart.dataset.pattieZone = 'chart';
 
     const title = el('div', 'mp-chart-title');
+    title.id = 'mp-chart-title';
     title.textContent = '주간 매출 추이';
     const legend = el('div', 'mp-chart-legend');
     legend.innerHTML = `
