@@ -10,7 +10,13 @@
     "seed:sudoku": "node scripts/generate_sudoku_bank.mjs --input ./data/sudoku_bank.csv --output ./sudoku_bulk_seed.sql",
     "pattie:generate-test-assets": "node scripts/generate-pattie-test-assets.js",
     "pattie:clean-assets": "node scripts/clean-pattie-assets.js",
-    "pattie:replace-assets": "node scripts/replace-pattie-assets.js"
+    "pattie:replace-assets": "node scripts/replace-pattie-assets.js",
+    "test:qa": "playwright test --config playwright.config.js",
+    "test:qa:headed": "playwright test --config playwright.config.js --headed",
+    "test:qa:report": "playwright show-report test-results/report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0"
   },
   "author": "",
   "license": "ISC"

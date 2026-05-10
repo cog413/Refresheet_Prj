@@ -297,3 +297,57 @@ const eased = (m.mode === 'walk' || m.mode === 'run')
 - Chart bar landing corrections must apply only to bar surfaces, not floor surfaces, so floor terrain remains stable.
 - Management sheet dashboard overlap should be resolved with existing grid/flex grouping, not ad hoc margin offsets.
 - Realtime analysis visuals should render on the actual canvas with DPR-aware sizing instead of static pseudo placeholders.
+
+## #CHCK# — Live Preview Inspection Workflow
+
+Keyword: `#CHCK#`
+
+When a user message contains `#CHCK#`, the agent MUST inspect the actual live preview site. Do not infer rendering from source code alone.
+
+### Inspection target
+
+- Preview host: https://sub.refresheet-prj.pages.dev
+- Production hosts (refresheetkr.com, www.refresheetkr.com) are off-limits.
+
+### Steps
+
+1. Call `POST /api/dev-login` with `Authorization: Bearer <DEV_LOGIN_TOKEN>` to obtain a QA session.
+2. Navigate the browser to https://sub.refresheet-prj.pages.dev using the session cookie.
+3. Perform visual inspection. Unless the user specifies otherwise, inspect in this order:
+   - Dashboard (main sheet view)
+   - Pattie/Mong animation area (`#mp-chart`, `.pattie-sprite`)
+   - Management sheet (토닥이 시트) if reachable
+   - Key chart regions
+4. Capture screenshots and save to `test-results/`.
+5. Collect and report:
+   - Console errors (type=error)
+   - Failed network/API requests
+6. Report findings as observed facts, not guesses.
+
+### Inspection checklist
+
+- UI layout breakage or overlap
+- Console errors / JS exceptions
+- Network / API failures (non-200 on critical endpoints)
+- Pattie animation rendering and pixel quality
+- z-index layering issues
+- Hover/click interactions
+- Responsive layout at <600px
+- Chart/bar terrain rendering
+- Dot/pixel rendering quality
+
+### Security constraints
+
+- Never access production hosts.
+- Always use the QA account (`qa_jhchae908p@refresheet.test`) — never the production account.
+- DEV_LOGIN_TOKEN must come from env or Cloudflare Secrets — never hardcoded.
+
+## Dev-Login Endpoint Policy
+
+- Endpoint: `POST /api/dev-login`
+- Allowed only on `sub.refresheet-prj.pages.dev`.
+- Production hosts return 404 unconditionally (host check is first).
+- Requires env: `DEV_LOGIN_ENABLED=true`, `DEV_LOGIN_TOKEN=<secret>`.
+- On success: issues the same `refresheet_session` cookie as Google OAuth.
+- QA account: `qa_jhchae908p@refresheet.test` / `usr_qa_refresheet_test_0001`.
+- Seed: `docs/migrations/006_qa_seed.sql` — apply to preview DB only.
