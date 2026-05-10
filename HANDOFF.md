@@ -90,6 +90,41 @@ For current sprite filenames, see `public/assets/corgi/manifest.json`.
 
 ---
 
+## Review Tab / Comments
+
+- Top ribbon `검토` is handled by `#review-menu-tab` and opens `#review-sheet` without changing the default sheet on initial load.
+- Frontend module: `src/review/review.js`; imported from `src/main.js`.
+- Backend endpoints live in `src/worker/index.js` under `/api/review/*`.
+- D1 schema source: `docs/migrations/007_review_comments.sql`.
+- This project uses `users.user_id TEXT`; do not copy schemas that reference `users(id)`.
+- Public comments/replies share the `comments` table and count toward the 3-per-day creation limit. Edits do not count.
+- Likes are stored in `comment_likes` with `UNIQUE(comment_id, user_id)`.
+- Operator feedback is private in `operator_feedback`; never render it in public comments.
+- Admin delete permission is backend-only and based on `jhchae9080@gmail.com`.
+- Nicknames are stored in `user_profiles.nickname`, required before posting, and must stay globally unique.
+
+---
+
+## Unlocks / Referrals / NewGame
+
+- Original Sudoku lives at `src/games/sudoku/sudoku.js`; do not modify it when changing NewGame.
+- NewGame is a temporary copied Sudoku placeholder at `src/games/newgame/newGame.js`.
+- NewGame sheet DOM uses `#newgame-sheet` and `#newgame-grid`; tab key is `data-sheet="newgame"` and unlockable key is `new_game`.
+- NewGame tab must remain directly after SDK in the bottom sheet tabs.
+- NewGame is locked by backend unlock state until the signed-in user has at least 2 valid referrals.
+- Lock state APIs:
+  - `GET /api/unlockables`
+  - `GET /api/unlockables/check?item_key=new_game`
+- Referral APIs:
+  - `GET /api/referral`
+  - `POST /api/referral`
+- D1 schema source: `docs/migrations/008_unlockables_referrals.sql`.
+- This project uses `users.user_id TEXT`; do not copy schemas that reference `users(id)`.
+- Referral email is immutable after insert, normalized lowercase, must match an existing user, and cannot be the current user's email.
+- NewGame score saves use `game_type='new_game'`; Worker rejects the score if the item is still locked.
+
+---
+
 ## QA / Dev-Login (Preview Only)
 
 `/api/dev-login` is a **preview-only** endpoint for automated QA sessions. Production hosts always receive 404.

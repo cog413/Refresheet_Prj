@@ -53,11 +53,13 @@ body {
     border-bottom: none;
 }
 
-#view-menu-tab {
+#view-menu-tab,
+#review-menu-tab {
     cursor: pointer;
 }
 
-#view-menu-tab:hover {
+#view-menu-tab:hover,
+#review-menu-tab:hover {
     background-color: #fff;
     border-color: #d2d0ce;
     color: #217346;
@@ -281,9 +283,12 @@ body {
 }
 
 /* Difficulty selector active state */
-.sudoku-diff-btn { cursor: pointer; }
-.sudoku-diff-btn.active { background-color: #dbe5f1 !important; font-weight: bold; color: #1a365d; }
-.sudoku-diff-btn:hover { outline: 2px solid #70ad47; outline-offset: -2px; background-color: #e2f0d9 !important; }
+.sudoku-diff-btn,
+.newgame-diff-btn { cursor: pointer; }
+.sudoku-diff-btn.active,
+.newgame-diff-btn.active { background-color: #dbe5f1 !important; font-weight: bold; color: #1a365d; }
+.sudoku-diff-btn:hover,
+.newgame-diff-btn:hover { outline: 2px solid #70ad47; outline-offset: -2px; background-color: #e2f0d9 !important; }
 
 /* Thicker borders for 3x3 blocks */
 .sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
@@ -397,6 +402,73 @@ body.dark-mode .pet-interaction-panel {
     font-weight: 500;
     border-bottom: 2px solid #217346;
 }
+.tab.tab-locked {
+    color: #777;
+    background-color: #d9d9d9;
+    cursor: not-allowed;
+}
+.tab.tab-locked:hover {
+    outline: 1px dotted #a19f9d;
+    background-color: #eeeeee;
+}
+.tab-lock-icon {
+    display: inline-block;
+    margin-right: 5px;
+    font-size: 11px;
+    vertical-align: -1px;
+}
+.sheet-lock-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 46px;
+    transform: translateX(-50%) translateY(8px);
+    z-index: 9500;
+    max-width: 360px;
+    padding: 7px 12px;
+    border: 1px solid #c8c6c4;
+    background: #fffef2;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.18);
+    color: #333;
+    font-size: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s, transform 0.15s;
+}
+.sheet-lock-toast.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+.newgame-locked-grid {
+    width: 720px;
+    height: 225px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.newgame-locked-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    width: 320px;
+    min-height: 90px;
+    border: 1px solid #c8c6c4;
+    background: #fffef2;
+    color: #333;
+    font-size: 12px;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.08);
+}
+body.dark-mode .tab.tab-locked {
+    background-color: #2a2a2a;
+    color: #888;
+}
+body.dark-mode .sheet-lock-toast,
+body.dark-mode .newgame-locked-notice {
+    background: #3d3520;
+    border-color: #555;
+    color: #ffd54f;
+}
 
 .status-bar {
     display: flex;
@@ -416,6 +488,199 @@ body.dark-mode .pet-interaction-panel {
     display: block !important;
 }
 .safe-mode .sheet-view { display: none !important; }
+
+/* Review sheet: Excel frame with compact comment-panel behavior */
+.review-sheet-wrap {
+    width: min(1000px, calc(100vw - 180px));
+    height: min(1700px, calc(100vh - 190px));
+    min-height: 520px;
+    margin: 24px 0 40px 36px;
+    background: #fff;
+    border: 1px solid #c8c6c4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.review-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background:
+        linear-gradient(#fff, #fff) padding-box,
+        repeating-linear-gradient(to right, transparent 0 79px, rgba(225,223,221,0.45) 79px 80px),
+        repeating-linear-gradient(to bottom, transparent 0 24px, rgba(225,223,221,0.45) 24px 25px);
+    user-select: text;
+}
+.review-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: #f8fbf8;
+    border-bottom: 1px solid #d2d0ce;
+}
+.review-panel-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #217346;
+}
+.review-panel-subtitle {
+    margin-top: 2px;
+    font-size: 11px;
+    color: #666;
+}
+.review-feedback-btn,
+.review-submit-btn {
+    border: 1px solid #70ad47;
+    background: #e2f0d9;
+    color: #1f5f38;
+    height: 26px;
+    padding: 0 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.review-feedback-btn:hover,
+.review-submit-btn:hover {
+    background: #d8ead1;
+    border-color: #217346;
+}
+.review-comments-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 14px;
+}
+.review-comment {
+    display: flex;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 12px;
+    line-height: 1.45;
+}
+.review-comment.is-reply {
+    margin-left: 38px;
+    padding-top: 2px;
+}
+.review-comment.is-deleted {
+    color: #777;
+}
+.review-comment-body {
+    min-width: 0;
+    flex: 1;
+}
+.review-comment-text {
+    color: #1f1f1f;
+    word-break: break-word;
+}
+.review-nickname {
+    font-weight: 700;
+    color: #111;
+}
+.review-comment-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-top: 2px;
+    color: #777;
+    font-size: 11px;
+}
+.review-action {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: #777;
+    font-size: 11px;
+    cursor: pointer;
+}
+.review-action:hover,
+.review-action.liked,
+.review-action.strong {
+    color: #217346;
+    font-weight: 600;
+}
+.review-compose {
+    border-top: 1px solid #d2d0ce;
+    background: #fff;
+    padding: 10px 12px;
+}
+.review-compose textarea,
+.review-edit-input,
+.review-feedback-input,
+.review-nickname-input {
+    width: 100%;
+    border: 1px solid #c8c6c4;
+    background: #fff;
+    color: #222;
+    font-size: 12px;
+    resize: none;
+    outline: none;
+    user-select: text;
+}
+.review-compose textarea {
+    height: 46px;
+    padding: 8px;
+}
+.review-compose textarea:focus,
+.review-edit-input:focus,
+.review-feedback-input:focus,
+.review-nickname-input:focus {
+    border-color: #217346;
+    box-shadow: inset 0 0 0 1px #217346;
+}
+.review-compose-footer,
+.review-edit-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+.review-counter,
+.review-message,
+.review-modal-counter,
+.review-modal-message {
+    font-size: 11px;
+    color: #777;
+}
+.review-message,
+.review-modal-message {
+    color: #c00000;
+    flex: 1;
+}
+.review-loading,
+.review-empty {
+    padding: 20px;
+    color: #777;
+    font-size: 12px;
+    text-align: center;
+}
+.review-edit-input {
+    height: 54px;
+    padding: 7px;
+}
+.review-modal-overlay {
+    align-items: flex-start;
+    padding-top: 118px;
+}
+.review-modal {
+    width: 360px;
+}
+.review-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 14px;
+}
+.review-feedback-input {
+    height: 96px;
+    padding: 8px;
+}
+.review-nickname-input {
+    height: 30px;
+    padding: 0 8px;
+}
+.review-nickname-help,
+.review-success-text {
+    font-size: 12px;
+    color: #333;
+    line-height: 1.5;
+}
 
 /* In normal mode, dummy grid is a background */
 .dummy-grid {
@@ -645,7 +910,8 @@ body.dark-mode .menu-tab.active {
     color: #4CAF50;
     border-color: #444;
 }
-body.dark-mode #view-menu-tab:hover {
+body.dark-mode #view-menu-tab:hover,
+body.dark-mode #review-menu-tab:hover {
     background-color: #1e1e1e;
     border-color: #555;
     color: #4CAF50;
@@ -675,7 +941,8 @@ body.dark-mode .fake-table-header { background-color: #1a365d; border-color: #44
 body.dark-mode .fake-table-cell { border-color: #444; background-color: #2d2d2d; color: #d4d4d4; }
 body.dark-mode .fake-table-cell.label { background-color: #333; }
 body.dark-mode .fake-table-cell.note { background-color: #2f2a16; color: #ffe699; }
-body.dark-mode .sudoku-diff-btn.active { background-color: #1a365d !important; color: #90cdf4; }
+body.dark-mode .sudoku-diff-btn.active,
+body.dark-mode .newgame-diff-btn.active { background-color: #1a365d !important; color: #90cdf4; }
 body.dark-mode .fake-table-cell.total { background-color: #1a365d; border-top: 1px solid #2b6cb0; }
 body.dark-mode .excel-modal { background-color: #2d2d2d; border-color: #555; }
 body.dark-mode .modal-header { background-color: #2d2d2d; color: #d4d4d4; }
@@ -683,6 +950,44 @@ body.dark-mode .modal-text { color: #d4d4d4; }
 body.dark-mode .modal-buttons { background-color: #333; border-top-color: #555; }
 body.dark-mode .modal-btn { background-color: #444; border-color: #666; color: #d4d4d4; }
 body.dark-mode .modal-btn:hover { background-color: #555; border-color: #888; }
+body.dark-mode .review-sheet-wrap,
+body.dark-mode .review-panel,
+body.dark-mode .review-compose {
+    background: #2d2d2d;
+    border-color: #444;
+}
+body.dark-mode .review-panel-header {
+    background: #1e2f25;
+    border-color: #444;
+}
+body.dark-mode .review-panel-title,
+body.dark-mode .review-action:hover,
+body.dark-mode .review-action.liked,
+body.dark-mode .review-action.strong {
+    color: #6dba8a;
+}
+body.dark-mode .review-comment-text,
+body.dark-mode .review-nickname,
+body.dark-mode .review-nickname-help,
+body.dark-mode .review-success-text {
+    color: #d4d4d4;
+}
+body.dark-mode .review-panel-subtitle,
+body.dark-mode .review-comment-meta,
+body.dark-mode .review-action,
+body.dark-mode .review-counter,
+body.dark-mode .review-loading,
+body.dark-mode .review-empty {
+    color: #aaa;
+}
+body.dark-mode .review-compose textarea,
+body.dark-mode .review-edit-input,
+body.dark-mode .review-feedback-input,
+body.dark-mode .review-nickname-input {
+    background: #1f1f1f;
+    color: #d4d4d4;
+    border-color: #555;
+}
 
 /* -------------------
    V2.0 STYLES
@@ -2087,6 +2392,15 @@ body.dark-mode .mps-body-b { background:
         width: 100%;
         height: auto !important;
     }
+    .review-sheet-wrap {
+        width: calc(100vw - 24px);
+        height: calc(100svh - 180px);
+        margin: 12px;
+    }
+    .review-panel-header {
+        align-items: flex-start;
+        gap: 10px;
+    }
 
     /* README: stack KPI / ranking cards */
     .rm-kpi-row,
@@ -2203,6 +2517,29 @@ body.dark-mode .account-dropdown-item { color: #d4d4d4; }
 body.dark-mode .account-dropdown-item:hover { background: #3a3a3a; }
 body.dark-mode .account-dropdown-item--logout { color: #f48771; border-top-color: #444; }
 body.dark-mode .account-dropdown-item--logout:hover { background: #3a2020; }
+
+.us-referral-field {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #e1dfdd;
+}
+.us-referral-help,
+.us-referral-message {
+    margin-top: 5px;
+    font-size: 11px;
+    color: #666;
+    line-height: 1.35;
+}
+.us-referral-message {
+    color: #c00000;
+    min-height: 15px;
+}
+#us-referral-save {
+    margin-top: 8px;
+    align-self: flex-start;
+}
+body.dark-mode .us-referral-field { border-top-color: #444; }
+body.dark-mode .us-referral-help { color: #aaa; }
 
 /* Onboarding consent */
 .ob-consent { margin: 14px 0 4px; display: flex; flex-direction: column; gap: 8px; }

@@ -3,6 +3,8 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 14;
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
+const MASTER_ADMIN_EMAIL = 'jhchae9080@gmail.com';
+let reviewSchemaReady = false;
 
 export default {
     async fetch(request, env) {
@@ -60,6 +62,40 @@ export default {
             }
             if (url.pathname === '/api/rankings' && request.method === 'GET') {
                 return handleRankings(request, env);
+            }
+            if (url.pathname === '/api/review/comments' && request.method === 'GET') {
+                return handleGetReviewComments(request, env);
+            }
+            if (url.pathname === '/api/review/comments' && request.method === 'POST') {
+                return handleCreateReviewComment(request, env);
+            }
+            if (/^\/api\/review\/comments\/\d+$/.test(url.pathname) && request.method === 'PATCH') {
+                return handleEditReviewComment(request, env, Number(url.pathname.split('/').pop()));
+            }
+            if (/^\/api\/review\/comments\/\d+$/.test(url.pathname) && request.method === 'DELETE') {
+                return handleDeleteReviewComment(request, env, Number(url.pathname.split('/').pop()));
+            }
+            if (/^\/api\/review\/comments\/\d+\/like$/.test(url.pathname) && request.method === 'POST') {
+                const parts = url.pathname.split('/');
+                return handleToggleReviewLike(request, env, Number(parts[parts.length - 2]));
+            }
+            if (url.pathname === '/api/review/feedback' && request.method === 'POST') {
+                return handleSubmitOperatorFeedback(request, env);
+            }
+            if (url.pathname === '/api/review/nickname' && request.method === 'POST') {
+                return handleSaveReviewNickname(request, env);
+            }
+            if (url.pathname === '/api/unlockables' && request.method === 'GET') {
+                return handleGetUnlockables(request, env);
+            }
+            if (url.pathname === '/api/unlockables/check' && request.method === 'GET') {
+                return handleCheckUnlockable(request, env);
+            }
+            if (url.pathname === '/api/referral' && request.method === 'GET') {
+                return handleGetReferral(request, env);
+            }
+            if (url.pathname === '/api/referral' && request.method === 'POST') {
+                return handleSaveReferral(request, env);
             }
             if (url.pathname === '/api/dev-login' && request.method === 'POST') {
                 return handleDevLogin(request, env);
@@ -414,13 +450,21 @@ async function handleSaveScore(request, env) {
     if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
 
     const body = await request.json().catch(() => ({}));
-    const gameType = ['sudoku', '2048'].includes(body.game_type) ? body.game_type : null;
+    const gameType = ['sudoku', '2048', 'new_game'].includes(body.game_type) ? body.game_type : null;
     const score = Number.isInteger(body.score) ? body.score : 0;
     const durationSeconds = Number.isInteger(body.duration_seconds) ? body.duration_seconds : null;
 
     if (!gameType) return withCors(json({ error: 'invalid game_type' }, 400));
 
     const db = getDb(env);
+    if (gameType === 'new_game') {
+        await ensureUnlockSchema(db);
+        const lock = await getUnlockState(db, session, 'new_game');
+        if (lock.is_locked) {
+            return withCors(json({ error: 'locked', message: lock.lock_reason }, 403));
+        }
+    }
+
     const { start, end, nextHourKST } = kstHourBounds();
     const hourlyRow = await db.prepare(
         `SELECT COUNT(*) as cnt FROM game_scores
@@ -792,6 +836,462 @@ async function handleRankings(request, env) {
             })),
         },
     }));
+}
+
+async function handleGetReviewComments(request, env) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    const userId = session?.user_id || null;
+    const isAdmin = isMasterAdmin(session);
+
+    const rows = await db.prepare(`
+        SELECT c.id, c.parent_comment_id, c.body, c.is_deleted, c.created_at, c.updated_at,
+               c.user_id,
+               COALESCE(NULLIF(p.nickname, ''), u.email, '사용자') AS nickname,
+               COUNT(cl.id) AS like_count,
+               MAX(CASE WHEN cl.user_id = ? THEN 1 ELSE 0 END) AS liked_by_me
+        FROM comments c
+        JOIN users u ON u.user_id = c.user_id
+        LEFT JOIN user_profiles p ON p.user_id = c.user_id
+        LEFT JOIN comment_likes cl ON cl.comment_id = c.id
+        GROUP BY c.id
+        ORDER BY COALESCE(c.parent_comment_id, c.id) ASC,
+                 CASE WHEN c.parent_comment_id IS NULL THEN 0 ELSE 1 END ASC,
+                 c.created_at ASC,
+                 c.id ASC`
+    ).bind(userId || '').all();
+
+    return withCors(json({
+        authenticated: Boolean(session),
+        nickname_required: Boolean(session && !session.nickname),
+        comments: (rows.results || []).map((row) => ({
+            id: row.id,
+            parent_comment_id: row.parent_comment_id,
+            body: row.is_deleted ? '삭제된 댓글입니다' : row.body,
+            is_deleted: Boolean(row.is_deleted),
+            created_at: row.created_at,
+            updated_at: row.updated_at,
+            nickname: row.is_deleted ? '' : row.nickname,
+            like_count: row.like_count || 0,
+            liked_by_me: Boolean(row.liked_by_me),
+            can_edit: Boolean(session && !row.is_deleted && row.user_id === session.user_id),
+            can_delete: Boolean(session && !row.is_deleted && (row.user_id === session.user_id || isAdmin)),
+        })),
+    }));
+}
+
+async function handleCreateReviewComment(request, env) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+    if (!session.nickname) return withCors(json({ error: 'nickname_required' }, 409));
+
+    const data = await request.json().catch(() => ({}));
+    const body = normalizeText(data.body, 100);
+    const parentId = data.parent_comment_id ? Number(data.parent_comment_id) : null;
+    if (!body) return withCors(json({ error: 'invalid_body', message: '댓글을 입력해주세요' }, 400));
+    if (parentId && !Number.isInteger(parentId)) return withCors(json({ error: 'invalid_parent' }, 400));
+
+    if (parentId) {
+        const parent = await db.prepare('SELECT id FROM comments WHERE id=? AND is_deleted=0')
+            .bind(parentId).first();
+        if (!parent) return withCors(json({ error: 'parent_not_found' }, 404));
+    }
+
+    const limit = await dailyCount(db, 'comments', session.user_id);
+    if (limit >= 3) {
+        return withCors(json({ error: 'daily_limit', message: '하루 등록 가능 댓글은 3개입니다' }, 429));
+    }
+
+    const result = await db.prepare(
+        `INSERT INTO comments (user_id, parent_comment_id, body, created_at, updated_at)
+         VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`
+    ).bind(session.user_id, parentId, body).run();
+
+    return withCors(json({ ok: true, id: result.meta?.last_row_id || null }));
+}
+
+async function handleEditReviewComment(request, env, commentId) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+
+    const data = await request.json().catch(() => ({}));
+    const body = normalizeText(data.body, 100);
+    if (!body) return withCors(json({ error: 'invalid_body', message: '댓글을 입력해주세요' }, 400));
+
+    const comment = await db.prepare('SELECT user_id, is_deleted FROM comments WHERE id=?')
+        .bind(commentId).first();
+    if (!comment) return withCors(json({ error: 'not_found' }, 404));
+    if (comment.is_deleted) return withCors(json({ error: 'deleted_comment' }, 400));
+    if (comment.user_id !== session.user_id) return withCors(json({ error: 'forbidden' }, 403));
+
+    await db.prepare(
+        `UPDATE comments SET body=?, updated_at=CURRENT_TIMESTAMP WHERE id=?`
+    ).bind(body, commentId).run();
+
+    return withCors(json({ ok: true }));
+}
+
+async function handleDeleteReviewComment(request, env, commentId) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+
+    const comment = await db.prepare('SELECT user_id, is_deleted FROM comments WHERE id=?')
+        .bind(commentId).first();
+    if (!comment) return withCors(json({ error: 'not_found' }, 404));
+    if (comment.is_deleted) return withCors(json({ ok: true }));
+    if (comment.user_id !== session.user_id && !isMasterAdmin(session)) {
+        return withCors(json({ error: 'forbidden' }, 403));
+    }
+
+    await db.prepare(
+        `UPDATE comments SET is_deleted=1, body='', deleted_at=CURRENT_TIMESTAMP, updated_at=CURRENT_TIMESTAMP WHERE id=?`
+    ).bind(commentId).run();
+
+    return withCors(json({ ok: true }));
+}
+
+async function handleToggleReviewLike(request, env, commentId) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+
+    const comment = await db.prepare('SELECT id, is_deleted FROM comments WHERE id=?')
+        .bind(commentId).first();
+    if (!comment || comment.is_deleted) return withCors(json({ error: 'not_found' }, 404));
+
+    const existing = await db.prepare('SELECT id FROM comment_likes WHERE comment_id=? AND user_id=?')
+        .bind(commentId, session.user_id).first();
+    if (existing) {
+        await db.prepare('DELETE FROM comment_likes WHERE comment_id=? AND user_id=?')
+            .bind(commentId, session.user_id).run();
+    } else {
+        await db.prepare('INSERT OR IGNORE INTO comment_likes (comment_id, user_id) VALUES (?, ?)')
+            .bind(commentId, session.user_id).run();
+    }
+
+    const row = await db.prepare('SELECT COUNT(*) AS cnt FROM comment_likes WHERE comment_id=?')
+        .bind(commentId).first();
+    return withCors(json({ ok: true, liked: !existing, like_count: row?.cnt || 0 }));
+}
+
+async function handleSubmitOperatorFeedback(request, env) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+    if (!session.nickname) return withCors(json({ error: 'nickname_required' }, 409));
+
+    const data = await request.json().catch(() => ({}));
+    const body = normalizeText(data.body, 200);
+    if (!body) return withCors(json({ error: 'invalid_body', message: '의견을 입력해주세요' }, 400));
+
+    const limit = await dailyCount(db, 'operator_feedback', session.user_id);
+    if (limit >= 3) {
+        return withCors(json({ error: 'daily_limit', message: '하루 등록 가능 의견은 3개입니다' }, 429));
+    }
+
+    await db.prepare(
+        `INSERT INTO operator_feedback (user_id, body, created_at)
+         VALUES (?, ?, CURRENT_TIMESTAMP)`
+    ).bind(session.user_id, body).run();
+
+    return withCors(json({ ok: true, message: '정상 접수되었습니다. 감사합니다' }));
+}
+
+async function handleSaveReviewNickname(request, env) {
+    const db = getDb(env);
+    await ensureReviewSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+
+    const data = await request.json().catch(() => ({}));
+    const nickname = normalizeText(data.nickname, 20);
+    if (!nickname) return withCors(json({ error: 'invalid_nickname', message: '닉네임을 입력해주세요' }, 400));
+
+    const duplicate = await db.prepare(
+        `SELECT user_id FROM user_profiles WHERE nickname = ? AND user_id != ? LIMIT 1`
+    ).bind(nickname, session.user_id).first();
+    if (duplicate) {
+        return withCors(json({ error: 'duplicate_nickname', message: '이미 사용 중인 닉네임입니다' }, 409));
+    }
+
+    const now = new Date().toISOString();
+    try {
+        await db.prepare(
+            `INSERT INTO user_profiles (user_id, nickname, created_at, updated_at)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(user_id) DO UPDATE SET
+               nickname=excluded.nickname,
+               updated_at=excluded.updated_at`
+        ).bind(session.user_id, nickname, now, now).run();
+    } catch (error) {
+        if (String(error?.message || error).toLowerCase().includes('unique')) {
+            return withCors(json({ error: 'duplicate_nickname', message: '이미 사용 중인 닉네임입니다' }, 409));
+        }
+        throw error;
+    }
+
+    return withCors(json({ ok: true, nickname }));
+}
+
+async function ensureReviewSchema(db) {
+    if (reviewSchemaReady) return;
+
+    const profileColumns = await db.prepare('PRAGMA table_info(user_profiles)').all();
+    const hasNickname = (profileColumns.results || []).some((column) => column.name === 'nickname');
+    if (!hasNickname) {
+        await db.prepare('ALTER TABLE user_profiles ADD COLUMN nickname TEXT').run();
+    }
+
+    await db.batch([
+        db.prepare(`CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            parent_comment_id INTEGER,
+            body TEXT NOT NULL,
+            is_deleted INTEGER NOT NULL DEFAULT 0,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            deleted_at TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (parent_comment_id) REFERENCES comments(id)
+        )`),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments(parent_comment_id)'),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_comments_user_created ON comments(user_id, created_at)'),
+        db.prepare(`CREATE TABLE IF NOT EXISTS comment_likes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            comment_id INTEGER NOT NULL,
+            user_id TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (comment_id) REFERENCES comments(id),
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            UNIQUE(comment_id, user_id)
+        )`),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_comment_likes_comment ON comment_likes(comment_id)'),
+        db.prepare(`CREATE TABLE IF NOT EXISTS operator_feedback (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            body TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(user_id)
+        )`),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_operator_feedback_user_created ON operator_feedback(user_id, created_at)'),
+    ]);
+
+    try {
+        await db.prepare(
+            `CREATE UNIQUE INDEX IF NOT EXISTS idx_user_profiles_nickname_unique
+             ON user_profiles(nickname)
+             WHERE nickname IS NOT NULL AND nickname != ''`
+        ).run();
+    } catch (error) {
+        console.warn('Nickname unique index was not created:', error?.message || error);
+    }
+
+    reviewSchemaReady = true;
+}
+
+async function dailyCount(db, table, userId) {
+    const row = await db.prepare(
+        `SELECT COUNT(*) AS cnt FROM ${table}
+         WHERE user_id = ? AND date(created_at) = date('now')`
+    ).bind(userId).first();
+    return row?.cnt || 0;
+}
+
+function normalizeText(value, maxLength) {
+    if (typeof value !== 'string') return '';
+    const text = value.trim();
+    return text.length <= maxLength ? text : '';
+}
+
+function isMasterAdmin(session) {
+    return Boolean(session?.email && session.email.toLowerCase() === MASTER_ADMIN_EMAIL);
+}
+
+async function handleGetUnlockables(request, env) {
+    const db = getDb(env);
+    await ensureUnlockSchema(db);
+    const session = await getSessionUser(db, request);
+    const rows = await db.prepare(
+        `SELECT item_key, item_type, display_name, lock_type, lock_value, lock_reason
+         FROM unlockable_items
+         WHERE is_active=1
+         ORDER BY id ASC`
+    ).all();
+    const items = [];
+    for (const row of rows.results || []) {
+        items.push(await getUnlockState(db, session, row.item_key, row));
+    }
+    return withCors(json({ authenticated: Boolean(session), items }));
+}
+
+async function handleCheckUnlockable(request, env) {
+    const db = getDb(env);
+    await ensureUnlockSchema(db);
+    const session = await getSessionUser(db, request);
+    const itemKey = new URL(request.url).searchParams.get('item_key') || '';
+    if (!itemKey) return withCors(json({ error: 'item_key_required' }, 400));
+    return withCors(json(await getUnlockState(db, session, itemKey)));
+}
+
+async function handleGetReferral(request, env) {
+    const db = getDb(env);
+    await ensureUnlockSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ authenticated: false, referral: null }));
+
+    const row = await db.prepare(
+        `SELECT referrer_email, created_at, reward_status
+         FROM user_referrals
+         WHERE user_id=?`
+    ).bind(session.user_id).first();
+    return withCors(json({
+        authenticated: true,
+        referral: row ? {
+            referrer_email: row.referrer_email,
+            created_at: row.created_at,
+            reward_status: row.reward_status,
+            editable: false,
+            reason: '추천계정 입력 후에는 수정할 수 없습니다.',
+        } : {
+            referrer_email: null,
+            editable: true,
+            reason: '추천계정은 기존에 가입된 계정이어야 합니다.',
+        },
+    }));
+}
+
+async function handleSaveReferral(request, env) {
+    const db = getDb(env);
+    await ensureUnlockSchema(db);
+    const session = await getSessionUser(db, request);
+    if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
+
+    const existing = await db.prepare('SELECT id FROM user_referrals WHERE user_id=?')
+        .bind(session.user_id).first();
+    if (existing) {
+        return withCors(json({ error: 'immutable_referral', message: '추천계정 입력 후에는 수정할 수 없습니다.' }, 409));
+    }
+
+    const data = await request.json().catch(() => ({}));
+    const referrerEmail = typeof data.referrer_email === 'string'
+        ? data.referrer_email.trim().toLowerCase()
+        : '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(referrerEmail)) {
+        return withCors(json({ error: 'invalid_email', message: '올바른 이메일을 입력해주세요.' }, 400));
+    }
+    if (session.email && referrerEmail === session.email.toLowerCase()) {
+        return withCors(json({ error: 'self_referral', message: '본인 계정은 추천계정으로 입력할 수 없습니다.' }, 400));
+    }
+
+    const referrer = await db.prepare('SELECT user_id, email FROM users WHERE lower(email)=?')
+        .bind(referrerEmail).first();
+    if (!referrer) {
+        return withCors(json({ error: 'referrer_not_found', message: '추천계정은 기존에 가입된 계정이어야 합니다.' }, 404));
+    }
+
+    await db.prepare(
+        `INSERT INTO user_referrals (user_id, referrer_user_id, referrer_email, created_at, reward_status)
+         VALUES (?, ?, ?, CURRENT_TIMESTAMP, 'pending')`
+    ).bind(session.user_id, referrer.user_id, referrerEmail).run();
+
+    return withCors(json({ ok: true, referrer_email: referrerEmail, editable: false }));
+}
+
+async function ensureUnlockSchema(db) {
+    await db.batch([
+        db.prepare(`CREATE TABLE IF NOT EXISTS unlockable_items (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            item_key TEXT NOT NULL UNIQUE,
+            item_type TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            lock_type TEXT NOT NULL DEFAULT 'none',
+            lock_value TEXT,
+            lock_reason TEXT,
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )`),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_unlockable_items_type ON unlockable_items(item_type)'),
+        db.prepare(`CREATE TABLE IF NOT EXISTS user_unlocks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            item_key TEXT NOT NULL,
+            unlocked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            unlock_source TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            UNIQUE(user_id, item_key)
+        )`),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_user_unlocks_user ON user_unlocks(user_id)'),
+        db.prepare(`CREATE TABLE IF NOT EXISTS user_referrals (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL UNIQUE,
+            referrer_user_id TEXT NOT NULL,
+            referrer_email TEXT NOT NULL,
+            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            reward_status TEXT NOT NULL DEFAULT 'pending',
+            reward_granted_at TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(user_id),
+            FOREIGN KEY (referrer_user_id) REFERENCES users(user_id)
+        )`),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_user_referrals_referrer ON user_referrals(referrer_user_id)'),
+        db.prepare('CREATE INDEX IF NOT EXISTS idx_user_referrals_email ON user_referrals(referrer_email)'),
+        db.prepare(`INSERT INTO unlockable_items (
+            item_key, item_type, display_name, lock_type, lock_value, lock_reason, is_active
+        ) VALUES (
+            'new_game', 'sheet', 'NewGame', 'referral', '2', '친구추천 2명 달성 시 이용할 수 있습니다', 1
+        )
+        ON CONFLICT(item_key) DO UPDATE SET
+            item_type=excluded.item_type,
+            display_name=excluded.display_name,
+            lock_type=excluded.lock_type,
+            lock_value=excluded.lock_value,
+            lock_reason=excluded.lock_reason,
+            is_active=excluded.is_active,
+            updated_at=CURRENT_TIMESTAMP`),
+    ]);
+}
+
+async function getUnlockState(db, session, itemKey, item = null) {
+    const row = item || await db.prepare(
+        `SELECT item_key, item_type, display_name, lock_type, lock_value, lock_reason
+         FROM unlockable_items
+         WHERE item_key=? AND is_active=1`
+    ).bind(itemKey).first();
+    if (!row) {
+        return { item_key: itemKey, is_locked: true, lock_reason: '잠금 정보를 찾을 수 없습니다.' };
+    }
+    if (row.lock_type === 'none') return { ...row, is_locked: false, lock_reason: null };
+    if (!session) return { ...row, is_locked: true };
+
+    const manual = await db.prepare('SELECT id FROM user_unlocks WHERE user_id=? AND item_key=?')
+        .bind(session.user_id, row.item_key).first();
+    if (manual) return { ...row, is_locked: false, lock_reason: null };
+
+    if (row.lock_type === 'referral') {
+        const required = Number.parseInt(row.lock_value || '0', 10);
+        const countRow = await db.prepare(
+            `SELECT COUNT(*) AS cnt
+             FROM user_referrals
+             WHERE referrer_user_id=?
+               AND reward_status IN ('pending', 'granted')`
+        ).bind(session.user_id).first();
+        if ((countRow?.cnt || 0) >= required) {
+            return { ...row, is_locked: false, lock_reason: null, referral_count: countRow?.cnt || 0 };
+        }
+        return { ...row, is_locked: true, referral_count: countRow?.cnt || 0 };
+    }
+
+    return { ...row, is_locked: true };
 }
 
 // --- Dev-login: preview-only QA session endpoint ---

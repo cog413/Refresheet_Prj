@@ -298,6 +298,25 @@ const eased = (m.mode === 'walk' || m.mode === 'run')
 - Management sheet dashboard overlap should be resolved with existing grid/flex grouping, not ad hoc margin offsets.
 - Realtime analysis visuals should render on the actual canvas with DPR-aware sizing instead of static pseudo placeholders.
 
+## Review Tab Policy
+
+- The Excel ribbon `검토` tab opens a separate review sheet and must not alter the default initial sheet.
+- Review comments/replies/likes are public; operator feedback is private/admin-only and must never be shown in public comments.
+- Review DB schema follows the project auth key: `users.user_id TEXT`.
+- Comment/reply creation and operator feedback limits are enforced in the Worker, not only in frontend UI.
+- Master admin permissions are checked backend-side by email `jhchae9080@gmail.com`.
+- Review data lives in separate D1 tables: `comments`, `comment_likes`, `operator_feedback`; do not overload existing auth/profile tables for comment bodies or feedback.
+- `006_qa_seed.sql` is preview-only. Do not run full remote `migrations apply` on production until that pending migration is handled.
+
+## Unlock / Referral Policy
+
+- Original Sudoku must remain unchanged; NewGame is a separate temporary copied Sudoku placeholder at `src/games/newgame/newGame.js`.
+- Lockable sheets/characters are represented by `unlockable_items` and optional `user_unlocks`; referral tracking uses `user_referrals`.
+- All unlock/referral schemas use `users.user_id TEXT`, not `users(id)`.
+- Referral emails are one-time immutable values, normalized lowercase, existing-user only, and self-referrals are rejected backend-side.
+- NewGame uses `item_key='new_game'`, `lock_type='referral'`, `lock_value='2'`, and reason `친구추천 2명 달성 시 이용할 수 있습니다`.
+- Frontend may show lock state, but Worker must enforce NewGame lock when saving/using `game_type='new_game'`.
+
 ## #CHCK# — Live Preview Inspection Workflow
 
 Keyword: `#CHCK#`
@@ -351,3 +370,58 @@ When a user message contains `#CHCK#`, the agent MUST inspect the actual live pr
 - On success: issues the same `refresheet_session` cookie as Google OAuth.
 - QA account: `qa_jhchae908p@refresheet.test` / `usr_qa_refresheet_test_0001`.
 - Seed: `docs/migrations/006_qa_seed.sql` — apply to preview DB only.
+
+---
+
+# Refresheet 1차 목표 (기준일: 2026.05.10)
+
+## 주요 1차 범위
+
+1. 캐릭터 추가
+- 고양이 캐릭터 추가
+- 고양이는 친구추천 2회 이상 유저에게 잠금해제
+- 잠금 상태에서는 자물쇠 아이콘 표시
+- hover tooltip:
+  "친구추천 2명 달성 시 이용할 수 있습니다"
+
+2. 게임 추가
+- 기존 Sudoku 유지
+- 한컴타자 게임 추가
+- 단어맞추기 게임 추가
+- 한컴타자는 공개
+- 단어맞추기는 친구추천 2회 이상 유저에게 잠금해제
+- 단어맞추기 잠금 상태에서는 자물쇠 아이콘 표시
+- hover tooltip:
+  "친구추천 2명 달성 시 이용할 수 있습니다"
+
+3. 광고 추가
+- 서비스 유지용 광고 추가
+- UX를 해치지 않는 선에서 배치
+- 팝업 광고 금지
+- 게임 플레이 방해 금지
+- 엑셀 UI 감성 유지
+
+4. 모바일 대응
+- 모바일에서도 사용 가능하도록 반응형 수정
+- 로그인, 시트 이동, 게임 실행이 모바일에서 가능해야 함
+- PC 엑셀 UI를 억지로 축소하지 말고, 필요 시 모바일 전용 축약 UI 허용
+
+5. 점수 / 아이템 / 먹이 기능
+- 게임 점수로 아이템 구매 가능
+- 게임 점수로 캐릭터 먹이 구매 가능
+- 캐릭터에게 먹이 주기 가능
+- 다마고치 느낌은 살리되, 복잡한 스탯/RPG화는 금지
+
+## 잠금/추천인 기준
+- 친구추천 2회 기준으로 잠금해제
+- 추천계정은 1회만 입력 가능
+- 추천계정 입력 후에는 수정할 수 없음
+- 추천계정은 기존에 가입된 계정이어야 함
+- 자기 자신 추천 금지
+
+## 구현 원칙
+- 기존 Sudoku 원본은 건드리지 말 것
+- 기존 구조를 무리하게 리팩토링하지 말 것
+- 필요한 범위만 수정
+- 1차 목표 기록용 context로 추가
+- 실제 구현은 별도 명령 전까지 하지 말 것
