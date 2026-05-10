@@ -41,6 +41,8 @@ export class PattieRoamingController {
         this.mode = 'walk';
         this.jumpMotion = null;
         this.climbTargetY = null;
+        this.chartBarIndex = 0;
+        this.chartAction = 'jump';
         this.lastInteractionAt = Date.now();
         this.lastDecisionAt = 0;
         this.raf = null;
@@ -137,9 +139,11 @@ export class PattieRoamingController {
             return;
         }
 
-        const mode = weightedPick(this.zone?.weights || this.config.zones[0].weights);
-        if (mode === 'climb' && this.findNearestBar()) {
-            this.startClimb();
+        const mode = this.zone?.id === 'chart-zone'
+            ? this.nextChartAction()
+            : weightedPick(this.zone?.weights || this.config.zones[0].weights);
+        if (mode === 'climb' && this.findTargetBar()) {
+            this.startClimb(this.findTargetBar());
         } else if (mode === 'jump') {
             this.startJump(this.zone?.id === 'chart-zone' ? this.findNextBarPlatform() : null);
         } else {
@@ -228,8 +232,8 @@ export class PattieRoamingController {
         }
     }
 
-    startClimb() {
-        const bar = this.findNearestBar();
+    startClimb(targetBar = null) {
+        const bar = targetBar || this.findNearestBar();
         if (bar) {
             const root = this.rootRect();
             const size = this.config.movement.spriteSize;
@@ -243,12 +247,12 @@ export class PattieRoamingController {
 
     happy() {
         this.lastInteractionAt = Date.now();
-        this.sprite.play('happy', { restart: true, once: true, next: 'walk' });
+        this.sprite.play('happy', { restart: true, once: true, next: this.zone?.id === 'chart-zone' ? 'idle' : 'walk' });
         this.mode = 'happy';
         document.dispatchEvent(new CustomEvent('refresheet:pattie-happy'));
         fetch('/api/minime/interact', { method: 'POST', credentials: 'include' }).catch(() => {});
         setTimeout(() => {
-            if (this.mode === 'happy') this.setMode('walk');
+            if (this.mode === 'happy') this.setMode(this.zone?.id === 'chart-zone' ? 'idle' : 'walk');
         }, 1300);
     }
 
@@ -260,9 +264,15 @@ export class PattieRoamingController {
         const zone = this.pickNearestZone();
         if (!zone) return;
         const root = this.rootRect();
-        this.x = zone.bounds.left - root.left + 40;
-        this.y = zone.bounds.top - root.top + 200;
         this.zone = zone;
+        const firstBar = this.getSortedBars()[0];
+        if (zone.id === 'chart-zone' && firstBar) {
+            this.x = firstBar.left + firstBar.width / 2 - root.left - this.config.movement.spriteSize / 2;
+            this.y = firstBar.top - root.top - this.config.movement.spriteSize + 6;
+        } else {
+            this.x = zone.bounds.left - root.left + 40;
+            this.y = zone.bounds.top - root.top + 40;
+        }
         this.sprite?.setPosition(this.x, this.y, this.direction);
         this.updateNameplate();
     }
@@ -302,6 +312,13 @@ export class PattieRoamingController {
         return bars.sort((a, b) => Math.abs(centerX - (a.left + a.width / 2)) - Math.abs(centerX - (b.left + b.width / 2)))[0];
     }
 
+    findTargetBar() {
+        const bars = this.getSortedBars();
+        if (!bars.length) return null;
+        this.chartBarIndex = clamp(this.chartBarIndex, 0, bars.length - 1);
+        return bars[this.chartBarIndex];
+    }
+
     getSortedBars() {
         return Array.from(this.root.querySelectorAll(this.config.terrainRules.chartBar.selector))
             .map((bar) => bar.getBoundingClientRect())
@@ -314,15 +331,26 @@ export class PattieRoamingController {
         if (!bars.length) return null;
         const root = this.rootRect();
         const size = this.config.movement.spriteSize;
-        const centerX = root.left + this.x + size / 2;
-        const forward = this.direction >= 0
-            ? bars.find((bar) => bar.left + bar.width / 2 > centerX + 6)
-            : [...bars].reverse().find((bar) => bar.left + bar.width / 2 < centerX - 6);
-        const target = forward || (this.direction >= 0 ? bars[0] : bars[bars.length - 1]);
+        this.chartBarIndex += this.direction;
+        if (this.chartBarIndex >= bars.length) {
+            this.chartBarIndex = bars.length - 2;
+            this.direction = -1;
+        } else if (this.chartBarIndex < 0) {
+            this.chartBarIndex = 1;
+            this.direction = 1;
+        }
+        this.chartBarIndex = clamp(this.chartBarIndex, 0, bars.length - 1);
+        const target = bars[this.chartBarIndex];
         return {
             x: target.left + target.width / 2 - root.left - size / 2,
             y: target.top - root.top - size + 6,
         };
+    }
+
+    nextChartAction() {
+        const action = this.chartAction;
+        this.chartAction = action === 'jump' ? 'climb' : 'jump';
+        return action;
     }
 
     rootRect() {

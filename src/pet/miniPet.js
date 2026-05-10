@@ -225,7 +225,7 @@ function buildDOM() {
             <span style="color:#111;font-weight:bold">● 분석 포인트</span>
         </div>`;
 
-    habitat.append(table, projectTable, chart, trend, map);
+    habitat.append(table, projectTable, trend, map, chart);
     initPattieWorld(habitat);
 }
 

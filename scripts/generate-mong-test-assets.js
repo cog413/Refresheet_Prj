@@ -206,6 +206,36 @@ function sheet(frames) {
     return out;
 }
 
+function alphaBounds(src) {
+    let minX = src.width, minY = src.height, maxX = -1, maxY = -1;
+    for (let y = 0; y < src.height; y++) {
+        for (let x = 0; x < src.width; x++) {
+            if (get(src, x, y)[3] === 0) continue;
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x);
+            maxY = Math.max(maxY, y);
+        }
+    }
+    if (maxX < minX || maxY < minY) return null;
+    return { minX, minY, maxX, maxY, width: maxX - minX + 1, height: maxY - minY + 1 };
+}
+
+function normalizeFrame(src, targetCenterX = 32, targetBottomY = 60) {
+    const b = alphaBounds(src);
+    if (!b) return src;
+    const dst = blank(src.width, src.height);
+    const currentCenterX = b.minX + b.width / 2;
+    const dx = Math.round(targetCenterX - currentCenterX);
+    const dy = Math.round(targetBottomY - b.maxY);
+    for (let y = 0; y < src.height; y++) {
+        for (let x = 0; x < src.width; x++) {
+            set(dst, x + dx, y + dy, get(src, x, y));
+        }
+    }
+    return dst;
+}
+
 function copyAnimation(name, frames, frameDurationMs) {
     const out = sheet(frames);
     writePng(out.width, out.height, out.pixels, path.join(OUT_CHAR, `${name}.png`));
@@ -235,9 +265,9 @@ function main() {
         'Keep this separate from final Pattie assets for easy deletion/replacement.',
     ].join('\n'));
 
-    const idle = loadFrames('idle', /\.png$/i);
-    const walk = loadFrames('walk', /\.png$/i);
-    const run = loadFrames('run', /\.png$/i);
+    const idle = loadFrames('idle', /\.png$/i).map((frame) => normalizeFrame(frame));
+    const walk = loadFrames('walk', /\.png$/i).map((frame) => normalizeFrame(frame));
+    const run = loadFrames('run', /\.png$/i).map((frame) => normalizeFrame(frame));
     const base = idle[0] || walk[0] || run[0];
 
     const sleepBase = run[Math.floor(run.length / 2)] || walk[0] || base;

@@ -777,11 +777,10 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 /* ??而⑦뀒?대꼫 - position:relative ?꾩닔 (?ㅽ봽?쇱씠???덈? ?꾩튂 湲곗?) */
 .mp-scene {
     position: relative;
-    display: flex;
-    align-items: flex-start;
-    gap: 24px;              /* JS: SCENE_GAP=24 */
-    padding: 20px 40px;     /* JS: PAD_T=20, PAD_L=40 */
-    min-height: 850px;
+    display: block;
+    padding: 6px 8px 0;
+    min-width: 1040px;
+    min-height: 620px;
     background: #fff;
     overflow: auto;
 }
@@ -851,10 +850,12 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 
 /* ?? ?ㅼ쟻?ν몴 ??????????????????????????????????????? */
 .mp-table {
-    flex-shrink: 0;
+    position: absolute;
     border-left: 1px solid #c8c6c4;
     border-top:  1px solid #c8c6c4;
 }
+.mp-table:nth-of-type(1) { left: 6px; top: 6px; }
+.proj-table { left: 274px; top: 6px; }
 
 .mht-row {
     display: grid;
@@ -890,13 +891,17 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 
 /* ?? 李⑦듃 ??????????????????????????????????????????? */
 .mp-chart {
-    flex-shrink: 0;
-    width: 220px;
+    position: absolute;
+    left: 520px;
+    top: 390px;
+    width: 280px;
+    height: 190px;
     border: 1px solid #c8c6c4;
     background: #fff;
-    padding: 12px;
+    padding: 10px 12px 12px;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .mp-chart-title {
@@ -909,12 +914,17 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 }
 
 .mp-bars {
+    position: relative;
     display: flex;
     align-items: flex-end;
-    gap: 4px;
-    height: 180px;  /* JS: BAR_AREA_H (getBoundingClientRect 湲곗?) */
-    padding-top: 16px;
+    gap: 8px;
+    height: 142px;
+    padding: 10px 6px 0 10px;
     flex: 1;
+    border-left: 1px solid #d9d9d9;
+    border-bottom: 1px solid #d9d9d9;
+    background:
+        repeating-linear-gradient(to top, transparent 0 27px, rgba(217,217,217,0.75) 27px 28px);
 }
 
 .mp-col {
@@ -932,6 +942,7 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
     border-radius: 2px 2px 0 0;
     background: linear-gradient(to top, #2e75b6, #5b9bd5);
     transition: height 0.7s ease-out;
+    min-height: 18px;
 }
 .mp-col:nth-child(5) .mp-bar { background: linear-gradient(to top, #375623, #70ad47); }
 .mp-col:nth-child(6) .mp-bar { background: linear-gradient(to top, #c55a11, #ed7d31); }
@@ -941,8 +952,11 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 
 /* ?? ?쒖떇吏 留??????????????????????????????????????? */
 .mp-minimap {
-    flex-shrink: 0;
-    width: 160px;
+    position: absolute;
+    left: 886px;
+    top: 6px;
+    width: 128px;
+    height: 142px;
     border: 1px solid #c8c6c4;
     background: #fff;
     padding: 10px;
@@ -1106,8 +1120,11 @@ body.dark-mode .pattie-item-choice {
 
 /* Trend chart panel */
 .mp-trend {
-    flex-shrink: 0;
-    width: 160px;
+    position: absolute;
+    left: 735px;
+    top: 6px;
+    width: 132px;
+    height: 126px;
     border: 1px solid #c8c6c4;
     background: #fff;
     padding: 10px;
@@ -1118,6 +1135,21 @@ body.dark-mode .pattie-item-choice {
 }
 .mp-trend-svg { display: block; }
 body.dark-mode .mp-trend { background: #2d2d2d; border-color: #444; }
+
+.mp-minimap canvas {
+    display: none;
+}
+.mp-minimap::after {
+    content: '';
+    display: block;
+    height: 80px;
+    margin-top: 8px;
+    border: 1px solid #d9d9d9;
+    background:
+        linear-gradient(#fff, #fff) padding-box,
+        repeating-linear-gradient(to right, transparent 0 22px, rgba(91,155,213,0.18) 22px 23px),
+        repeating-linear-gradient(to bottom, transparent 0 18px, rgba(91,155,213,0.18) 18px 19px);
+}
 
 /* Sudoku — same number highlight */
 .sudoku .excel-cell.same-number {
