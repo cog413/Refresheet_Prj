@@ -47,6 +47,8 @@ export class PattieRoamingController {
         this.lastInteractionAt = Date.now();
         this.lastDecisionAt = 0;
         this.raf = null;
+        this.speechBubble = null;
+        this.speechTimer = null;
         this.boundTick = this.tick.bind(this);
         this.boundSpeech = this.handleSpeech.bind(this);
     }
@@ -64,6 +66,9 @@ export class PattieRoamingController {
         this.nameplate.className = 'pattie-nameplate';
         this.nameplate.textContent = this.profile.nickname || DEFAULT_PROFILE.nickname;
         this.root.appendChild(this.nameplate);
+        this.speechBubble = document.createElement('div');
+        this.speechBubble.className = 'pattie-speech';
+        this.root.appendChild(this.speechBubble);
         this.bindEvents();
         this.placeAtFirstZone();
         this.start();
@@ -74,6 +79,7 @@ export class PattieRoamingController {
         this.root.classList.add('pattie-world');
         if (this.sprite && !this.root.contains(this.sprite.el)) this.root.appendChild(this.sprite.el);
         if (this.nameplate && !this.root.contains(this.nameplate)) this.root.appendChild(this.nameplate);
+        if (this.speechBubble && !this.root.contains(this.speechBubble)) this.root.appendChild(this.speechBubble);
         this.placeAtFirstZone();
     }
 
@@ -119,6 +125,8 @@ export class PattieRoamingController {
     stop() {
         this.active = false;
         cancelAnimationFrame(this.raf);
+        clearTimeout(this.speechTimer);
+        if (this.speechBubble) this.speechBubble.classList.remove('visible');
     }
 
     tick(now) {
@@ -357,6 +365,19 @@ export class PattieRoamingController {
 
     handleSpeech(event) {
         if (event.detail?.manual) this.happy();
+        if (event.detail?.text) {
+            this.showSpeech(event.detail.text, event.detail.duration || 4200);
+        }
+    }
+
+    showSpeech(text, duration) {
+        if (!this.speechBubble) return;
+        this.speechBubble.textContent = text;
+        this.speechBubble.classList.add('visible');
+        clearTimeout(this.speechTimer);
+        this.speechTimer = setTimeout(() => {
+            this.speechBubble?.classList.remove('visible');
+        }, duration);
     }
 
     placeAtFirstZone() {
@@ -451,8 +472,8 @@ export class PattieRoamingController {
         const bars = this.getSortedBars().map((bar, index) => ({
             id: `bar-${index}`,
             kind: 'bar',
-            minX: bar.left + 1,
-            maxX: bar.right - size - 1,
+            minX: bar.pairLeft + 1,
+            maxX: bar.pairLeft + bar.pairWidth - size - 1,
             y: bar.top - size,
         })).filter((surface) => {
             const heightFromFloor = Math.abs(surface.y - floorY);
@@ -478,7 +499,12 @@ export class PattieRoamingController {
 
     getSortedBars() {
         return Array.from(this.root.querySelectorAll(this.config.terrainRules.chartBar.selector))
-            .map((bar) => this.getLocalRect(bar))
+            .map((bar) => {
+                const rect = this.getLocalRect(bar);
+                const pair = bar.parentElement;
+                const pairRect = pair ? this.getLocalRect(pair) : rect;
+                return { ...rect, pairLeft: pairRect.left, pairWidth: pairRect.width };
+            })
             .filter((rect) => rect.width > 0 && rect.height > 0)
             .sort((a, b) => a.left - b.left);
     }
@@ -545,8 +571,13 @@ export class PattieRoamingController {
 
     updateNameplate() {
         if (!this.nameplate) return;
+        const size = this.config.movement.spriteSize;
         this.nameplate.style.left = `${Math.round(this.x)}px`;
         this.nameplate.style.top = `${Math.round(this.y)}px`;
+        if (this.speechBubble) {
+            this.speechBubble.style.left = `${Math.round(this.x + size / 2)}px`;
+            this.speechBubble.style.top = `${Math.round(this.y - 18)}px`;
+        }
     }
 }
 

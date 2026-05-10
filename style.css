@@ -325,7 +325,7 @@ body {
 /* Mini Pet UI Overlay */
 .mini-pet-ui-overlay {
     position: absolute;
-    top: 650px;
+    top: 400px;
     left: 40px;
     z-index: 100;
     pointer-events: none; /* Let clicks pass through if not on a button */
@@ -850,6 +850,52 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
     white-space: nowrap;
 }
 
+.pattie-speech {
+    position: absolute;
+    z-index: 140;
+    max-width: 200px;
+    min-width: 80px;
+    padding: 6px 10px;
+    background: #fff;
+    border: 1.5px solid #70ad47;
+    border-radius: 8px;
+    font-size: 11px;
+    color: #1a1a1a;
+    text-align: center;
+    line-height: 1.45;
+    pointer-events: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    transform: translateX(-50%) translateY(calc(-100% - 4px));
+}
+.pattie-speech.visible {
+    opacity: 1;
+}
+.pattie-speech::after {
+    content: '';
+    position: absolute;
+    bottom: -7px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #70ad47;
+    border-bottom: none;
+}
+.pattie-speech::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    z-index: 1;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #fff;
+    border-bottom: none;
+}
+
 /* ?? ?ㅼ쟻?ν몴 ??????????????????????????????????????? */
 .mp-table {
     position: absolute;
@@ -1146,6 +1192,12 @@ body.dark-mode .pattie-item-choice {
     border-color: #555;
     color: #d4d4d4;
 }
+body.dark-mode .pattie-speech {
+    background: #2a2a2a;
+    border-color: #70ad47;
+    color: #e0e0e0;
+}
+body.dark-mode .pattie-speech::before { border-top-color: #2a2a2a; }
 
 /* Pet strain animation (낑낑 모션) */
 @keyframes strain {
