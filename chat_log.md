@@ -2,6 +2,94 @@
 
 ---
 
+### [2026-05-10 23:42] (CLI: codex)
+
+**1. 목표**
+- 원본 Sudoku를 수정하지 않고 복사본 기반 NewGame placeholder를 추가하고, 추천 2명 조건 잠금과 일회성 추천계정 입력을 구현.
+
+**2. 현재 상태**
+- 원본 Sudoku 파일 `src/games/sudoku/sudoku.js`는 변경 없음.
+- NewGame 복사본은 `src/games/newgame/newGame.js`, sheet DOM은 `#newgame-sheet/#newgame-grid`, tab은 SDK 뒤에 위치.
+
+**3. 문제**
+- 요청 예시 DB는 `users(id)`를 기준으로 했지만 현 프로젝트는 `users.user_id TEXT`가 기준이라 그대로 쓰면 외래키가 깨짐.
+- `wrangler d1 migrations apply`는 preview-only `006_qa_seed.sql` pending 때문에 운영 DB에 그대로 실행하면 위험함.
+
+**4. 시도한 것**
+- NewGame용 JS/HTML/CSS를 별도로 추가하고 원본 Sudoku는 읽기만 함.
+- Worker에 `/api/unlockables`, `/api/unlockables/check`, `/api/referral` GET/POST를 추가.
+- `docs/migrations/008_unlockables_referrals.sql`를 만들고 원격 D1에는 파일 직접 execute로 반영.
+
+**5. 해결 / 인사이트**
+- 원격 D1에 `unlockable_items`, `user_unlocks`, `user_referrals` 테이블과 관련 인덱스 생성 확인.
+- `unlockable_items`에 `new_game` seed 확인: `sheet`, `referral`, `2`, `친구추천 2명 달성 시 이용할 수 있습니다`.
+- NewGame tab은 잠금 상태에서 🔒와 tooltip을 표시하고 클릭을 차단한다.
+- Worker는 `game_type='new_game'` 점수 저장 시에도 unlock 상태를 다시 확인해 잠긴 사용자를 거부한다.
+
+**6. 반영 필요 사항 (중요)**
+- NewGame 관련 수정은 복사본 `src/games/newgame/newGame.js`에서만 수행하고 원본 Sudoku는 건드리지 않는다.
+- 추천계정은 한 번 저장되면 수정 불가이며, 기존 가입자 이메일만 허용한다.
+- 운영 DB migration은 `006_qa_seed.sql` 처리 전까지 전체 apply 대신 필요한 파일만 직접 execute한다.
+
+---
+
+### [2026-05-10 23:27] (CLI: codex)
+
+**1. 목표**
+- 검토 탭 댓글/좋아요/운영자 의견 기능에 필요한 D1 테이블을 실제 원격 DB에 반영.
+
+**2. 현재 상태**
+- D1 binding은 `DB`, database는 `db_game_info` (`5c560a75-93a5-4414-88fc-0bd8e9ff4e26`).
+- `wrangler d1 migrations list DB --remote` 결과 `006_qa_seed.sql`, `007_review_comments.sql` 두 개가 pending으로 표시됨.
+
+**3. 문제**
+- 전체 `migrations apply`를 실행하면 preview 전용 `006_qa_seed.sql`까지 운영 DB에 적용될 위험이 있음.
+
+**4. 시도한 것**
+- 전체 apply 대신 `npx.cmd wrangler d1 execute DB --remote --file=./docs/migrations/007_review_comments.sql`로 007만 직접 적용.
+- 적용 후 테이블/컬럼/인덱스 존재 여부를 원격 D1에서 확인.
+
+**5. 해결 / 인사이트**
+- 원격 D1에 `comments`, `comment_likes`, `operator_feedback` 테이블 생성 확인.
+- `idx_user_profiles_nickname_unique`, `idx_comments_parent`, `idx_comments_user_created`, `idx_comment_likes_comment`, `idx_operator_feedback_user_created` 인덱스 생성 확인.
+- 007은 직접 execute로 반영되어 실제 DB에는 존재하지만 Wrangler migration ledger에는 여전히 pending으로 보인다.
+
+**6. 반영 필요 사항 (중요)**
+- 운영 DB에서 `migrations apply` 실행 전 `006_qa_seed.sql` 처리 방침을 정해야 한다.
+- 댓글/의견 기능의 실제 데이터 저장 위치는 기존 users 테이블이 아니라 신규 `comments`, `comment_likes`, `operator_feedback` 테이블이다.
+
+---
+
+### [2026-05-10 22:40] (CLI: codex)
+
+**1. 목표**
+- Excel 상단 `검토` 탭에 Instagram-like 공개 댓글/답글/좋아요와 운영자 비공개 피드백 기능을 추가.
+
+**2. 현재 상태**
+- 기존 auth는 Google OAuth와 `users.user_id TEXT`, `user_profiles.nickname` 구조를 사용한다.
+- 기본 화면은 유지하고 `검토` 클릭 시에만 `review-sheet`를 보여주도록 구현.
+
+**3. 문제**
+- 사용자 제공 예시 스키마는 `users(id)`를 참조하지만 현재 프로젝트는 `users.user_id` TEXT가 기준이라 그대로 적용하면 깨짐.
+- 닉네임 중복, 일일 제한, 본인 수정/삭제, 관리자 삭제는 프론트가 아니라 Worker에서 강제해야 함.
+
+**4. 시도한 것**
+- `index.html`, `style.css`, `src/layout/excelLayout.js`, `src/main.js`, 신규 `src/review/review.js`, `src/worker/index.js`, 신규 migration `docs/migrations/007_review_comments.sql`만 수정.
+- API syntax check와 frontend module syntax check를 수행.
+
+**5. 해결 / 인사이트**
+- `검토` ribbon tab은 기본 화면을 건드리지 않고 review sheet로만 전환한다.
+- 댓글/답글은 `comments`, 좋아요는 `comment_likes`, 운영자 의견은 `operator_feedback`에 분리 저장한다.
+- 댓글/답글 작성 3회/일, 운영자 의견 3회/일, 댓글 100자, 의견 200자, 닉네임 필수/고유 조건을 backend에서 검증한다.
+- 관리자 삭제 권한은 `jhchae9080@gmail.com` 이메일 기준으로 backend에서만 판단한다.
+
+**6. 반영 필요 사항 (중요)**
+- Review 기능 스키마는 `users.user_id TEXT` 기준을 유지한다.
+- 운영자 피드백은 public comments에 렌더링하지 않는다.
+- Google Sheets export는 범위 밖으로 유지한다.
+
+---
+
 ### [2026-05-10 22:14] (CLI: codex)
 
 **1. 목표**

@@ -10,10 +10,12 @@ const TIMES = (() => {
 
 let modalEl = null;
 let companySuggestions = [];
+let referralStatus = null;
 
 export async function showUserSettings() {
     ensureModal();
     await loadCompanySuggestions();
+    await loadReferralStatus();
     prefillValues();
     modalEl.style.display = 'flex';
 }
@@ -57,6 +59,15 @@ function ensureModal() {
                         <span>[선택] 서비스 업데이트 등 마케팅 정보 수신에 동의합니다</span>
                     </label>
                 </div>
+                <div class="ob-field us-referral-field">
+                    <label class="ob-label">추천계정</label>
+                    <input id="us-referrer-email" class="ob-input" type="email"
+                           placeholder="추천인 이메일" maxlength="120">
+                    <div class="us-referral-help">추천계정 입력 후에는 수정할 수 없습니다.</div>
+                    <div class="us-referral-help">추천계정은 기존에 가입된 계정이어야 합니다.</div>
+                    <div class="us-referral-message" id="us-referral-message"></div>
+                    <button type="button" class="modal-btn" id="us-referral-save">추천계정 저장</button>
+                </div>
                 <div class="modal-buttons" style="margin-top:18px;">
                     <button class="modal-btn retry" id="us-save">저장(S)</button>
                     <button class="modal-btn cancel" id="us-cancel">취소</button>
@@ -71,6 +82,7 @@ function bindEvents() {
     modalEl.querySelector('#us-close').addEventListener('click', close);
     modalEl.querySelector('#us-cancel').addEventListener('click', close);
     modalEl.querySelector('#us-save').addEventListener('click', saveSettings);
+    modalEl.querySelector('#us-referral-save').addEventListener('click', saveReferral);
 
     const input = modalEl.querySelector('#us-company-input');
     input.addEventListener('input', onCompanyInput);
@@ -101,6 +113,7 @@ function prefillValues() {
     modalEl.querySelector('#us-commute-start').value = auth.commute_start || '09:00';
     modalEl.querySelector('#us-commute-end').value = auth.commute_end || '18:00';
     modalEl.querySelector('#us-marketing-check').checked = Boolean(auth.marketing_agreed);
+    renderReferralStatus();
 }
 
 function close() {
@@ -141,6 +154,66 @@ async function loadCompanySuggestions() {
         companySuggestions = data.companies || [];
         renderCompanyTags();
     } catch { /* ignore */ }
+}
+
+async function loadReferralStatus() {
+    referralStatus = null;
+    try {
+        const res = await fetch('/api/referral', { credentials: 'include' });
+        if (!res.ok) return;
+        const data = await res.json();
+        referralStatus = data.referral || null;
+    } catch { /* ignore */ }
+}
+
+function renderReferralStatus() {
+    const input = modalEl.querySelector('#us-referrer-email');
+    const save = modalEl.querySelector('#us-referral-save');
+    const message = modalEl.querySelector('#us-referral-message');
+    if (!input || !save || !message) return;
+
+    const saved = referralStatus?.referrer_email;
+    input.value = saved || '';
+    input.disabled = Boolean(saved);
+    save.style.display = saved ? 'none' : 'inline-flex';
+    message.textContent = saved ? '추천계정이 저장되어 수정할 수 없습니다.' : '';
+}
+
+async function saveReferral() {
+    const input = modalEl.querySelector('#us-referrer-email');
+    const message = modalEl.querySelector('#us-referral-message');
+    const referrerEmail = input.value.trim();
+    if (!referrerEmail) {
+        message.textContent = '추천계정 이메일을 입력해주세요.';
+        return;
+    }
+
+    const btn = modalEl.querySelector('#us-referral-save');
+    btn.disabled = true;
+    btn.textContent = '저장 중...';
+    try {
+        const res = await fetch('/api/referral', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ referrer_email: referrerEmail }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+            message.textContent = data.message || '추천계정을 저장하지 못했습니다.';
+            return;
+        }
+        referralStatus = {
+            referrer_email: data.referrer_email,
+            editable: false,
+        };
+        renderReferralStatus();
+    } catch {
+        message.textContent = '추천계정을 저장하지 못했습니다.';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '추천계정 저장';
+    }
 }
 
 function renderCompanyTags() {
