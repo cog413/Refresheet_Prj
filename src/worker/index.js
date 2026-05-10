@@ -61,6 +61,9 @@ export default {
             if (url.pathname === '/api/rankings' && request.method === 'GET') {
                 return handleRankings(request, env);
             }
+            if (url.pathname === '/api/dev-login' && request.method === 'POST') {
+                return handleDevLogin(request, env);
+            }
 
             return withCors(json({ error: 'not_found' }, 404));
         } catch (error) {
@@ -789,6 +792,43 @@ async function handleRankings(request, env) {
             })),
         },
     }));
+}
+
+// --- Dev-login: preview-only QA session endpoint ---
+// Blocked on all production hosts. Requires DEV_LOGIN_ENABLED=true and Bearer token.
+async function handleDevLogin(request, env) {
+    const url = new URL(request.url);
+    // Host-level block: only sub.refresheet-prj.pages.dev is allowed.
+    // Any other hostname (including production) returns 404 — not 403 — to avoid fingerprinting.
+    if (url.hostname !== 'sub.refresheet-prj.pages.dev') {
+        return json({ error: 'not_found' }, 404);
+    }
+    if (env.DEV_LOGIN_ENABLED !== 'true') {
+        return json({ error: 'not_found' }, 404);
+    }
+    const authHeader = request.headers.get('Authorization') || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
+    const expected = typeof env.DEV_LOGIN_TOKEN === 'string' ? env.DEV_LOGIN_TOKEN.trim() : '';
+    if (!token || !expected || token !== expected) {
+        return json({ error: 'forbidden' }, 403);
+    }
+    const db = getDb(env);
+    const user = await db.prepare(
+        `SELECT user_id FROM users WHERE email = ?`
+    ).bind('qa_jhchae908p@refresheet.test').first();
+    if (!user) {
+        return json({ error: 'qa_user_not_found', hint: 'Apply docs/migrations/006_qa_seed.sql to DB' }, 503);
+    }
+    // Reuse exact same createSession() as Google OAuth — no duplicate session logic.
+    const sessionId = await createSession(db, user.user_id, false, request);
+    const headers = new Headers({ 'Content-Type': 'application/json; charset=utf-8' });
+    headers.append('Set-Cookie', makeCookie(SESSION_COOKIE, sessionId, {
+        maxAge: SESSION_TTL_SECONDS,
+        httpOnly: true,
+        sameSite: 'Lax',
+        path: '/',
+    }));
+    return new Response(JSON.stringify({ ok: true }), { status: 200, headers });
 }
 
 function kstPeriodBounds(period) {

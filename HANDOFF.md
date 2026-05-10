@@ -90,6 +90,78 @@ For current sprite filenames, see `public/assets/corgi/manifest.json`.
 
 ---
 
+## QA / Dev-Login (Preview Only)
+
+`/api/dev-login` is a **preview-only** endpoint for automated QA sessions. Production hosts always receive 404.
+
+### How it works
+
+- Endpoint: `POST /api/dev-login`
+- Allowed host: `sub.refresheet-prj.pages.dev` only
+- On `refresheetkr.com` or `www.refresheetkr.com`: returns 404 (host check is first, before any env lookup)
+- On allowed host: requires `DEV_LOGIN_ENABLED=true` + valid `Authorization: Bearer <token>`
+- On success: issues the same `refresheet_session` cookie as Google OAuth (calls `createSession()` directly)
+- No duplicate session logic — single source of truth
+
+### QA Account
+
+- Email: `qa_jhchae908p@refresheet.test`
+- DB user_id: `usr_qa_refresheet_test_0001`
+- No `google_sub`, no OAuth credential, no payment, no personal data
+- Onboarding already done, pattie set to `mong`
+- Never impersonate the production account (`jhchae9080@gmail.com`)
+
+### Required Cloudflare Secrets (preview project only)
+
+Set via PowerShell pipe — never Ctrl+V:
+```powershell
+Get-Clipboard | npx.cmd wrangler pages secret put DEV_LOGIN_ENABLED --project-name refresheet-prj
+# value: true
+
+Get-Clipboard | npx.cmd wrangler pages secret put DEV_LOGIN_TOKEN --project-name refresheet-prj
+# value: <random strong token>
+```
+
+After setting secrets: redeploy the Pages project.
+
+### Apply QA Seed Migration
+
+```powershell
+npx.cmd wrangler d1 execute DB --remote --file=./docs/migrations/006_qa_seed.sql
+```
+
+Apply to the **preview** D1 database only. Verify:
+```powershell
+npx.cmd wrangler d1 execute DB --remote --command "SELECT user_id, email FROM users WHERE email LIKE 'qa_%'"
+```
+
+### Playwright / Automated Tests
+
+Install (first time):
+```powershell
+npm install
+npx playwright install chromium
+```
+
+Run:
+```powershell
+$env:DEV_LOGIN_TOKEN="<token>"; npm run test:qa
+```
+
+View report:
+```powershell
+npm run test:qa:report
+```
+
+Test spec: `tests/qa-preview.spec.js`  
+Screenshots saved to: `test-results/`
+
+### #CHCK# Workflow
+
+When `#CHCK#` appears in a request, the agent must open the actual preview site and verify rendering — not infer from code. See `refresheet.context` for full rule.
+
+---
+
 ## Branch Strategy
 
 - `main`: canonical development branch
