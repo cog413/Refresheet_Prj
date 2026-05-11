@@ -184,7 +184,7 @@
                                         <span class="rm-guide-text">데이터를 분석해 요소를 적재적소에 배치해보세요</span>
                                     </div>
                                     <div class="rm-guide-item">
-                                        <span class="rm-guide-label">한컴타자</span>
+                                        <span class="rm-guide-label">Reference</span>
                                         <span class="rm-guide-sep">:</span>
                                         <span class="rm-guide-text">1분 안에 문장을 빠르고 정확하게 입력해보세요</span>
                                     </div>
@@ -195,7 +195,7 @@
                                 <div class="rm-notes">
                                     <div class="rm-note-item">※ 게임은 시간당 3티켓이 제공되며 매 정시에 갱신됩니다.</div>
                                     <div class="rm-note-item">※ 일부 기능은 로그인 후 이용 가능합니다.</div>
-                                    <div class="rm-note-item">※ 마우스를 올렸을 때 반응하는 버튼만 진짜입니다 (예: 보기 탭, 로그인버튼)</div>
+                                    <div class="rm-note-item">※ 마우스를 올렸을 때 반응하는 버튼만 진짜입니다 (예 : 홈/검토/보기 탭, 로그인버튼 등)</div>
                                     <div class="rm-note-item">※ 위기의 순간이 온다면 Esc를 눌러보세요 (공백화면으로 긴급전환)</div>
                                 </div>
 
@@ -257,7 +257,10 @@
                                     <div class="fake-table-cell note">📌 연말 정산 서류 제출 기한: 11/28 (금) 18:00</div>
                                 </div>
                             </div>
-                            <div id="sudoku-grid" class="game-grid sudoku"></div>
+                            <div class="game-main-column">
+                                <div id="sudoku-grid" class="game-grid sudoku"></div>
+                                <div id="sudoku-ranking" class="game-ranking" data-game-type="sudoku" data-game-title="SDK"></div>
+                            </div>
                             <div class="fake-dashboard side-right">
                                 <div class="fake-table">
                                     <div class="fake-table-header">프로젝트 Task 진행 현황</div>
@@ -352,7 +355,10 @@
                                     <div class="fake-table-cell label total">YTD 평균</div><div class="fake-table-cell value total" style="color:#217346">95.6</div>
                                 </div>
                             </div>
-                            <div id="game2048-grid" class="game-grid g2048"></div>
+                            <div class="game-main-column">
+                                <div id="game2048-grid" class="game-grid g2048"></div>
+                                <div id="game2048-ranking" class="game-ranking" data-game-type="2048" data-game-title="2048"></div>
+                            </div>
                             <div class="fake-dashboard side-right">
                                 <div class="fake-table">
                                     <div class="fake-table-header">2026년도 부서별 실적 요약</div>
@@ -461,7 +467,7 @@
                 <div class="tab" data-sheet="mini-pet">관리시트</div>
                 <div class="tab" data-sheet="game2048">2048</div>
                 <div class="tab" data-sheet="sudoku">SDK</div>
-                <div class="tab" data-sheet="typing">한컴타자</div>
+                <div class="tab" data-sheet="typing">Reference</div>
                 <div class="tab tab-locked" data-sheet="newgame" data-unlockable-key="new_game" data-locked="true" data-lock-reason="친구추천 2명 달성 시 이용할 수 있습니다" title="친구추천 2명 달성 시 이용할 수 있습니다"><span class="tab-lock-icon">🔒</span>NewGame</div>
                 <div class="tab add-tab">+</div>
             </div>

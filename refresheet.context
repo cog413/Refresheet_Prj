@@ -386,9 +386,9 @@ When a user message contains `#CHCK#`, the agent MUST inspect the actual live pr
 
 2. 게임 추가
 - 기존 Sudoku 유지
-- 한컴타자 게임 추가
+- Reference 게임 추가
 - 단어맞추기 게임 추가
-- 한컴타자는 공개
+- Reference는 공개
 - 단어맞추기는 친구추천 2회 이상 유저에게 잠금해제
 - 단어맞추기 잠금 상태에서는 자물쇠 아이콘 표시
 - hover tooltip:

@@ -14,6 +14,7 @@ import { refreshKpiDisplay, startEnduranceTimer } from './kpi/kpiDisplay.js';
 import { initRankingTabs, refreshRankingDisplay } from './ranking/rankingDisplay.js';
 import { initReview } from './review/review.js';
 import { initTypingGame } from './games/typing/typingGame.js';
+import { initGameRankingTables } from './games/gameRankingTable.js';
 
 // Expose loginPopup module globally for game modules that can't import directly
 window.loginPopupModule = { showLoginPopup, goToLogin };
@@ -52,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initNewGame();
     initGame2048();
     initTypingGame();
+    initGameRankingTables();
 
     // Initialize Mini Pet (관리시트: 단일 셀구리 & 실적 장표)
     initMiniPet();

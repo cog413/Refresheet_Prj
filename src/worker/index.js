@@ -63,6 +63,9 @@ export default {
             if (url.pathname === '/api/rankings' && request.method === 'GET') {
                 return handleRankings(request, env);
             }
+            if (url.pathname === '/api/game-rankings' && request.method === 'GET') {
+                return handleGameRankings(request, env);
+            }
             if (url.pathname === '/api/review/comments' && request.method === 'GET') {
                 return handleGetReviewComments(request, env);
             }
@@ -509,8 +512,7 @@ async function handleTodayScores(request, env) {
     const session = await getSessionUser(getDb(env), request);
     if (!session) return withCors(json({ authenticated: false, scores: [] }));
 
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
+    const { start: todayStart } = kstPeriodBounds('daily');
 
     const db = getDb(env);
     const { start: hourStart, end: hourEnd } = kstHourBounds();
@@ -521,7 +523,7 @@ async function handleTodayScores(request, env) {
              FROM game_scores
              WHERE user_id=? AND played_at >= ?
              ORDER BY played_at ASC`
-        ).bind(session.user_id, todayStart.toISOString()).all(),
+        ).bind(session.user_id, todayStart).all(),
         db.prepare(`SELECT last_minime_at FROM avatars WHERE user_id=?`)
             .bind(session.user_id).first(),
         db.prepare(
@@ -531,7 +533,7 @@ async function handleTodayScores(request, env) {
     ]);
 
     const lastMinimeAt = avatar?.last_minime_at || null;
-    const minimeCaredToday = lastMinimeAt && lastMinimeAt >= todayStart.toISOString();
+    const minimeCaredToday = lastMinimeAt && lastMinimeAt >= todayStart;
     const hourlyPlaysUsed = hourlyRow?.cnt ?? 0;
 
     return withCors(json({
@@ -844,6 +846,46 @@ async function handleRankings(request, env) {
                 is_mine: session?.company ? r.company === session.company : false,
             })),
         },
+    }));
+}
+
+async function handleGameRankings(request, env) {
+    const url = new URL(request.url);
+    const requestedType = url.searchParams.get('game_type');
+    const gameTypeAliases = {
+        '2048': '2048',
+        sudoku: 'sudoku',
+        sdk: 'sudoku',
+        typing_game: 'typing_game',
+        reference: 'typing_game',
+    };
+    const gameType = gameTypeAliases[requestedType] || null;
+    const period = url.searchParams.get('period') === 'weekly' ? 'weekly' : 'daily';
+
+    if (!gameType) return withCors(json({ error: 'invalid game_type' }, 400));
+
+    const { start } = kstPeriodBounds(period);
+    const db = getDb(env);
+    const rows = await db.prepare(`
+        SELECT gs.score,
+               gs.played_at,
+               gs.played_at AS created_at,
+               COALESCE(a.nickname, p.nickname, u.email) AS nickname,
+               u.company
+        FROM game_scores gs
+        JOIN users u ON u.user_id = gs.user_id
+        LEFT JOIN avatars a ON a.user_id = u.user_id
+        LEFT JOIN user_profiles p ON p.user_id = u.user_id
+        WHERE gs.game_type = ?
+          AND gs.played_at >= ?
+        ORDER BY gs.score DESC, gs.played_at ASC
+        LIMIT 20
+    `).bind(gameType, start).all();
+
+    return withCors(json({
+        game_type: gameType,
+        period,
+        rows: rows.results || [],
     }));
 }
 
