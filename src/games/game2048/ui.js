@@ -16,6 +16,9 @@ export function initGame2048UI() {
     let gameOver = false;
     let gameStartTime = null;
     let loginPopupShown = false;
+    let roundFinalized = false;
+    let submitInProgress = false;
+    let finishButton = null;
 
     // Inject board size selector at top of left panel
     const leftPanel = document.querySelector('#game2048-sheet .side-left');
@@ -116,6 +119,16 @@ export function initGame2048UI() {
         ticketCell.id = 'g2048-ticket-cell';
         table.appendChild(ticketCell);
 
+        finishButton = document.createElement('button');
+        finishButton.type = 'button';
+        finishButton.className = 'game-finish-btn';
+        finishButton.textContent = '작업 종료';
+        finishButton.addEventListener('click', confirmFinishRound);
+        const finishCell = document.createElement('div');
+        finishCell.className = 'fake-table-cell note game-finish-cell';
+        finishCell.appendChild(finishButton);
+        table.appendChild(finishCell);
+
         return table;
     }
 
@@ -129,7 +142,13 @@ export function initGame2048UI() {
     function initBoard() {
         score = 0;
         gameOver = false;
+        roundFinalized = false;
+        submitInProgress = false;
         gameStartTime = Date.now();
+        if (finishButton) {
+            finishButton.disabled = false;
+            finishButton.textContent = '작업 종료';
+        }
         board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
         addRandomTile(board);
         addRandomTile(board);
@@ -251,30 +270,91 @@ export function initGame2048UI() {
                 gameOver = true;
                 const modal = document.getElementById('game-over-modal');
                 if (modal) modal.style.display = 'flex';
-                if (window.refresheetAuth?.authenticated) {
-                    const elapsed = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : null;
-                    fetch('/api/scores', {
-                        method: 'POST',
-                        credentials: 'include',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            game_type: '2048',
-                            score: getAdjustedScore(),
-                            duration_seconds: elapsed,
-                            extra: { board_size: boardSize, raw_score: score },
-                        }),
-                    }).then(async (res) => {
-                        if (res.status === 429) {
-                            const d = await res.json().catch(() => ({}));
-                            if (formulaInput) formulaInput.value = `=LIMIT.REACHED("이번 시간 3판 완료 · ${d.resets_at_kst || '다음 정시'} 초기화")`;
-                            refreshTicketDisplay();
-                            return;
-                        }
-                        document.dispatchEvent(new CustomEvent('refresheet:score-saved'));
-                        refreshTicketDisplay();
-                    }).catch(() => {});
-                }
+                finalizeRound('game_over');
             }
+        }
+    }
+
+    async function confirmFinishRound() {
+        if (gameOver || roundFinalized || submitInProgress) return;
+        const confirmed = await showFinishConfirm();
+        if (!confirmed) return;
+        gameOver = true;
+        finalizeRound('manual_finish');
+    }
+
+    function showFinishConfirm() {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay game-finish-modal';
+            overlay.innerHTML = `
+                <div class="excel-modal">
+                    <div class="modal-header">
+                        <span>Microsoft Excel</span>
+                        <span class="modal-close" data-action="cancel">✕</span>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-icon">⚠️</div>
+                        <div class="modal-text">현재까지의 점수가 실적으로 반영됩니다.<br>정말 작업을 종료하시겠습니까?</div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="modal-btn retry" data-action="finish">실적 반영 후 종료</button>
+                        <button class="modal-btn cancel" data-action="cancel">계속 진행</button>
+                    </div>
+                </div>`;
+            const close = (value) => {
+                overlay.remove();
+                resolve(value);
+            };
+            overlay.addEventListener('click', (event) => {
+                const action = event.target?.dataset?.action;
+                if (action === 'finish') close(true);
+                if (action === 'cancel') close(false);
+            });
+            document.body.appendChild(overlay);
+        });
+    }
+
+    async function finalizeRound(finishType) {
+        if (roundFinalized || submitInProgress) return;
+        roundFinalized = true;
+        submitInProgress = true;
+        if (finishButton) {
+            finishButton.disabled = true;
+            finishButton.textContent = '종료됨';
+        }
+
+        const finalScore = getAdjustedScore();
+        if (formulaInput) formulaInput.value = `=FINISH.SCORE(${finalScore.toLocaleString()})`;
+
+        if (!window.refresheetAuth?.authenticated) {
+            submitInProgress = false;
+            return;
+        }
+
+        const elapsed = gameStartTime ? Math.floor((Date.now() - gameStartTime) / 1000) : null;
+        try {
+            const res = await fetch('/api/scores', {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    game_type: '2048',
+                    score: finalScore,
+                    duration_seconds: elapsed,
+                    extra: { board_size: boardSize, raw_score: score, finish_type: finishType },
+                }),
+            });
+            if (res.status === 429) {
+                const d = await res.json().catch(() => ({}));
+                if (formulaInput) formulaInput.value = `=LIMIT.REACHED("이번 시간 3판 완료 · ${d.resets_at_kst || '다음 정시'} 초기화")`;
+                refreshTicketDisplay();
+                return;
+            }
+            if (res.ok) document.dispatchEvent(new CustomEvent('refresheet:score-saved'));
+            refreshTicketDisplay();
+        } finally {
+            submitInProgress = false;
         }
     }
 

@@ -71,6 +71,9 @@ export async function initSudoku() {
     let mistakeCount = 0;
     let currentPuzzleId = null;
     let loginPopupShown = false;
+    let roundFinalized = false;
+    let submitInProgress = false;
+    let finishButton = null;
 
     // Inject difficulty selector at top of left panel
     const leftPanel = document.querySelector('#sudoku-sheet .side-left');
@@ -158,6 +161,16 @@ export async function initSudoku() {
         ticketCell.id = 'sudoku-ticket-cell';
         table.appendChild(ticketCell);
 
+        finishButton = document.createElement('button');
+        finishButton.type = 'button';
+        finishButton.className = 'game-finish-btn';
+        finishButton.textContent = '작업 종료';
+        finishButton.addEventListener('click', confirmFinishRound);
+        const finishCell = document.createElement('div');
+        finishCell.className = 'fake-table-cell note game-finish-cell';
+        finishCell.appendChild(finishButton);
+        table.appendChild(finishCell);
+
         return table;
     }
 
@@ -206,6 +219,12 @@ export async function initSudoku() {
         solutionBoard = null;
         mistakeCount = 0;
         startTime = null;
+        roundFinalized = false;
+        submitInProgress = false;
+        if (finishButton) {
+            finishButton.disabled = false;
+            finishButton.textContent = '작업 종료';
+        }
 
         resetScoreUI();
 
@@ -283,6 +302,7 @@ export async function initSudoku() {
         if (document.body.classList.contains('safe-mode')) return;
         const sheet = document.getElementById('sudoku-sheet');
         if (!sheet || sheet.style.display === 'none') return;
+        if (roundFinalized) return;
         if (!selectedCell) return;
 
         // Start timer on first keystroke
@@ -348,15 +368,40 @@ export async function initSudoku() {
     }
 
     function onWin() {
-        const finalScore = calculateScore();
+        if (roundFinalized || submitInProgress) return;
+        finalizeRound(calculateScore(), 'complete');
+    }
+
+    async function confirmFinishRound() {
+        if (roundFinalized || submitInProgress) return;
+        const confirmed = await showFinishConfirm();
+        if (!confirmed) return;
+        finalizeRound(calculateIntermediateScore(), 'manual_finish');
+    }
+
+    async function finalizeRound(finalScore, finishType) {
+        if (roundFinalized || submitInProgress) return;
+        roundFinalized = true;
+        submitInProgress = true;
+        finalScore = Math.max(0, finalScore);
         recordPlayed(currentPuzzleId);
 
-        if (formulaInput) formulaInput.value = `=WIN.SCORE(${finalScore.toLocaleString()})`;
+        if (finishButton) {
+            finishButton.disabled = true;
+            finishButton.textContent = '종료됨';
+        }
+        if (formulaInput) formulaInput.value = `=FINISH.SCORE(${finalScore.toLocaleString()})`;
         updateScoreUI(finalScore);
 
-        if (window.refresheetAuth?.authenticated) {
-            const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : null;
-            fetch('/api/scores', {
+        if (!window.refresheetAuth?.authenticated) {
+            submitInProgress = false;
+            return;
+        }
+
+        const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : null;
+        const correctUserCells = countCorrectUserCells();
+        try {
+            const res = await fetch('/api/scores', {
                 method: 'POST',
                 credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
@@ -364,19 +409,74 @@ export async function initSudoku() {
                     game_type: 'sudoku',
                     score: finalScore,
                     duration_seconds: elapsed,
-                    extra: { difficulty: currentDifficulty, puzzle_id: currentPuzzleId, mistakes: mistakeCount },
+                    extra: {
+                        difficulty: currentDifficulty,
+                        puzzle_id: currentPuzzleId,
+                        mistakes: mistakeCount,
+                        finish_type: finishType,
+                        correct_user_cells: correctUserCells,
+                    },
                 }),
-            }).then(async (res) => {
-                if (res.status === 429) {
-                    const d = await res.json().catch(() => ({}));
-                    if (formulaInput) formulaInput.value = `=LIMIT.REACHED("이번 시간 3판 완료 · ${d.resets_at_kst || '다음 정시'} 초기화")`;
-                    refreshTicketDisplay();
-                    return;
-                }
-                document.dispatchEvent(new CustomEvent('refresheet:score-saved'));
+            });
+            if (res.status === 429) {
+                const d = await res.json().catch(() => ({}));
+                if (formulaInput) formulaInput.value = `=LIMIT.REACHED("이번 시간 3판 완료 · ${d.resets_at_kst || '다음 정시'} 초기화")`;
                 refreshTicketDisplay();
-            }).catch(() => {});
+                return;
+            }
+            if (res.ok) document.dispatchEvent(new CustomEvent('refresheet:score-saved'));
+            refreshTicketDisplay();
+        } finally {
+            submitInProgress = false;
         }
+    }
+
+    function calculateIntermediateScore() {
+        const mult = DIFFICULTY_MULT[currentDifficulty] || 1;
+        return Math.round(countCorrectUserCells() * mult);
+    }
+
+    function countCorrectUserCells() {
+        if (!solutionBoard) return 0;
+        let correct = 0;
+        container.querySelectorAll('.excel-cell.user-input').forEach(cell => {
+            const r = parseInt(cell.dataset.row);
+            const c = parseInt(cell.dataset.col);
+            if (cell.textContent === String(solutionBoard[r][c])) correct++;
+        });
+        return correct;
+    }
+
+    function showFinishConfirm() {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay game-finish-modal';
+            overlay.innerHTML = `
+                <div class="excel-modal">
+                    <div class="modal-header">
+                        <span>Microsoft Excel</span>
+                        <span class="modal-close" data-action="cancel">✕</span>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-icon">⚠️</div>
+                        <div class="modal-text">현재까지의 점수가 실적으로 반영됩니다.<br>정말 작업을 종료하시겠습니까?</div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="modal-btn retry" data-action="finish">실적 반영 후 종료</button>
+                        <button class="modal-btn cancel" data-action="cancel">계속 진행</button>
+                    </div>
+                </div>`;
+            const close = (value) => {
+                overlay.remove();
+                resolve(value);
+            };
+            overlay.addEventListener('click', (event) => {
+                const action = event.target?.dataset?.action;
+                if (action === 'finish') close(true);
+                if (action === 'cancel') close(false);
+            });
+            document.body.appendChild(overlay);
+        });
     }
 
     function calculateScore() {
