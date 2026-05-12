@@ -73,14 +73,15 @@ export async function initSudoku() {
     let loginPopupShown = false;
     let roundFinalized = false;
     let submitInProgress = false;
-    let finishButton = null;
 
-    // Inject description panel and difficulty selector at top of left panel
+    // Inject description panel (desktop) + mobile action bar, then difficulty selector
     const leftPanel = document.querySelector('#sudoku-sheet .side-left');
     if (leftPanel) {
         leftPanel.prepend(buildDifficultySelector());
         leftPanel.prepend(buildDescPanel());
     }
+    const mainCol = document.querySelector('#sudoku-sheet .game-main-column');
+    if (mainCol) mainCol.prepend(buildMobileBar());
 
     // Inject score bar into right panel
     buildScorePanel();
@@ -184,18 +185,43 @@ export async function initSudoku() {
         footer.className = 'fake-table-cell note game-desc-footer';
 
         const ticketSpan = document.createElement('span');
-        ticketSpan.id = 'sudoku-ticket-cell';
+        ticketSpan.className = 'sudoku-ticket-cell';
         footer.appendChild(ticketSpan);
 
-        finishButton = document.createElement('button');
-        finishButton.type = 'button';
-        finishButton.className = 'game-finish-btn';
-        finishButton.textContent = '작업 종료';
-        finishButton.addEventListener('click', confirmFinishRound);
-        footer.appendChild(finishButton);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        footer.appendChild(btn);
 
         table.appendChild(footer);
         return table;
+    }
+
+    function buildMobileBar() {
+        const bar = document.createElement('div');
+        bar.className = 'game-mobile-bar';
+
+        const ticketSpan = document.createElement('span');
+        ticketSpan.className = 'sudoku-ticket-cell';
+        bar.appendChild(ticketSpan);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        bar.appendChild(btn);
+
+        return bar;
+    }
+
+    function setSudokuFinishButtons(disabled, text) {
+        document.querySelectorAll('#sudoku-sheet .game-finish-btn').forEach(b => {
+            b.disabled = disabled;
+            b.textContent = text;
+        });
     }
 
     function buildScorePanel() {
@@ -238,10 +264,7 @@ export async function initSudoku() {
         startTime = null;
         roundFinalized = false;
         submitInProgress = false;
-        if (finishButton) {
-            finishButton.disabled = false;
-            finishButton.textContent = '작업 종료';
-        }
+        setSudokuFinishButtons(false, '작업 종료');
 
         resetScoreUI();
 
@@ -403,10 +426,7 @@ export async function initSudoku() {
         finalScore = Math.max(0, finalScore);
         recordPlayed(currentPuzzleId);
 
-        if (finishButton) {
-            finishButton.disabled = true;
-            finishButton.textContent = '종료됨';
-        }
+        setSudokuFinishButtons(true, '종료됨');
         if (formulaInput) formulaInput.value = `=FINISH.SCORE(${finalScore.toLocaleString()})`;
         updateScoreUI(finalScore);
 
@@ -535,16 +555,17 @@ export async function initSudoku() {
     }
 
     async function refreshTicketDisplay() {
-        const ticketEl = document.getElementById('sudoku-ticket-cell');
-        if (!ticketEl || !window.refresheetAuth?.authenticated) {
-            if (ticketEl) ticketEl.textContent = '';
+        const els = document.querySelectorAll('.sudoku-ticket-cell');
+        if (!window.refresheetAuth?.authenticated) {
+            els.forEach(el => { el.textContent = ''; });
             return;
         }
         try {
             const res = await fetch('/api/scores/today', { credentials: 'include' });
             const d = await res.json();
-            ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
-        } catch { ticketEl.textContent = ''; }
+            const text = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
+            els.forEach(el => { el.textContent = text; });
+        } catch { els.forEach(el => { el.textContent = ''; }); }
     }
 
     function isValidMove(row, col, value) {

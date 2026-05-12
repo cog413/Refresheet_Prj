@@ -117,6 +117,10 @@ function buildUI(grid) {
     const sideLeft = document.querySelector('#typing-sheet .side-left');
     if (sideLeft) sideLeft.prepend(buildDescPanel());
 
+    // Mobile ticket bar — injected before the typing grid in the sheet layout
+    const typingGrid = document.getElementById('typing-grid');
+    if (typingGrid) typingGrid.parentElement.insertBefore(buildMobileBar(), typingGrid);
+
     loadRanking('daily');
 }
 
@@ -144,11 +148,21 @@ function buildDescPanel() {
     });
 
     const ticketCell = document.createElement('div');
-    ticketCell.className = 'fake-table-cell note';
-    ticketCell.id = 'typing-ticket-cell';
+    ticketCell.className = 'fake-table-cell note typing-ticket-cell';
     table.appendChild(ticketCell);
 
     return table;
+}
+
+function buildMobileBar() {
+    const bar = document.createElement('div');
+    bar.className = 'game-mobile-bar';
+
+    const ticketSpan = document.createElement('span');
+    ticketSpan.className = 'typing-ticket-cell';
+    bar.appendChild(ticketSpan);
+
+    return bar;
 }
 
 // ── Main area renderers ─────────────────────────────────────────
@@ -425,12 +439,16 @@ function showMsg(text) {
 }
 
 async function refreshTicketEl() {
-    const ticketEl = document.getElementById('typing-ticket-cell');
-    if (!ticketEl) return;
-    if (!window.refresheetAuth?.authenticated) { ticketEl.textContent = ''; return; }
+    const els = document.querySelectorAll('.typing-ticket-cell');
+    if (!els.length) return;
+    if (!window.refresheetAuth?.authenticated) {
+        els.forEach(el => { el.textContent = ''; });
+        return;
+    }
     try {
         const res = await fetch('/api/scores/today', { credentials: 'include' });
         const d = await res.json();
-        ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
-    } catch { ticketEl.textContent = ''; }
+        const text = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
+        els.forEach(el => { el.textContent = text; });
+    } catch { els.forEach(el => { el.textContent = ''; }); }
 }

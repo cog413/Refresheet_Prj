@@ -17,24 +17,37 @@ export function initGame2048UI() {
     let loginPopupShown = false;
     let roundFinalized = false;
     let submitInProgress = false;
-    let finishButton = null;
 
-    // Inject description panel at top of left panel
+    // Inject description panel (desktop) and mobile action bar
     const leftPanel = document.querySelector('#game2048-sheet .side-left');
     if (leftPanel) leftPanel.prepend(buildDescPanel());
+    const mainCol = document.querySelector('#game2048-sheet .game-main-column');
+    if (mainCol) mainCol.prepend(buildMobileBar());
 
     initBoard();
 
     document.addEventListener('keydown', onKeyDown);
 
-    // Touch swipe for mobile
-    let _tx = 0, _ty = 0;
-    grid.addEventListener('touchstart', e => {
+    // Touch swipe — covers entire sheet area, prevents iOS back-swipe on horizontal
+    let _tx = 0, _ty = 0, _moved = false;
+    const swipeTarget = document.getElementById('game2048-sheet') || grid;
+    swipeTarget.addEventListener('touchstart', e => {
         _tx = e.changedTouches[0].clientX;
         _ty = e.changedTouches[0].clientY;
+        _moved = false;
     }, { passive: true });
-    grid.addEventListener('touchend', e => {
-        if (gameOver) return;
+    swipeTarget.addEventListener('touchmove', e => {
+        const dx = e.changedTouches[0].clientX - _tx;
+        const dy = e.changedTouches[0].clientY - _ty;
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+            e.preventDefault(); // prevents scroll AND iOS swipe-back navigation
+            _moved = true;
+        }
+    }, { passive: false });
+    swipeTarget.addEventListener('touchend', e => {
+        if (gameOver || !_moved) return;
+        const sheet = document.getElementById('game2048-sheet');
+        if (!sheet || sheet.style.display === 'none') return;
         const dx = e.changedTouches[0].clientX - _tx;
         const dy = e.changedTouches[0].clientY - _ty;
         if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
@@ -102,18 +115,43 @@ export function initGame2048UI() {
         footer.className = 'fake-table-cell note game-desc-footer';
 
         const ticketSpan = document.createElement('span');
-        ticketSpan.id = 'g2048-ticket-cell';
+        ticketSpan.className = 'g2048-ticket-cell';
         footer.appendChild(ticketSpan);
 
-        finishButton = document.createElement('button');
-        finishButton.type = 'button';
-        finishButton.className = 'game-finish-btn';
-        finishButton.textContent = '작업 종료';
-        finishButton.addEventListener('click', confirmFinishRound);
-        footer.appendChild(finishButton);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        footer.appendChild(btn);
 
         table.appendChild(footer);
         return table;
+    }
+
+    function buildMobileBar() {
+        const bar = document.createElement('div');
+        bar.className = 'game-mobile-bar';
+
+        const ticketSpan = document.createElement('span');
+        ticketSpan.className = 'g2048-ticket-cell';
+        bar.appendChild(ticketSpan);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        bar.appendChild(btn);
+
+        return bar;
+    }
+
+    function setFinishButtons(disabled, text) {
+        document.querySelectorAll('#game2048-sheet .game-finish-btn').forEach(b => {
+            b.disabled = disabled;
+            b.textContent = text;
+        });
     }
 
     function initBoard() {
@@ -122,17 +160,14 @@ export function initGame2048UI() {
         roundFinalized = false;
         submitInProgress = false;
         gameStartTime = Date.now();
-        if (finishButton) {
-            finishButton.disabled = false;
-            finishButton.textContent = '작업 종료';
-        }
+        setFinishButtons(false, '작업 종료');
         board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
         addRandomTile(board);
         addRandomTile(board);
 
         const isMobile = window.innerWidth <= 768;
         const cellSize = isMobile
-            ? Math.min(80, Math.floor((window.innerWidth - 24) / boardSize))
+            ? Math.min(80, Math.floor((window.innerWidth - 16) / boardSize))
             : 80;
         const cellH = isMobile ? cellSize : 25;
 
@@ -296,10 +331,7 @@ export function initGame2048UI() {
         if (roundFinalized || submitInProgress) return;
         roundFinalized = true;
         submitInProgress = true;
-        if (finishButton) {
-            finishButton.disabled = true;
-            finishButton.textContent = '종료됨';
-        }
+        setFinishButtons(true, '종료됨');
 
         const finalScore = getAdjustedScore();
         if (formulaInput) formulaInput.value = `=FINISH.SCORE(${finalScore.toLocaleString()})`;
@@ -336,15 +368,16 @@ export function initGame2048UI() {
     }
 
     async function refreshTicketDisplay() {
-        const ticketEl = document.getElementById('g2048-ticket-cell');
-        if (!ticketEl || !window.refresheetAuth?.authenticated) {
-            if (ticketEl) ticketEl.textContent = '';
+        const els = document.querySelectorAll('.g2048-ticket-cell');
+        if (!window.refresheetAuth?.authenticated) {
+            els.forEach(el => { el.textContent = ''; });
             return;
         }
         try {
             const res = await fetch('/api/scores/today', { credentials: 'include' });
             const d = await res.json();
-            ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
-        } catch { ticketEl.textContent = ''; }
+            const text = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
+            els.forEach(el => { el.textContent = text; });
+        } catch { els.forEach(el => { el.textContent = ''; }); }
     }
 }
