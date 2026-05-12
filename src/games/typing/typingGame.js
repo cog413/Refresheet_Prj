@@ -17,7 +17,7 @@ let roundActive = false;
 // DOM refs — set once in buildUI()
 let elSentence, elInput, elTimeCell, elLastCell, elTotalCell;
 let elStatusBar, elInputRow, elMainArea, elMsg;
-let elRankingBody, elTicket;
+let elRankingBody;
 let currentRankPeriod = 'daily';
 
 export function initTypingGame() {
@@ -114,7 +114,41 @@ function buildUI(grid) {
     const typingTab = document.querySelector('.tab[data-sheet="typing"]');
     if (typingTab) typingTab.addEventListener('click', refreshTicketEl, { once: false });
 
+    const sideLeft = document.querySelector('#typing-sheet .side-left');
+    if (sideLeft) sideLeft.prepend(buildDescPanel());
+
     loadRanking('daily');
+}
+
+function buildDescPanel() {
+    const table = document.createElement('div');
+    table.className = 'fake-table';
+
+    const header = document.createElement('div');
+    header.className = 'fake-table-header';
+    header.textContent = '게임 안내';
+    table.appendChild(header);
+
+    [
+        '한컴 타자연습입니다.',
+        '시작 버튼을 누른 뒤 1분 안에 문장을 최대한 빠르고 정확하게 입력하세요.',
+        '문장을 많이, 정확하게 입력할수록 더 높은 점수를 얻을 수 있습니다.',
+        '점수는 입력한 문장의 글자 수를 기준으로 계산됩니다.',
+        '오타가 있어도 입력되지만, 오타 수만큼 점수가 차감됩니다.',
+        '문장 유형은 [유머], [힐링], [명언], [전체] 중 선택할 수 있습니다.',
+    ].forEach(text => {
+        const note = document.createElement('div');
+        note.className = 'fake-table-cell note';
+        note.textContent = text;
+        table.appendChild(note);
+    });
+
+    const ticketCell = document.createElement('div');
+    ticketCell.className = 'fake-table-cell note';
+    ticketCell.id = 'typing-ticket-cell';
+    table.appendChild(ticketCell);
+
+    return table;
 }
 
 // ── Main area renderers ─────────────────────────────────────────
@@ -123,8 +157,7 @@ function renderIdle() {
     elMainArea.innerHTML = '';
     elMainArea.className = 'tg-main-area tg-idle';
     const hint = el('div', 'tg-idle-hint', '유형을 선택하고 시작을 누르세요');
-    elTicket = el('div', 'tg-ticket-info', '');
-    elMainArea.append(hint, elTicket);
+    elMainArea.append(hint);
     refreshTicketEl();
 }
 
@@ -148,8 +181,7 @@ function renderResultArea(finalScore) {
         el('div', 'tg-final-score', `${finalScore}점`),
     );
     const eligEl = el('div', 'tg-eligibility-msg');
-    elTicket = el('div', 'tg-ticket-info', '');
-    box.append(eligEl, elTicket);
+    box.append(eligEl);
     const btns = el('div', 'tg-result-btns');
     const retry = el('button', 'tg-result-btn primary', '다시하기');
     const back  = el('button', 'tg-result-btn', '유형 선택으로 돌아가기');
@@ -393,11 +425,12 @@ function showMsg(text) {
 }
 
 async function refreshTicketEl() {
-    if (!elTicket) return;
-    if (!window.refresheetAuth?.authenticated) { elTicket.textContent = ''; return; }
+    const ticketEl = document.getElementById('typing-ticket-cell');
+    if (!ticketEl) return;
+    if (!window.refresheetAuth?.authenticated) { ticketEl.textContent = ''; return; }
     try {
         const res = await fetch('/api/scores/today', { credentials: 'include' });
         const d = await res.json();
-        elTicket.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
-    } catch { elTicket.textContent = ''; }
+        ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
+    } catch { ticketEl.textContent = ''; }
 }

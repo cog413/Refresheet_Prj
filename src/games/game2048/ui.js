@@ -1,7 +1,6 @@
 import { operate, addRandomTile, isGameOver } from './logic.js';
 
-const SIZE_OPTIONS = [4, 5];
-const SCORE_MULTIPLIER = { 4: 1.15, 5: 0.68 };
+const SCORE_MULTIPLIER = 1.15;
 
 export function initGame2048UI() {
     const grid = document.getElementById('game2048-grid');
@@ -20,9 +19,9 @@ export function initGame2048UI() {
     let submitInProgress = false;
     let finishButton = null;
 
-    // Inject board size selector at top of left panel
+    // Inject description panel at top of left panel
     const leftPanel = document.querySelector('#game2048-sheet .side-left');
-    if (leftPanel) leftPanel.prepend(buildSizeSelector());
+    if (leftPanel) leftPanel.prepend(buildDescPanel());
 
     initBoard();
 
@@ -78,65 +77,43 @@ export function initGame2048UI() {
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    function buildSizeSelector() {
+    function buildDescPanel() {
         const table = document.createElement('div');
         table.className = 'fake-table';
 
         const header = document.createElement('div');
         header.className = 'fake-table-header';
-        header.textContent = '그리드 크기';
+        header.textContent = '게임 안내';
         table.appendChild(header);
 
-        SIZE_OPTIONS.forEach(size => {
-            const labelCell = document.createElement('div');
-            labelCell.className = 'fake-table-cell label g2048-size-btn';
-            labelCell.dataset.size = size;
-            labelCell.textContent = `${size}×${size}`;
-            if (size === boardSize) labelCell.classList.add('active');
-
-            const valueCell = document.createElement('div');
-            valueCell.className = 'fake-table-cell value';
-            valueCell.textContent = size === 4 ? '기본' : '확장';
-
-            labelCell.addEventListener('click', () => {
-                if (size === boardSize) return;
-                boardSize = size;
-                table.querySelectorAll('.g2048-size-btn').forEach(b =>
-                    b.classList.toggle('active', parseInt(b.dataset.size) === size)
-                );
-                initBoard();
-            });
-
-            table.appendChild(labelCell);
-            table.appendChild(valueCell);
+        [
+            '같은 숫자를 합쳐 2048 이상 고득점을 노리는 게임입니다.',
+            '상하좌우로 타일을 움직여 숫자를 합치며 진행합니다.',
+            '더 이상 움직일 수 없으면 게임이 종료됩니다.',
+            '언제든 작업종료를 눌러 현재 점수로 마무리할 수 있습니다.',
+        ].forEach(text => {
+            const note = document.createElement('div');
+            note.className = 'fake-table-cell note';
+            note.textContent = text;
+            table.appendChild(note);
         });
 
-        appendNote(table, '그리드 크기(4x4 / 5x5)는 선택할 수 있습니다.');
-        appendNote(table, '같은 매출을 달성해도 4x4가 더 높은 점수를 받습니다.');
+        const footer = document.createElement('div');
+        footer.className = 'fake-table-cell note game-desc-footer';
 
-        const ticketCell = document.createElement('div');
-        ticketCell.className = 'fake-table-cell note';
-        ticketCell.id = 'g2048-ticket-cell';
-        table.appendChild(ticketCell);
+        const ticketSpan = document.createElement('span');
+        ticketSpan.id = 'g2048-ticket-cell';
+        footer.appendChild(ticketSpan);
 
         finishButton = document.createElement('button');
         finishButton.type = 'button';
         finishButton.className = 'game-finish-btn';
         finishButton.textContent = '작업 종료';
         finishButton.addEventListener('click', confirmFinishRound);
-        const finishCell = document.createElement('div');
-        finishCell.className = 'fake-table-cell note game-finish-cell';
-        finishCell.appendChild(finishButton);
-        table.appendChild(finishCell);
+        footer.appendChild(finishButton);
 
+        table.appendChild(footer);
         return table;
-    }
-
-    function appendNote(table, text) {
-        const note = document.createElement('div');
-        note.className = 'fake-table-cell note';
-        note.textContent = text;
-        table.appendChild(note);
     }
 
     function initBoard() {
@@ -203,7 +180,7 @@ export function initGame2048UI() {
         const adjustedScore = getAdjustedScore();
         const sheet = document.getElementById('game2048-sheet');
         if (sheet && sheet.style.display !== 'none' && formulaInput) {
-            formulaInput.value = `=SCORE.NORMALIZE(${score},GRID=${boardSize})=${adjustedScore}`;
+            formulaInput.value = `=SCORE.NORMALIZE(${score})=${adjustedScore}`;
         }
 
         const scoreDisplay = document.getElementById('fake-score-display');
@@ -216,7 +193,7 @@ export function initGame2048UI() {
     }
 
     function getAdjustedScore() {
-        return Math.max(0, Math.round(score * (SCORE_MULTIPLIER[boardSize] || 1)));
+        return Math.max(0, Math.round(score * SCORE_MULTIPLIER));
     }
 
     function onKeyDown(e) {

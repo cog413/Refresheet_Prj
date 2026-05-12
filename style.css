@@ -239,6 +239,10 @@ body {
     border-left: 1px solid #e1dfdd;
 }
 
+#game2048-grid {
+    border: 1px solid #d6dee7;
+}
+
 /* Base cell styling to look like Excel */
 .excel-cell {
     width: 80px;
@@ -826,9 +830,8 @@ body.dark-mode .newgame-locked-notice {
 }
 .bar.bar-green { background-color: #70ad47; }
 
-.game-finish-cell {
-    align-items: center;
-    background-color: #f8fbf8;
+.game-desc-footer {
+    justify-content: space-between;
 }
 .game-finish-btn {
     border: 1px solid #70ad47;
@@ -1311,7 +1314,7 @@ body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
     display: flex;
     flex-direction: column;
     box-shadow: 0 4px 14px rgba(31,78,121,0.12);
-    overflow: hidden;
+    overflow: visible;
 }
 
 .mp-chart-title {

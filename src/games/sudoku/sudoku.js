@@ -75,9 +75,12 @@ export async function initSudoku() {
     let submitInProgress = false;
     let finishButton = null;
 
-    // Inject difficulty selector at top of left panel
+    // Inject description panel and difficulty selector at top of left panel
     const leftPanel = document.querySelector('#sudoku-sheet .side-left');
-    if (leftPanel) leftPanel.prepend(buildDifficultySelector());
+    if (leftPanel) {
+        leftPanel.prepend(buildDifficultySelector());
+        leftPanel.prepend(buildDescPanel());
+    }
 
     // Inject score bar into right panel
     buildScorePanel();
@@ -152,33 +155,47 @@ export async function initSudoku() {
             table.appendChild(valueCell);
         });
 
-        appendNote(table, '난이도를 선택할 수 있습니다.');
-        appendNote(table, '더 높은 난이도의 문제를 풀면 더 높은 점수를 받을 수 있어요.');
-        appendNote(table, '더 빠른 시간 안에 정확히 풀면 더 높은 점수를 받을 수 있어요.');
+        return table;
+    }
 
-        const ticketCell = document.createElement('div');
-        ticketCell.className = 'fake-table-cell note';
-        ticketCell.id = 'sudoku-ticket-cell';
-        table.appendChild(ticketCell);
+    function buildDescPanel() {
+        const table = document.createElement('div');
+        table.className = 'fake-table';
+
+        const header = document.createElement('div');
+        header.className = 'fake-table-header';
+        header.textContent = '게임 안내';
+        table.appendChild(header);
+
+        [
+            '난이도는 쉬움부터 최고난도까지 선택할 수 있습니다.',
+            '높은 난이도의 문제일수록 더 높은 점수를 받을 수 있습니다.',
+            '가로, 세로, 3x3 구역에 1~9 숫자를 겹치지 않게 채워 넣는 퍼즐입니다.',
+            '빈칸을 모두 채우면 성공입니다.',
+            '숫자가 충돌하거나 작업종료를 누르면 게임이 마무리됩니다.',
+        ].forEach(text => {
+            const note = document.createElement('div');
+            note.className = 'fake-table-cell note';
+            note.textContent = text;
+            table.appendChild(note);
+        });
+
+        const footer = document.createElement('div');
+        footer.className = 'fake-table-cell note game-desc-footer';
+
+        const ticketSpan = document.createElement('span');
+        ticketSpan.id = 'sudoku-ticket-cell';
+        footer.appendChild(ticketSpan);
 
         finishButton = document.createElement('button');
         finishButton.type = 'button';
         finishButton.className = 'game-finish-btn';
         finishButton.textContent = '작업 종료';
         finishButton.addEventListener('click', confirmFinishRound);
-        const finishCell = document.createElement('div');
-        finishCell.className = 'fake-table-cell note game-finish-cell';
-        finishCell.appendChild(finishButton);
-        table.appendChild(finishCell);
+        footer.appendChild(finishButton);
 
+        table.appendChild(footer);
         return table;
-    }
-
-    function appendNote(table, text) {
-        const note = document.createElement('div');
-        note.className = 'fake-table-cell note';
-        note.textContent = text;
-        table.appendChild(note);
     }
 
     function buildScorePanel() {
