@@ -102,6 +102,7 @@ export function initExcelLayout() {
                 if (tab !== viewMenuTab) tab.classList.remove('active');
             });
             fileMenuTab.classList.add('active');
+            document.body.classList.add('file-guide-mode');
             if (fileGuideScreen) fileGuideScreen.hidden = false;
             if (toolbar) toolbar.hidden = true;
             if (formulaBar) formulaBar.hidden = true;
@@ -154,6 +155,7 @@ export function initExcelLayout() {
     }
 
     function showAppWorkspace() {
+        document.body.classList.remove('file-guide-mode');
         if (fileGuideScreen) fileGuideScreen.hidden = true;
         if (toolbar) toolbar.hidden = false;
         if (formulaBar) formulaBar.hidden = false;
