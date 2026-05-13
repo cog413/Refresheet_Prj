@@ -1,7 +1,6 @@
 import { operate, addRandomTile, isGameOver } from './logic.js';
 
-const SIZE_OPTIONS = [4, 5];
-const SCORE_MULTIPLIER = { 4: 1.15, 5: 0.68 };
+const SCORE_MULTIPLIER = 1.15;
 
 export function initGame2048UI() {
     const grid = document.getElementById('game2048-grid');
@@ -18,24 +17,37 @@ export function initGame2048UI() {
     let loginPopupShown = false;
     let roundFinalized = false;
     let submitInProgress = false;
-    let finishButton = null;
 
-    // Inject board size selector at top of left panel
+    // Inject description panel (desktop) and mobile action bar
     const leftPanel = document.querySelector('#game2048-sheet .side-left');
-    if (leftPanel) leftPanel.prepend(buildSizeSelector());
+    if (leftPanel) leftPanel.prepend(buildDescPanel());
+    const mainCol = document.querySelector('#game2048-sheet .game-main-column');
+    if (mainCol) mainCol.prepend(buildMobileBar());
 
     initBoard();
 
     document.addEventListener('keydown', onKeyDown);
 
-    // Touch swipe for mobile
-    let _tx = 0, _ty = 0;
-    grid.addEventListener('touchstart', e => {
+    // Touch swipe — covers entire sheet area, prevents iOS back-swipe on horizontal
+    let _tx = 0, _ty = 0, _moved = false;
+    const swipeTarget = document.getElementById('game2048-sheet') || grid;
+    swipeTarget.addEventListener('touchstart', e => {
         _tx = e.changedTouches[0].clientX;
         _ty = e.changedTouches[0].clientY;
+        _moved = false;
     }, { passive: true });
-    grid.addEventListener('touchend', e => {
-        if (gameOver) return;
+    swipeTarget.addEventListener('touchmove', e => {
+        const dx = e.changedTouches[0].clientX - _tx;
+        const dy = e.changedTouches[0].clientY - _ty;
+        if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
+            e.preventDefault(); // prevents scroll AND iOS swipe-back navigation
+            _moved = true;
+        }
+    }, { passive: false });
+    swipeTarget.addEventListener('touchend', e => {
+        if (gameOver || !_moved) return;
+        const sheet = document.getElementById('game2048-sheet');
+        if (!sheet || sheet.style.display === 'none') return;
         const dx = e.changedTouches[0].clientX - _tx;
         const dy = e.changedTouches[0].clientY - _ty;
         if (Math.abs(dx) < 30 && Math.abs(dy) < 30) return;
@@ -78,65 +90,68 @@ export function initGame2048UI() {
 
     // ── helpers ──────────────────────────────────────────────────────────────
 
-    function buildSizeSelector() {
+    function buildDescPanel() {
         const table = document.createElement('div');
         table.className = 'fake-table';
 
         const header = document.createElement('div');
         header.className = 'fake-table-header';
-        header.textContent = '그리드 크기';
+        header.textContent = '게임 안내';
         table.appendChild(header);
 
-        SIZE_OPTIONS.forEach(size => {
-            const labelCell = document.createElement('div');
-            labelCell.className = 'fake-table-cell label g2048-size-btn';
-            labelCell.dataset.size = size;
-            labelCell.textContent = `${size}×${size}`;
-            if (size === boardSize) labelCell.classList.add('active');
-
-            const valueCell = document.createElement('div');
-            valueCell.className = 'fake-table-cell value';
-            valueCell.textContent = size === 4 ? '기본' : '확장';
-
-            labelCell.addEventListener('click', () => {
-                if (size === boardSize) return;
-                boardSize = size;
-                table.querySelectorAll('.g2048-size-btn').forEach(b =>
-                    b.classList.toggle('active', parseInt(b.dataset.size) === size)
-                );
-                initBoard();
-            });
-
-            table.appendChild(labelCell);
-            table.appendChild(valueCell);
+        [
+            '같은 숫자를 합쳐 2048 이상 고득점을 노리는 게임입니다.',
+            '상하좌우로 타일을 움직여 숫자를 합치며 진행합니다.',
+            '더 이상 움직일 수 없으면 게임이 종료됩니다.',
+            '언제든 작업종료를 눌러 현재 점수로 마무리할 수 있습니다.',
+        ].forEach(text => {
+            const note = document.createElement('div');
+            note.className = 'fake-table-cell note';
+            note.textContent = text;
+            table.appendChild(note);
         });
 
-        appendNote(table, '그리드 크기(4x4 / 5x5)는 선택할 수 있습니다.');
-        appendNote(table, '같은 매출을 달성해도 4x4가 더 높은 점수를 받습니다.');
+        const footer = document.createElement('div');
+        footer.className = 'fake-table-cell note game-desc-footer';
 
-        const ticketCell = document.createElement('div');
-        ticketCell.className = 'fake-table-cell note';
-        ticketCell.id = 'g2048-ticket-cell';
-        table.appendChild(ticketCell);
+        const ticketSpan = document.createElement('span');
+        ticketSpan.className = 'g2048-ticket-cell';
+        footer.appendChild(ticketSpan);
 
-        finishButton = document.createElement('button');
-        finishButton.type = 'button';
-        finishButton.className = 'game-finish-btn';
-        finishButton.textContent = '작업 종료';
-        finishButton.addEventListener('click', confirmFinishRound);
-        const finishCell = document.createElement('div');
-        finishCell.className = 'fake-table-cell note game-finish-cell';
-        finishCell.appendChild(finishButton);
-        table.appendChild(finishCell);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        footer.appendChild(btn);
 
+        table.appendChild(footer);
         return table;
     }
 
-    function appendNote(table, text) {
-        const note = document.createElement('div');
-        note.className = 'fake-table-cell note';
-        note.textContent = text;
-        table.appendChild(note);
+    function buildMobileBar() {
+        const bar = document.createElement('div');
+        bar.className = 'game-mobile-bar';
+
+        const ticketSpan = document.createElement('span');
+        ticketSpan.className = 'g2048-ticket-cell';
+        bar.appendChild(ticketSpan);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        bar.appendChild(btn);
+
+        return bar;
+    }
+
+    function setFinishButtons(disabled, text) {
+        document.querySelectorAll('#game2048-sheet .game-finish-btn').forEach(b => {
+            b.disabled = disabled;
+            b.textContent = text;
+        });
     }
 
     function initBoard() {
@@ -145,17 +160,14 @@ export function initGame2048UI() {
         roundFinalized = false;
         submitInProgress = false;
         gameStartTime = Date.now();
-        if (finishButton) {
-            finishButton.disabled = false;
-            finishButton.textContent = '작업 종료';
-        }
+        setFinishButtons(false, '작업 종료');
         board = Array.from({ length: boardSize }, () => Array(boardSize).fill(0));
         addRandomTile(board);
         addRandomTile(board);
 
         const isMobile = window.innerWidth <= 768;
         const cellSize = isMobile
-            ? Math.min(80, Math.floor((window.innerWidth - 24) / boardSize))
+            ? Math.min(80, Math.floor((window.innerWidth - 16) / boardSize))
             : 80;
         const cellH = isMobile ? cellSize : 25;
 
@@ -203,7 +215,7 @@ export function initGame2048UI() {
         const adjustedScore = getAdjustedScore();
         const sheet = document.getElementById('game2048-sheet');
         if (sheet && sheet.style.display !== 'none' && formulaInput) {
-            formulaInput.value = `=SCORE.NORMALIZE(${score},GRID=${boardSize})=${adjustedScore}`;
+            formulaInput.value = `=SCORE.NORMALIZE(${score})=${adjustedScore}`;
         }
 
         const scoreDisplay = document.getElementById('fake-score-display');
@@ -216,7 +228,7 @@ export function initGame2048UI() {
     }
 
     function getAdjustedScore() {
-        return Math.max(0, Math.round(score * (SCORE_MULTIPLIER[boardSize] || 1)));
+        return Math.max(0, Math.round(score * SCORE_MULTIPLIER));
     }
 
     function onKeyDown(e) {
@@ -319,10 +331,7 @@ export function initGame2048UI() {
         if (roundFinalized || submitInProgress) return;
         roundFinalized = true;
         submitInProgress = true;
-        if (finishButton) {
-            finishButton.disabled = true;
-            finishButton.textContent = '종료됨';
-        }
+        setFinishButtons(true, '종료됨');
 
         const finalScore = getAdjustedScore();
         if (formulaInput) formulaInput.value = `=FINISH.SCORE(${finalScore.toLocaleString()})`;
@@ -345,6 +354,19 @@ export function initGame2048UI() {
                     extra: { board_size: boardSize, raw_score: score, finish_type: finishType },
                 }),
             });
+            if (res.status === 403) {
+                const d = await res.json().catch(() => ({}));
+                if (d.error === 'employee_name_required') {
+                    const { showAlertPopup, showUserSettings } = window.loginPopupModule || {};
+                    if (showAlertPopup) {
+                        showAlertPopup('사원명을 설정해야 실적 및 순위가 반영됩니다.', () => {
+                            if (showUserSettings) showUserSettings();
+                        });
+                    }
+                }
+                refreshTicketDisplay();
+                return;
+            }
             if (res.status === 429) {
                 const d = await res.json().catch(() => ({}));
                 if (formulaInput) formulaInput.value = `=LIMIT.REACHED("이번 시간 3판 완료 · ${d.resets_at_kst || '다음 정시'} 초기화")`;
@@ -359,15 +381,16 @@ export function initGame2048UI() {
     }
 
     async function refreshTicketDisplay() {
-        const ticketEl = document.getElementById('g2048-ticket-cell');
-        if (!ticketEl || !window.refresheetAuth?.authenticated) {
-            if (ticketEl) ticketEl.textContent = '';
+        const els = document.querySelectorAll('.g2048-ticket-cell');
+        if (!window.refresheetAuth?.authenticated) {
+            els.forEach(el => { el.textContent = ''; });
             return;
         }
         try {
-            const res = await fetch('/api/scores/today', { credentials: 'include' });
+            const res = await fetch('/api/scores/today?game_type=2048', { credentials: 'include' });
             const d = await res.json();
-            ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
-        } catch { ticketEl.textContent = ''; }
+            const text = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
+            els.forEach(el => { el.textContent = text; });
+        } catch { els.forEach(el => { el.textContent = ''; }); }
     }
 }

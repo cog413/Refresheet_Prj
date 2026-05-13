@@ -73,11 +73,15 @@ export async function initSudoku() {
     let loginPopupShown = false;
     let roundFinalized = false;
     let submitInProgress = false;
-    let finishButton = null;
 
-    // Inject difficulty selector at top of left panel
+    // Inject description panel (desktop) + mobile action bar, then difficulty selector
     const leftPanel = document.querySelector('#sudoku-sheet .side-left');
-    if (leftPanel) leftPanel.prepend(buildDifficultySelector());
+    if (leftPanel) {
+        leftPanel.prepend(buildDifficultySelector());
+        leftPanel.prepend(buildDescPanel());
+    }
+    const mainCol = document.querySelector('#sudoku-sheet .game-main-column');
+    if (mainCol) mainCol.prepend(buildMobileBar());
 
     // Inject score bar into right panel
     buildScorePanel();
@@ -152,33 +156,72 @@ export async function initSudoku() {
             table.appendChild(valueCell);
         });
 
-        appendNote(table, '난이도를 선택할 수 있습니다.');
-        appendNote(table, '더 높은 난이도의 문제를 풀면 더 높은 점수를 받을 수 있어요.');
-        appendNote(table, '더 빠른 시간 안에 정확히 풀면 더 높은 점수를 받을 수 있어요.');
-
-        const ticketCell = document.createElement('div');
-        ticketCell.className = 'fake-table-cell note';
-        ticketCell.id = 'sudoku-ticket-cell';
-        table.appendChild(ticketCell);
-
-        finishButton = document.createElement('button');
-        finishButton.type = 'button';
-        finishButton.className = 'game-finish-btn';
-        finishButton.textContent = '작업 종료';
-        finishButton.addEventListener('click', confirmFinishRound);
-        const finishCell = document.createElement('div');
-        finishCell.className = 'fake-table-cell note game-finish-cell';
-        finishCell.appendChild(finishButton);
-        table.appendChild(finishCell);
-
         return table;
     }
 
-    function appendNote(table, text) {
-        const note = document.createElement('div');
-        note.className = 'fake-table-cell note';
-        note.textContent = text;
-        table.appendChild(note);
+    function buildDescPanel() {
+        const table = document.createElement('div');
+        table.className = 'fake-table';
+
+        const header = document.createElement('div');
+        header.className = 'fake-table-header';
+        header.textContent = '게임 안내';
+        table.appendChild(header);
+
+        [
+            '난이도는 쉬움부터 최고난도까지 선택할 수 있습니다.',
+            '높은 난이도의 문제일수록 더 높은 점수를 받을 수 있습니다.',
+            '가로, 세로, 3x3 구역에 1~9 숫자를 겹치지 않게 채워 넣는 퍼즐입니다.',
+            '빈칸을 모두 채우면 성공입니다.',
+            '숫자가 충돌하거나 작업종료를 누르면 게임이 마무리됩니다.',
+        ].forEach(text => {
+            const note = document.createElement('div');
+            note.className = 'fake-table-cell note';
+            note.textContent = text;
+            table.appendChild(note);
+        });
+
+        const footer = document.createElement('div');
+        footer.className = 'fake-table-cell note game-desc-footer';
+
+        const ticketSpan = document.createElement('span');
+        ticketSpan.className = 'sudoku-ticket-cell';
+        footer.appendChild(ticketSpan);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        footer.appendChild(btn);
+
+        table.appendChild(footer);
+        return table;
+    }
+
+    function buildMobileBar() {
+        const bar = document.createElement('div');
+        bar.className = 'game-mobile-bar';
+
+        const ticketSpan = document.createElement('span');
+        ticketSpan.className = 'sudoku-ticket-cell';
+        bar.appendChild(ticketSpan);
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'game-finish-btn';
+        btn.textContent = '작업 종료';
+        btn.addEventListener('click', confirmFinishRound);
+        bar.appendChild(btn);
+
+        return bar;
+    }
+
+    function setSudokuFinishButtons(disabled, text) {
+        document.querySelectorAll('#sudoku-sheet .game-finish-btn').forEach(b => {
+            b.disabled = disabled;
+            b.textContent = text;
+        });
     }
 
     function buildScorePanel() {
@@ -221,10 +264,7 @@ export async function initSudoku() {
         startTime = null;
         roundFinalized = false;
         submitInProgress = false;
-        if (finishButton) {
-            finishButton.disabled = false;
-            finishButton.textContent = '작업 종료';
-        }
+        setSudokuFinishButtons(false, '작업 종료');
 
         resetScoreUI();
 
@@ -386,10 +426,7 @@ export async function initSudoku() {
         finalScore = Math.max(0, finalScore);
         recordPlayed(currentPuzzleId);
 
-        if (finishButton) {
-            finishButton.disabled = true;
-            finishButton.textContent = '종료됨';
-        }
+        setSudokuFinishButtons(true, '종료됨');
         if (formulaInput) formulaInput.value = `=FINISH.SCORE(${finalScore.toLocaleString()})`;
         updateScoreUI(finalScore);
 
@@ -518,16 +555,17 @@ export async function initSudoku() {
     }
 
     async function refreshTicketDisplay() {
-        const ticketEl = document.getElementById('sudoku-ticket-cell');
-        if (!ticketEl || !window.refresheetAuth?.authenticated) {
-            if (ticketEl) ticketEl.textContent = '';
+        const els = document.querySelectorAll('.sudoku-ticket-cell');
+        if (!window.refresheetAuth?.authenticated) {
+            els.forEach(el => { el.textContent = ''; });
             return;
         }
         try {
             const res = await fetch('/api/scores/today', { credentials: 'include' });
             const d = await res.json();
-            ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
-        } catch { ticketEl.textContent = ''; }
+            const text = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
+            els.forEach(el => { el.textContent = text; });
+        } catch { els.forEach(el => { el.textContent = ''; }); }
     }
 
     function isValidMove(row, col, value) {
