@@ -2510,7 +2510,7 @@ body.dark-mode .mps-body-b { background:
         grid-template-columns: repeat(2, minmax(0, 1fr));
         grid-template-rows: repeat(3, minmax(0, 1fr));
     }
-    .fg-hero { grid-template-columns: 1fr; min-height: auto; }
+    .fg-hero { grid-template-columns: 1fr; min-height: auto; padding: 28px; gap: 20px; }
 }
 
 @media (max-width: 768px) {
