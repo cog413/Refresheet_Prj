@@ -54,12 +54,14 @@ body {
 }
 
 #view-menu-tab,
-#review-menu-tab {
+#review-menu-tab,
+#home-menu-tab {
     cursor: pointer;
 }
 
 #view-menu-tab:hover,
-#review-menu-tab:hover {
+#review-menu-tab:hover,
+#home-menu-tab:hover {
     background-color: #fff;
     border-color: #d2d0ce;
     color: #217346;
@@ -573,9 +575,16 @@ body.dark-mode .newgame-locked-notice {
     color: #1f1f1f;
     word-break: break-word;
 }
-.review-nickname {
+.review-author { display: inline; }
+.review-author-name {
     font-weight: 700;
     color: #111;
+}
+.review-author-company {
+    font-size: 11px;
+    color: #999;
+    font-weight: 400;
+    margin-left: 4px;
 }
 .review-comment-meta {
     display: flex;
@@ -992,11 +1001,12 @@ body.dark-mode .review-action.strong {
     color: #6dba8a;
 }
 body.dark-mode .review-comment-text,
-body.dark-mode .review-nickname,
+body.dark-mode .review-author-name,
 body.dark-mode .review-nickname-help,
 body.dark-mode .review-success-text {
     color: #d4d4d4;
 }
+body.dark-mode .review-author-company { color: #777; }
 body.dark-mode .review-panel-subtitle,
 body.dark-mode .review-comment-meta,
 body.dark-mode .review-action,
@@ -2362,6 +2372,20 @@ body.dark-mode .mps-body-b { background:
    Mobile numpad (hidden on desktop)
    ===================================================== */
 .mobile-numpad { display: none; }
+
+/* =====================================================
+   Tablet responsive — 769px ~ 1300px
+   ReadMe 시트 2컬럼을 세로 배치로 전환
+   ===================================================== */
+@media (max-width: 1300px) and (min-width: 769px) {
+    .rm-sheet { flex-direction: column; padding: 0 8px 24px; }
+    .rm-col-main, .rm-col-side { width: 100%; min-width: 0; }
+    .rm-col-side { padding-left: 0; }
+    .rm-col-side .rm-sop-title,
+    .rm-col-side .rm-sop-body,
+    .rm-col-side .rm-guide-item,
+    .rm-col-side .rm-note-item { white-space: normal; }
+}
 
 /* =====================================================
    Mobile responsive — max 768px

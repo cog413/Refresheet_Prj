@@ -5,7 +5,6 @@ let initialized = false;
 let loadedOnce = false;
 let comments = [];
 let replyParentId = null;
-let pendingAfterNickname = null;
 
 export function initReview() {
     if (initialized) return;
@@ -65,6 +64,7 @@ function renderComments() {
 
     top.forEach(comment => {
         list.append(renderComment(comment, false));
+        // 부모가 inactive 유저이면 top에 없으므로 replies도 자동으로 미렌더링됨
         (replies.get(comment.id) || []).forEach(reply => {
             list.append(renderComment(reply, true));
         });
@@ -77,8 +77,14 @@ function renderComment(comment, isReply) {
 
     const body = el('div', 'review-comment-body');
     const text = el('div', 'review-comment-text');
+
     if (!comment.is_deleted) {
-        text.append(el('span', 'review-nickname', comment.nickname || '사용자'));
+        const authorWrap = el('span', 'review-author');
+        authorWrap.append(el('span', 'review-author-name', comment.employee_name || '사용자'));
+        if (comment.company) {
+            authorWrap.append(el('span', 'review-author-company', comment.company));
+        }
+        text.append(authorWrap);
         text.append(document.createTextNode(` ${comment.body}`));
     } else {
         text.textContent = '삭제된 댓글입니다';
@@ -117,8 +123,8 @@ function renderComment(comment, isReply) {
 function setReplyTarget(comment) {
     replyParentId = comment.id;
     const input = document.getElementById('review-comment-input');
-    const nickname = comment.nickname || '댓글';
-    input.placeholder = `${nickname}님에게 답글 달기...`;
+    const name = comment.employee_name || '댓글';
+    input.placeholder = `${name}님에게 답글 달기...`;
     input.focus();
 }
 
@@ -127,7 +133,7 @@ async function submitComment() {
     const body = input?.value.trim() || '';
     if (!body) return showMessage('댓글을 입력해주세요');
     if (body.length > 100) return showMessage('댓글은 100자까지 입력할 수 있습니다');
-    if (!(await ensureReadyToPost(() => submitComment()))) return;
+    if (!(await ensureReadyToPost())) return;
 
     const res = await fetch('/api/review/comments', {
         method: 'POST',
@@ -186,7 +192,7 @@ async function deleteComment(id) {
 }
 
 async function toggleLike(id) {
-    if (!(await ensureReadyToPost(() => toggleLike(id), { requireNickname: false }))) return;
+    if (!(await ensureReadyToPost({ requireEmployeeName: false }))) return;
     const res = await fetch(`/api/review/comments/${id}/like`, {
         method: 'POST',
         credentials: 'include',
@@ -197,7 +203,7 @@ async function toggleLike(id) {
 }
 
 function openFeedbackModal() {
-    ensureReadyToPost(openFeedbackModal).then(ok => {
+    ensureReadyToPost().then(ok => {
         if (!ok) return;
         const modal = buildModal('운영자에게 의견 보내기');
         const textarea = document.createElement('textarea');
@@ -230,7 +236,7 @@ function openFeedbackModal() {
 }
 
 function openSuccessModal() {
-    const modal = buildModal('Microsoft Excel');
+    const modal = buildModal('확인');
     modal.querySelector('.review-modal-body').append(
         el('div', 'review-success-text', '정상 접수되었습니다. 감사합니다'),
         button('modal-btn retry review-success-ok', '확인')
@@ -239,7 +245,7 @@ function openSuccessModal() {
     document.body.appendChild(modal);
 }
 
-async function ensureReadyToPost(afterNickname, { requireNickname = true } = {}) {
+async function ensureReadyToPost({ requireEmployeeName = true } = {}) {
     const auth = window.refresheetAuth;
     if (!auth?.authenticated) {
         showLoginPopup({
@@ -249,55 +255,16 @@ async function ensureReadyToPost(afterNickname, { requireNickname = true } = {})
         });
         return false;
     }
-    if (requireNickname && !auth.nickname) {
-        pendingAfterNickname = afterNickname;
-        openNicknameModal();
+    if (requireEmployeeName && !auth.employee_name) {
+        const { showAlertPopup, showUserSettings } = window.loginPopupModule || {};
+        if (showAlertPopup) {
+            showAlertPopup('댓글을 작성하려면 사원명을 먼저 설정해주세요.', () => {
+                if (showUserSettings) showUserSettings();
+            });
+        }
         return false;
     }
     return true;
-}
-
-function openNicknameModal() {
-    if (document.querySelector('.review-nickname-modal')) return;
-    const modal = buildModal('닉네임 설정');
-    modal.classList.add('review-nickname-modal');
-    const input = document.createElement('input');
-    input.className = 'review-nickname-input';
-    input.maxLength = 20;
-    input.placeholder = '닉네임';
-    const message = el('div', 'review-modal-message');
-    const save = button('modal-btn retry', '저장');
-    save.addEventListener('click', async () => {
-        const nickname = input.value.trim();
-        if (!nickname) {
-            message.textContent = '닉네임을 입력해주세요';
-            return;
-        }
-        const res = await fetch('/api/review/nickname', {
-            method: 'POST',
-            credentials: 'include',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ nickname }),
-        });
-        const data = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            message.textContent = data.message || '닉네임을 저장하지 못했습니다';
-            return;
-        }
-        await refreshAuthState();
-        modal.remove();
-        const next = pendingAfterNickname;
-        pendingAfterNickname = null;
-        next?.();
-    });
-    modal.querySelector('.review-modal-body').append(
-        el('div', 'review-nickname-help', '댓글을 작성하려면 고유 닉네임이 필요합니다.'),
-        input,
-        message,
-        save
-    );
-    document.body.appendChild(modal);
-    input.focus();
 }
 
 function buildModal(title) {
@@ -319,8 +286,13 @@ function showModalMessage(modal, text) {
 }
 
 function handleApiError(data) {
-    if (data.error === 'nickname_required') {
-        openNicknameModal();
+    if (data.error === 'employee_name_required' || data.error === 'nickname_required') {
+        const { showAlertPopup, showUserSettings } = window.loginPopupModule || {};
+        if (showAlertPopup) {
+            showAlertPopup('댓글을 작성하려면 사원명을 먼저 설정해주세요.', () => {
+                if (showUserSettings) showUserSettings();
+            });
+        }
         return;
     }
     showMessage(data.message || (data.error === 'daily_limit' ? '하루 등록 가능 댓글은 3개입니다' : '처리하지 못했습니다'));

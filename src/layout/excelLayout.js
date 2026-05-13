@@ -28,7 +28,7 @@ export function initExcelLayout() {
     }
 
     // 3. View tab toggles dark mode.
-    const homeMenuTab = document.querySelector('.menu-tabs .menu-tab.active');
+    const homeMenuTab = document.getElementById('home-menu-tab');
     const reviewMenuTab = document.getElementById('review-menu-tab');
     const viewMenuTab = document.getElementById('view-menu-tab');
     if (viewMenuTab) {
@@ -68,6 +68,24 @@ export function initExcelLayout() {
             updateFormulaBarForSheet(targetSheet);
         });
     });
+
+    if (homeMenuTab) {
+        homeMenuTab.addEventListener('click', () => {
+            document.querySelectorAll('.menu-tabs .menu-tab').forEach(t => {
+                if (t !== viewMenuTab) t.classList.remove('active');
+            });
+            homeMenuTab.classList.add('active');
+            const activeTab = document.querySelector('.tab.active:not(.add-tab)');
+            const targetSheet = activeTab?.dataset.sheet || 'readme';
+            sheetViews.forEach(sheet => {
+                const isTarget = sheet.id === `${targetSheet}-sheet`;
+                sheet.style.display = isTarget ? 'block' : 'none';
+                sheet.classList.toggle('active', isTarget);
+            });
+            updateFormulaBarForSheet(targetSheet);
+            window.dispatchEvent(new Event('resize'));
+        });
+    }
 
     if (reviewMenuTab) {
         reviewMenuTab.addEventListener('click', () => {

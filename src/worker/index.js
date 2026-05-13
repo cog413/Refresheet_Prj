@@ -951,15 +951,18 @@ async function handleGetReviewComments(request, env) {
     const userId = session?.user_id || null;
     const isAdmin = isMasterAdmin(session);
 
+    // inactive 유저(is_active=0)의 댓글은 JOIN 조건으로 제거.
+    // 부모가 inactive 유저인 대댓글은 parent_comment_id가 결과에 없으므로 프론트에서 자동 무시.
     const rows = await db.prepare(`
         SELECT c.id, c.parent_comment_id, c.body, c.is_deleted, c.created_at, c.updated_at,
                c.user_id,
-               COALESCE(NULLIF(p.nickname, ''), u.email, '사용자') AS nickname,
+               u.employee_name,
+               u.company,
                COUNT(cl.id) AS like_count,
                MAX(CASE WHEN cl.user_id = ? THEN 1 ELSE 0 END) AS liked_by_me
         FROM comments c
         JOIN users u ON u.user_id = c.user_id
-        LEFT JOIN user_profiles p ON p.user_id = c.user_id
+                    AND (u.is_active IS NULL OR u.is_active = 1)
         LEFT JOIN comment_likes cl ON cl.comment_id = c.id
         GROUP BY c.id
         ORDER BY COALESCE(c.parent_comment_id, c.id) ASC,
@@ -970,7 +973,7 @@ async function handleGetReviewComments(request, env) {
 
     return withCors(json({
         authenticated: Boolean(session),
-        nickname_required: Boolean(session && !session.nickname),
+        employee_name_required: Boolean(session && !session.employee_name),
         comments: (rows.results || []).map((row) => ({
             id: row.id,
             parent_comment_id: row.parent_comment_id,
@@ -978,7 +981,8 @@ async function handleGetReviewComments(request, env) {
             is_deleted: Boolean(row.is_deleted),
             created_at: row.created_at,
             updated_at: row.updated_at,
-            nickname: row.is_deleted ? '' : row.nickname,
+            employee_name: row.is_deleted ? null : (row.employee_name || null),
+            company: row.is_deleted ? null : (row.company || null),
             like_count: row.like_count || 0,
             liked_by_me: Boolean(row.liked_by_me),
             can_edit: Boolean(session && !row.is_deleted && row.user_id === session.user_id),
@@ -992,7 +996,7 @@ async function handleCreateReviewComment(request, env) {
     await ensureReviewSchema(db);
     const session = await getSessionUser(db, request);
     if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
-    if (!session.nickname) return withCors(json({ error: 'nickname_required' }, 409));
+    if (!session.employee_name) return withCors(json({ error: 'employee_name_required', message: '댓글을 작성하려면 사원명을 먼저 설정해주세요' }, 409));
 
     const data = await request.json().catch(() => ({}));
     const body = normalizeText(data.body, 100);
@@ -1093,7 +1097,7 @@ async function handleSubmitOperatorFeedback(request, env) {
     await ensureReviewSchema(db);
     const session = await getSessionUser(db, request);
     if (!session) return withCors(json({ error: 'unauthenticated' }, 401));
-    if (!session.nickname) return withCors(json({ error: 'nickname_required' }, 409));
+    if (!session.employee_name) return withCors(json({ error: 'employee_name_required', message: '사원명을 설정해야 의견을 접수할 수 있습니다' }, 409));
 
     const data = await request.json().catch(() => ({}));
     const body = normalizeText(data.body, 200);
@@ -1155,6 +1159,14 @@ async function ensureReviewSchema(db) {
     const hasNickname = (profileColumns.results || []).some((column) => column.name === 'nickname');
     if (!hasNickname) {
         await db.prepare('ALTER TABLE user_profiles ADD COLUMN nickname TEXT').run();
+    }
+
+    // users.is_active — invalid/deleted user 필터링 (migration 011)
+    const userColumns = await db.prepare('PRAGMA table_info(users)').all();
+    const hasIsActive = (userColumns.results || []).some(c => c.name === 'is_active');
+    if (!hasIsActive) {
+        await db.prepare('ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1').run();
+        await db.prepare('CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active) WHERE is_active = 0').run();
     }
 
     await db.batch([
