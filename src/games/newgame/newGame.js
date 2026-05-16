@@ -466,7 +466,7 @@ export async function initNewGame() {
             return;
         }
         try {
-            const res = await fetch('/api/scores/today?game_type=new_game', { credentials: 'include' });
+            const res = await fetch('/api/scores/today', { credentials: 'include' });
             const d = await res.json();
             ticketEl.textContent = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
         } catch { ticketEl.textContent = ''; }

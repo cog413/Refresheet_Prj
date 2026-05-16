@@ -316,6 +316,14 @@ const eased = (m.mode === 'walk' || m.mode === 'run')
 - Referral emails are one-time immutable values, normalized lowercase, existing-user only, and self-referrals are rejected backend-side.
 - NewGame uses `item_key='new_game'`, `lock_type='referral'`, `lock_value='2'`, and reason `친구추천 2명 달성 시 이용할 수 있습니다`.
 - Frontend may show lock state, but Worker must enforce NewGame lock when saving/using `game_type='new_game'`.
+- Kitty uses `item_key='character_kitty'`, `item_type='character'`, `lock_type='referral'`, `lock_value='2'`, and reason `친구 추천 2회 이상 필요`.
+- Master admin `jhchae9080@gmail.com` is always unlocked for referral-gated sheets and characters.
+
+## Global Game Ticket Policy
+
+- All games share one global ticket pool: a signed-in user can record at most 3 eligible plays per KST hour across `2048`, `sudoku`, `new_game`, and `typing_game` combined.
+- Ticket usage and remaining-ticket UI must be computed from all `game_scores` rows in the current KST hour; do not filter by `game_type` for ticket availability.
+- Hourly recovery is global at the next KST hour boundary, not per game.
 
 ## #CHCK# — Live Preview Inspection Workflow
 

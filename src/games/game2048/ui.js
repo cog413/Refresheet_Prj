@@ -387,7 +387,7 @@ export function initGame2048UI() {
             return;
         }
         try {
-            const res = await fetch('/api/scores/today?game_type=2048', { credentials: 'include' });
+            const res = await fetch('/api/scores/today', { credentials: 'include' });
             const d = await res.json();
             const text = `티켓 ${d.hourly_plays_remaining ?? 0} / 3 · 매 정시 갱신`;
             els.forEach(el => { el.textContent = text; });

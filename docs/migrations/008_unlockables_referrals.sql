@@ -78,3 +78,30 @@ ON CONFLICT(item_key) DO UPDATE SET
   lock_reason = excluded.lock_reason,
   is_active = excluded.is_active,
   updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO unlockable_items (
+  item_key,
+  item_type,
+  display_name,
+  lock_type,
+  lock_value,
+  lock_reason,
+  is_active
+)
+VALUES (
+  'character_kitty',
+  'character',
+  'Kitty',
+  'referral',
+  '2',
+  '친구 추천 2회 이상 필요',
+  1
+)
+ON CONFLICT(item_key) DO UPDATE SET
+  item_type = excluded.item_type,
+  display_name = excluded.display_name,
+  lock_type = excluded.lock_type,
+  lock_value = excluded.lock_value,
+  lock_reason = excluded.lock_reason,
+  is_active = excluded.is_active,
+  updated_at = CURRENT_TIMESTAMP;

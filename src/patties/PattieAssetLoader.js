@@ -51,6 +51,23 @@ export class PattieAssetLoader {
         const manifest = await this.loadManifest();
         return Object.entries(manifest.items || {}).map(([key, value]) => ({ key, ...value }));
     }
+
+    async registerManifest(url) {
+        const manifest = await this.loadManifest();
+        try {
+            const res = await fetch(url, { cache: 'no-cache' });
+            if (!res.ok) return;
+            const extra = await res.json();
+            for (const [key, char] of Object.entries(extra.characters || {})) {
+                manifest.characters[key] = char;
+            }
+            for (const [key, item] of Object.entries(extra.items || {})) {
+                manifest.items[key] = item;
+            }
+        } catch {
+            // silently ignore if extra manifest fails to load
+        }
+    }
 }
 
 export const pattieAssetLoader = new PattieAssetLoader();
