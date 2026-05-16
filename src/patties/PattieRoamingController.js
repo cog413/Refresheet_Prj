@@ -55,6 +55,7 @@ export class PattieRoamingController {
     async init() {
         this.root.classList.add('pattie-world');
         this.profile = await this.fetchProfile();
+        await this.loader.registerManifest('/public/assets/kitty/manifest.json');
         this.sprite = new PattieSprite({
             loader: this.loader,
             characterKey: this.profile.character_key,
@@ -105,6 +106,7 @@ export class PattieRoamingController {
 
     async applyProfile(profile) {
         this.profile = normalizeProfile(profile);
+        await this.loader.registerManifest('/public/assets/kitty/manifest.json');
         await this.sprite.setCharacter(this.profile.character_key, this.profile.equipped_item_keys);
         this.sprite.el.setAttribute('aria-label', this.profile.nickname || 'Pattie');
         if (this.nameplate) this.nameplate.textContent = this.profile.nickname || DEFAULT_PROFILE.nickname;
@@ -368,15 +370,17 @@ export class PattieRoamingController {
         }
     }
 
-    happy() {
+    async happy() {
         this.lastInteractionAt = Date.now();
-        this.sprite.play('happy', { restart: true, once: true, next: this.zone?.id === 'chart-zone' ? 'idle' : 'walk' });
+        await this.sprite.play('happy', { restart: true, once: true, next: this.zone?.id === 'chart-zone' ? 'idle' : 'walk' });
         this.mode = 'happy';
+        const frameCount = this.sprite.animation?.frameCount || 1;
+        const frameDuration = this.sprite.animation?.frameDurationMs || this.config.movement.frameDurationMs || 500;
         document.dispatchEvent(new CustomEvent('refresheet:pattie-happy'));
         fetch('/api/minime/interact', { method: 'POST', credentials: 'include' }).catch(() => {});
         setTimeout(() => {
             if (this.mode === 'happy') this.setMode(this.zone?.id === 'chart-zone' ? 'idle' : 'walk');
-        }, 1300);
+        }, frameCount * frameDuration + 50);
     }
 
     handleSpeech(event) {
@@ -593,7 +597,7 @@ export class PattieRoamingController {
 }
 
 function normalizeProfile(profile) {
-    const character = ['mong', 'rabbit', 'dog', 'cat'].includes(profile.character_key)
+    const character = ['mong', 'rabbit', 'dog', 'cat', 'cabul'].includes(profile.character_key)
         ? profile.character_key
         : mapLegacyCharacter(profile.character_type);
     const items = Array.isArray(profile.equipped_item_keys)
@@ -614,6 +618,7 @@ function mapLegacyCharacter(characterType) {
     if (characterType === 'type_b') return 'dog';
     if (characterType === 'cat') return 'cat';
     if (characterType === 'dog') return 'dog';
+    if (characterType === 'cabul') return 'cabul';
     return 'mong';
 }
 

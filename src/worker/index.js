@@ -4,6 +4,7 @@ const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
 const MASTER_ADMIN_EMAIL = 'jhchae9080@gmail.com';
+const GLOBAL_HOURLY_PLAY_LIMIT = 3;
 let reviewSchemaReady = false;
 
 export default {
@@ -400,7 +401,7 @@ async function handleSavePattie(request, env) {
 
     const body = await request.json().catch(() => ({}));
     const nickname = typeof body.nickname === 'string' ? body.nickname.trim().slice(0, 20) : null;
-    const characterKey = ['mong', 'rabbit', 'dog', 'cat'].includes(body.character_key) ? body.character_key : 'mong';
+    const characterKey = ['mong', 'rabbit', 'dog', 'cat', 'cabul'].includes(body.character_key) ? body.character_key : 'mong';
     const equippedItems = Array.isArray(body.equipped_item_keys)
         ? body.equipped_item_keys.filter((key) => ['sunglasses', 'bee_suit'].includes(key)).slice(0, 4)
         : [];
@@ -408,6 +409,14 @@ async function handleSavePattie(request, env) {
     if (!nickname) return withCors(json({ error: 'nickname required' }, 400));
 
     const db = getDb(env);
+
+    if (characterKey === 'cabul') {
+        await ensureUnlockSchema(db);
+        const lock = await getUnlockState(db, session, 'character_kitty');
+        if (lock.is_locked) {
+            return withCors(json({ error: 'locked', message: lock.lock_reason }, 403));
+        }
+    }
     const now = new Date().toISOString();
     const itemJson = JSON.stringify(equippedItems);
     const characterType = characterKey;
@@ -462,9 +471,9 @@ function normalizePattieRow(row) {
         equipped = [];
     }
     const legacy = row.character_type === 'type_b' ? 'dog' : row.character_type;
-    const characterKey = ['mong', 'rabbit', 'dog', 'cat'].includes(row.character_key)
+    const characterKey = ['mong', 'rabbit', 'dog', 'cat', 'cabul'].includes(row.character_key)
         ? row.character_key
-        : ['mong', 'rabbit', 'dog', 'cat'].includes(legacy)
+        : ['mong', 'rabbit', 'dog', 'cat', 'cabul'].includes(legacy)
             ? legacy
             : 'mong';
     return {
@@ -513,13 +522,13 @@ async function handleSaveScore(request, env) {
     }
 
     const { start, end, nextHourKST } = kstHourBounds();
-    // 게임 타입별 독립 시간당 3회 한도 (cross-game 카운트 방지)
+    // Global hourly ticket pool shared by every game.
     const hourlyRow = await db.prepare(
         `SELECT COUNT(*) as cnt FROM game_scores
-         WHERE user_id = ? AND game_type = ? AND played_at >= ? AND played_at < ?`
-    ).bind(session.user_id, gameType, start, end).first();
+         WHERE user_id = ? AND played_at >= ? AND played_at < ?`
+    ).bind(session.user_id, start, end).first();
 
-    if ((hourlyRow?.cnt ?? 0) >= 3) {
+    if ((hourlyRow?.cnt ?? 0) >= GLOBAL_HOURLY_PLAY_LIMIT) {
         return withCors(json({
             error: 'hourly_limit_reached',
             plays_this_hour: hourlyRow.cnt,
@@ -553,21 +562,11 @@ async function handleTodayScores(request, env) {
     const db = getDb(env);
     const { start: hourStart, end: hourEnd } = kstHourBounds();
 
-    // game_type 파라미터가 있으면 해당 타입만 시간당 카운트 (per-game 티켓 표시)
-    const url = new URL(request.url);
-    const gtParam = url.searchParams.get('game_type');
-    const validGameTypes = ['2048', 'sudoku', 'new_game', 'typing_game'];
-    const filteredGameType = validGameTypes.includes(gtParam) ? gtParam : null;
-
-    const hourlyStmt = filteredGameType
-        ? db.prepare(
-            `SELECT COUNT(*) as cnt FROM game_scores
-             WHERE user_id = ? AND game_type = ? AND played_at >= ? AND played_at < ?`
-          ).bind(session.user_id, filteredGameType, hourStart, hourEnd)
-        : db.prepare(
-            `SELECT COUNT(*) as cnt FROM game_scores
-             WHERE user_id = ? AND played_at >= ? AND played_at < ?`
-          ).bind(session.user_id, hourStart, hourEnd);
+    // Ticket availability is global, even if callers pass a game_type.
+    const hourlyStmt = db.prepare(
+        `SELECT COUNT(*) as cnt FROM game_scores
+         WHERE user_id = ? AND played_at >= ? AND played_at < ?`
+    ).bind(session.user_id, hourStart, hourEnd);
 
     const [rows, avatar, hourlyRow] = await Promise.all([
         db.prepare(
@@ -590,7 +589,8 @@ async function handleTodayScores(request, env) {
         scores: rows.results || [],
         minime_cared_today: Boolean(minimeCaredToday),
         hourly_plays_used: hourlyPlaysUsed,
-        hourly_plays_remaining: Math.max(0, 3 - hourlyPlaysUsed),
+        hourly_plays_remaining: Math.max(0, GLOBAL_HOURLY_PLAY_LIMIT - hourlyPlaysUsed),
+        hourly_plays_limit: GLOBAL_HOURLY_PLAY_LIMIT,
     }));
 }
 
@@ -1376,6 +1376,19 @@ async function ensureUnlockSchema(db) {
             lock_reason=excluded.lock_reason,
             is_active=excluded.is_active,
             updated_at=CURRENT_TIMESTAMP`),
+        db.prepare(`INSERT INTO unlockable_items (
+            item_key, item_type, display_name, lock_type, lock_value, lock_reason, is_active
+        ) VALUES (
+            'character_kitty', 'character', 'Kitty', 'referral', '2', '친구 추천 2회 이상 필요', 1
+        )
+        ON CONFLICT(item_key) DO UPDATE SET
+            item_type=excluded.item_type,
+            display_name=excluded.display_name,
+            lock_type=excluded.lock_type,
+            lock_value=excluded.lock_value,
+            lock_reason=excluded.lock_reason,
+            is_active=excluded.is_active,
+            updated_at=CURRENT_TIMESTAMP`),
     ]);
 }
 
@@ -1390,6 +1403,7 @@ async function getUnlockState(db, session, itemKey, item = null) {
     }
     if (row.lock_type === 'none') return { ...row, is_locked: false, lock_reason: null };
     if (!session) return { ...row, is_locked: true };
+    if (isMasterAdmin(session)) return { ...row, is_locked: false, lock_reason: null };
 
     const manual = await db.prepare('SELECT id FROM user_unlocks WHERE user_id=? AND item_key=?')
         .bind(session.user_id, row.item_key).first();
@@ -1533,13 +1547,13 @@ async function handleTypingFinish(request, env) {
     const db = getDb(env);
     const { start, end, nextHourKST } = kstHourBounds();
 
-    // 타자 게임 단독 시간당 3회 한도 (cross-game 카운트 방지)
+    // Global hourly ticket pool shared by every game.
     const hourlyRow = await db.prepare(
-        `SELECT COUNT(*) as cnt FROM game_scores WHERE user_id=? AND game_type=? AND played_at>=? AND played_at<?`
-    ).bind(session.user_id, 'typing_game', start, end).first();
+        `SELECT COUNT(*) as cnt FROM game_scores WHERE user_id=? AND played_at>=? AND played_at<?`
+    ).bind(session.user_id, start, end).first();
 
     const playsThisHour = hourlyRow?.cnt ?? 0;
-    const eligible = playsThisHour < 3;
+    const eligible = playsThisHour < GLOBAL_HOURLY_PLAY_LIMIT;
     const now = new Date().toISOString();
 
     if (eligible) {

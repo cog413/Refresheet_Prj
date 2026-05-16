@@ -1,8 +1,8 @@
 {
-  "version": "corgi-aseprite-001",
+  "version": "kitty-aseprite-001",
   "source": "public",
   "isTestAsset": false,
-  "basePath": "/public/assets/corgi",
+  "basePath": "/public/assets/kitty",
   "sourceOriginalPath": "manually_command/export",
   "spriteSheet": {
     "frameWidth": 64,
@@ -15,41 +15,8 @@
     "frameCountMode": "infer-from-image-size"
   },
   "characters": {
-    "mong": {
-      "displayName": "Mong Corgi",
-      "animationAliases": {
-        "climb": "jump"
-      },
-      "animations": {
-        "idle": {
-          "src": "/public/assets/corgi/mong_idle.png",
-          "frameDurationMs": 520
-        },
-        "walk": {
-          "src": "/public/assets/corgi/mong_walk..png",
-          "frameDurationMs": 1240
-        },
-        "run": {
-          "src": "/public/assets/corgi/mong_run.png",
-          "frameDurationMs": 860
-        },
-        "sleep": {
-          "src": "/public/assets/corgi/mong_sleep.png",
-          "frameDurationMs": 720
-        },
-        "happy": {
-          "src": "/public/assets/corgi/mong_happy.png",
-          "frameCount": 10,
-          "frameDurationMs": 360
-        },
-        "jump": {
-          "src": "/public/assets/corgi/mong_jump.png",
-          "frameDurationMs": 140
-        }
-      }
-    },
     "cabul": {
-      "displayName": "Kitty",
+      "displayName": "Cabul Kitty",
       "animationAliases": {
         "climb": "jump"
       },

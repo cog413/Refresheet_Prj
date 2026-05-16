@@ -4,12 +4,14 @@ import { pattieAssetLoader } from '../patties/PattieAssetLoader.js';
 let setupEl = null;
 let settingsButton = null;
 export let currentAvatar = null;
+const KITTY_LOCK_MESSAGE = '친구 추천 2회 이상 필요';
 
 const CHARACTER_LABELS = {
     mong: 'Mong 테스트',
     rabbit: '토끼 Pattie',
     dog: '강아지 토닥이',
     cat: '고양이 Pattie',
+    cabul: '고양이 카불',
 };
 
 export async function initMinimeSheet() {
@@ -86,6 +88,7 @@ async function fetchPattie() {
 
 async function showSetupFlow(avatar = currentAvatar) {
     await ensureSetupModal();
+    await renderChoices();
     fillForm(avatar);
     setupEl.style.display = 'flex';
 }
@@ -94,7 +97,6 @@ async function ensureSetupModal() {
     if (setupEl) return;
     setupEl = buildSetupDOM();
     document.body.appendChild(setupEl);
-    await renderChoices();
     bindSetupEvents();
 }
 
@@ -133,18 +135,37 @@ function buildSetupDOM() {
     return el;
 }
 
+async function fetchCharacterLockState(itemKey) {
+    try {
+        const auth = window.refresheetAuth;
+        if (!auth?.authenticated) return true;
+        const res = await fetch(`/api/unlockables/check?item_key=${itemKey}`, { credentials: 'include' });
+        if (!res.ok) return true;
+        const data = await res.json();
+        return data.is_locked !== false;
+    } catch {
+        return true;
+    }
+}
+
 async function renderChoices() {
+    await pattieAssetLoader.registerManifest('/public/assets/kitty/manifest.json');
     const characters = await pattieAssetLoader.listCharacters();
     const items = await pattieAssetLoader.listItems();
+    const kittyLocked = await fetchCharacterLockState('character_kitty');
     const charList = setupEl.querySelector('#ms-character-list');
     const itemList = setupEl.querySelector('#ms-item-list');
 
-    charList.innerHTML = characters.map(({ key, displayName }) => `
-        <button type="button" class="ms-char-card pattie-char-card" data-type="${key}">
+    charList.innerHTML = characters.map(({ key, displayName }) => {
+        const isLocked = key === 'cabul' && kittyLocked;
+        const label = key === 'cabul' ? 'Kitty' : (CHARACTER_LABELS[key] || displayName || key);
+        return `
+        <button type="button" class="ms-char-card pattie-char-card${isLocked ? ' is-locked' : ''}" data-type="${key}" data-locked="${isLocked}" data-lock-message="${KITTY_LOCK_MESSAGE}" aria-disabled="${isLocked}" title="${isLocked ? KITTY_LOCK_MESSAGE : ''}">
             <span class="pattie-choice-preview" data-preview="${key}"></span>
-            <span class="ms-char-name">${CHARACTER_LABELS[key] || displayName || key}</span>
-        </button>
-    `).join('');
+            <span class="ms-char-name">${label}</span>
+            ${isLocked ? `<span class="ms-char-lock-hint">${KITTY_LOCK_MESSAGE}</span>` : ''}
+        </button>`;
+    }).join('');
 
     itemList.innerHTML = items.map(({ key, displayName, type }) => `
         <label class="pattie-item-choice">
@@ -155,15 +176,20 @@ async function renderChoices() {
 
     for (const card of charList.querySelectorAll('.pattie-choice-preview')) {
         const key = card.dataset.preview;
-        const anim = await pattieAssetLoader.getAnimation(key, 'idle');
-        if (anim) {
-            const scaleX = (anim.renderWidth || anim.frameWidth) / anim.frameWidth;
-            const scaleY = (anim.renderHeight || anim.frameHeight) / anim.frameHeight;
-            card.style.backgroundImage = `url("${anim.src}")`;
-            card.style.backgroundPosition = `-${Math.round((anim.sourcePaddingX || 0) * scaleX)}px -${Math.round((anim.sourcePaddingY || 0) * scaleY)}px`;
-            card.style.backgroundSize = `${Math.round((anim.imageWidth || anim.frameCount * anim.frameWidth) * scaleX)}px ${Math.round((anim.imageHeight || anim.frameHeight) * scaleY)}px`;
+        try {
+            const anim = await pattieAssetLoader.getAnimation(key, 'idle');
+            if (anim) {
+                const scaleX = (anim.renderWidth || anim.frameWidth) / anim.frameWidth;
+                const scaleY = (anim.renderHeight || anim.frameHeight) / anim.frameHeight;
+                card.style.backgroundImage = `url("${anim.src}")`;
+                card.style.backgroundPosition = `-${Math.round((anim.sourcePaddingX || 0) * scaleX)}px -${Math.round((anim.sourcePaddingY || 0) * scaleY)}px`;
+                card.style.backgroundSize = `${Math.round((anim.imageWidth || anim.frameCount * anim.frameWidth) * scaleX)}px ${Math.round((anim.imageHeight || anim.frameHeight) * scaleY)}px`;
+            }
+        } catch {
+            card.classList.add('pattie-choice-preview--missing');
         }
     }
+    bindCharacterChoiceEvents();
 }
 
 function bindSetupEvents() {
@@ -174,8 +200,18 @@ function bindSetupEvents() {
         setupEl.style.display = 'none';
     });
     setupEl.querySelector('#ms-save').addEventListener('click', saveAvatar);
+    bindCharacterChoiceEvents();
+}
+
+function bindCharacterChoiceEvents() {
     setupEl.querySelectorAll('.ms-char-card').forEach(card => {
+        if (card.dataset.bound === 'true') return;
+        card.dataset.bound = 'true';
         card.addEventListener('click', () => {
+            if (card.dataset.locked === 'true') {
+                window.alert?.(card.dataset.lockMessage || KITTY_LOCK_MESSAGE);
+                return;
+            }
             setupEl.querySelectorAll('.ms-char-card').forEach(c => c.classList.remove('selected'));
             card.classList.add('selected');
         });
@@ -233,6 +269,6 @@ export function applyAvatarToScene(avatar) {
 
 function mapLegacyCharacter(characterType) {
     if (characterType === 'type_b') return 'dog';
-    if (characterType === 'mong' || characterType === 'dog' || characterType === 'cat') return characterType;
+    if (characterType === 'mong' || characterType === 'dog' || characterType === 'cat' || characterType === 'cabul') return characterType;
     return 'mong';
 }
