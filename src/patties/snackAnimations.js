@@ -1,6 +1,6 @@
 export const SNACK_ANIMATION_MS = Object.freeze({
-    DROP_MIN: 320,
-    DROP_PER_PX: 3,
+    DROP_MIN: 400,
+    DROP_PER_PX: 3.75,
     APPLE_POP: 900,
     SURPRISE: 3000,
 });
