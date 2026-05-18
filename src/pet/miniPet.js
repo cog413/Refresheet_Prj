@@ -209,7 +209,10 @@ function buildManageBox() {
     const feedDesc = el('div', 'mp-manage-row mp-manage-desc');
     feedDesc.innerHTML = `
         <p class="mp-desc-text"><strong>간식주기</strong> : 토닥이 맵에는 토닥이 간식주기 옵션이 있어요. 간식주기를 누르고 맵 원하는 곳에 떨어뜨려보세요. 토닥이는 간식을 먹으면 행복점수가 많이 올라요.</p>
-        <button class="mp-buy-btn" id="mp-buy-apple-btn">먹이 구매하기</button>`;
+        <div class="mp-buy-btn-row">
+            <button class="mp-buy-btn" id="mp-buy-apple-btn">먹이구매하기</button>
+            <button class="mp-buy-btn" id="mp-buy-snack-btn">간식구매하기</button>
+        </div>`;
 
     // 5) 말걸기 설명
     const talkDesc = el('div', 'mp-manage-row mp-manage-desc');
@@ -222,7 +225,7 @@ function buildManageBox() {
 
     // 구매 팝업 연결
     box.addEventListener('click', e => {
-        if (e.target.id === 'mp-buy-apple-btn') openPurchaseModal();
+        if (e.target.id === 'mp-buy-apple-btn' || e.target.id === 'mp-buy-snack-btn') openPurchaseModal();
     });
 
     return box;
@@ -233,7 +236,6 @@ function buildTalkBox() {
     box.innerHTML = `
         <div class="mp-talk-buttons">
             <button class="mp-talk-btn" id="btn-pet-stress">스트레스</button>
-            <button class="mp-talk-btn" id="btn-pet-manager">팀장</button>
             <button class="mp-talk-btn" id="btn-pet-tired">피곤함</button>
             <button class="mp-talk-btn" id="btn-pet-hard">힘든 날</button>
             <button class="mp-talk-btn" id="btn-pet-encourage">응원</button>
@@ -337,7 +339,7 @@ function updateAppleHUD() {
     const state = getEconomyState();
     const qty = state.inventory.apple || 0;
     const el = document.getElementById('mp-apple-hud-count');
-    if (el) el.textContent = `× ${qty}`;
+    if (el) el.textContent = qty;
     // 간식주기 버튼 활성/비활성
     const feedBtn = document.getElementById('mp-feed-btn');
     if (feedBtn) feedBtn.disabled = qty <= 0;
@@ -429,7 +431,8 @@ function buildWeeklySalesChart() {
     mapActions.innerHTML = `
         <div class="mp-apple-hud">
             <img src="/public/assets/apple/apple_idle..png" class="mp-apple-hud-icon" width="18" height="18" alt="사과">
-            <span class="mp-apple-hud-count" id="mp-apple-hud-count">× 0</span>
+            <span class="mp-apple-hud-x">×</span>
+            <span class="mp-apple-hud-count" id="mp-apple-hud-count">0</span>
         </div>
         <button class="mp-feed-btn" id="mp-feed-btn" disabled>간식주기</button>`;
 

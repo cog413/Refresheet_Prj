@@ -2320,7 +2320,7 @@ body.dark-mode .ob-select { background: #3a3a3a; border-color: #555; color: #d4d
 /* =====================================================
    Minime Setup Modal
    ===================================================== */
-.ms-modal { width: 460px; }
+.ms-modal { width: 460px; border-radius: 10px; overflow: hidden; }
 .ms-char-row {
     display: flex;
     gap: 16px;
@@ -3152,6 +3152,11 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     transition: background 0.12s;
 }
 .mp-buy-btn:hover { background: #d9ead3; }
+.mp-buy-btn-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
 
 /* 말걸기 nested box */
 .mp-talk-box {
@@ -3193,16 +3198,13 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 .mp-apple-hud {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     font-size: 10px;
     color: #44546a;
-    background: rgba(255,255,255,0.85);
-    border: 1px solid #d0dce8;
-    border-radius: 10px;
-    padding: 2px 6px;
 }
 .mp-apple-hud-icon { display: block; }
-.mp-apple-hud-count { font-weight: bold; }
+.mp-apple-hud-x { font-weight: bold; line-height: 1; }
+.mp-apple-hud-count { font-weight: bold; min-width: 12px; text-align: left; }
 
 .mp-feed-btn {
     font-size: 10px;
@@ -3337,7 +3339,7 @@ body.dark-mode .mp-purchase-title { color: #90cdf4; }
 body.dark-mode .mp-qty-btn { background: #3a3a3a; border-color: #555; color: #d4d4d4; }
 body.dark-mode .mp-qty-val { color: #d4d4d4; }
 body.dark-mode .mp-purchase-total { color: #90cdf4; }
-body.dark-mode .mp-apple-hud { background: rgba(45,45,45,0.85); border-color: #555; color: #aaa; }
+body.dark-mode .mp-apple-hud { color: #aaa; }
 body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
 
 /* 반응형: 관리박스도 mp-chart처럼 static으로 전환 */
