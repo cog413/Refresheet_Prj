@@ -3,7 +3,7 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 14;
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
-const MASTER_ADMIN_EMAIL = 'jhchae9080@gmail.com';
+const MASTER_ADMIN_EMAILS = new Set(['jhchae9080@gmail.com', 'hyeyoon525@gmail.com']);
 const GLOBAL_HOURLY_PLAY_LIMIT = 3;
 let reviewSchemaReady = false;
 
@@ -1253,7 +1253,7 @@ function normalizeText(value, maxLength) {
 }
 
 function isMasterAdmin(session) {
-    return Boolean(session?.email && session.email.toLowerCase() === MASTER_ADMIN_EMAIL);
+    return Boolean(session?.email && MASTER_ADMIN_EMAILS.has(session.email.toLowerCase()));
 }
 
 async function handleGetUnlockables(request, env) {
