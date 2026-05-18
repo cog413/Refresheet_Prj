@@ -162,14 +162,18 @@ export class PattieApple {
         el.className = 'pattie-apple-landed pattie-apple-landed--falling';
         el.width = APPLE_SIZE;
         el.height = APPLE_SIZE;
+        // 클릭한 위치에서 낙하 시작: 프리뷰 위치와 일치시킴
+        const dropStartTop = Math.round(point.y - APPLE_SIZE / 2);
         el.style.left = `${Math.round(landing.x)}px`;
-        el.style.top = `${-APPLE_SIZE}px`;
+        el.style.top = `${dropStartTop}px`;
         this.mapEl.appendChild(el);
         this.landedEl = el;
 
+        // 낙하 거리 = 클릭 위치 → 착지 위치 (위로 이동하는 경우 MIN 적용)
+        const fallDistance = Math.max(0, landing.y - dropStartTop);
         const fallDuration = Math.max(
             SNACK_ANIMATION_MS.DROP_MIN,
-            Math.abs(landing.y + APPLE_SIZE) * SNACK_ANIMATION_MS.DROP_PER_PX,
+            fallDistance * SNACK_ANIMATION_MS.DROP_PER_PX,
         );
         el.style.transitionDuration = `${fallDuration}ms`;
         requestAnimationFrame(() => {

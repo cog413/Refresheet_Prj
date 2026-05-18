@@ -3226,14 +3226,17 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     z-index: 137;
     width: 24px;
     height: 24px;
-    background: url('/public/assets/apple/apple_pop.png') no-repeat center / contain;
-    animation: apple-pop-play 0.9s steps(6) forwards;
+    /* 스프라이트시트: 450×66px, 6프레임(75×66 each)
+       24px 높이 기준 스케일(24/66≈0.364): 배경 크기 164×24px, 프레임당 ~27.3px */
+    background: url('/public/assets/apple/apple_pop.png') 0 0 no-repeat;
+    background-size: 164px 24px;
+    animation: apple-pop-frames 0.9s steps(6, end) forwards;
     pointer-events: none;
+    image-rendering: pixelated;
 }
-@keyframes apple-pop-play {
-    0%   { opacity: 1; transform: scale(1); }
-    50%  { opacity: 1; transform: scale(1.4); }
-    100% { opacity: 0; transform: scale(0.8); }
+@keyframes apple-pop-frames {
+    from { background-position: 0 0; }
+    to   { background-position: -164px 0; }
 }
 
 /* 구매 모달 */

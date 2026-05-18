@@ -45,11 +45,18 @@ export function getSolidSurfaces({ controller, mapEl, appleSize }) {
         const petY = bar.top - petSize + 6;
         const heightFromFloor = Math.abs(petY - floorPetY);
         if (heightFromFloor > (controller.config?.movement?.maxBarHeightFromFloorPx || 132)) return;
+        // 개별 bar가 아닌 pair 범위를 사용 (개별 bar가 너무 좁으면 appleSize/2 패딩으로 minX>maxX가 됨)
+        const halfApple = appleSize / 2;
+        const pairLeft = bar.pairLeft ?? bar.left;
+        const pairWidth = bar.pairWidth ?? bar.width;
+        const pairMinX = pairLeft + halfApple;
+        const pairMaxX = pairLeft + pairWidth - halfApple;
+        if (pairMaxX <= pairMinX) return;
         surfaces.push({
             id: `bar-${index}`,
             kind: 'bar',
-            minX: bar.left + appleSize / 2,
-            maxX: bar.right - appleSize / 2,
+            minX: pairMinX,
+            maxX: pairMaxX,
             surfaceY: bar.top,
             petY,
         });
@@ -59,6 +66,7 @@ export function getSolidSurfaces({ controller, mapEl, appleSize }) {
 }
 
 export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appleSize }) {
+    if (isSnackDebugEnabled()) console.log('[PattieSnack] snack dropStart:', { x: Math.round(dropX), y: Math.round(dropY) });
     const surfaces = getSolidSurfaces({ controller, mapEl, appleSize });
     const fallback = surfaces.find(s => s.kind === 'floor') || {
         id: 'base_floor',
@@ -72,6 +80,7 @@ export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appl
         .filter(surface => surface.surfaceY >= dropY)
         .sort((a, b) => a.surfaceY - b.surfaceY);
     const surface = candidates[0] || fallback;
+    if (isSnackDebugEnabled()) console.log('[PattieSnack] selectedSurface:', { id: surface.id, y: Math.round(surface.surfaceY) });
     const centerX = clamp(dropX, surface.minX, surface.maxX);
     const point = {
         x: centerX - appleSize / 2,
@@ -80,6 +89,7 @@ export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appl
         centerY: surface.surfaceY - appleSize / 2,
         surface,
     };
+    if (isSnackDebugEnabled()) console.log('[PattieSnack] landingPoint:', { x: Math.round(point.x), y: Math.round(point.y) });
     debugSnackSurface(point);
     return point;
 }
