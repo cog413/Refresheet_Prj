@@ -3108,7 +3108,7 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     position: absolute;
     left: 0; top: 0;
     height: 100%;
-    background: linear-gradient(90deg, #70ad47, #a9d18e);
+    background: linear-gradient(90deg, #a9d18e, #70ad47);
     border-radius: 4px;
     transition: width 0.5s ease-out;
 }
