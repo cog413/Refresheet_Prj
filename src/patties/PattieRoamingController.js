@@ -545,7 +545,7 @@ export class PattieRoamingController {
 
         if (m.mode === 'run' && !m.walkedIn) {
             const remaining = Math.hypot(m.endX - this.x, m.endY - this.y);
-            if (remaining <= 50) {
+            if (remaining <= 30) {
                 m.mode = 'walk';
                 m.walkedIn = true;
                 m.startX = this.x;
