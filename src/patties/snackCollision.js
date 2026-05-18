@@ -36,7 +36,7 @@ export function getSnackApproachTarget(petState, appleState) {
     const direction = approachFromLeft ? 1 : -1;
     const bodyLeftPad = size * 0.2;
     const bodyRightPad = size * 0.82;
-    const gap = -5;
+    const gap = -7;
     const x = approachFromLeft
         ? apple.left - gap - bodyRightPad
         : apple.right + gap - bodyLeftPad;
@@ -57,5 +57,5 @@ export function isPetFaceTouchingApple(petState, appleState) {
     const distance = target.direction >= 0
         ? apple.left - face
         : face - apple.right;
-    return distance >= -7 && distance <= 5;
+    return distance >= -9 && distance <= 5;
 }

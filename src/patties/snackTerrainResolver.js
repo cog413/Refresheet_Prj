@@ -84,7 +84,7 @@ export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appl
     const centerX = clamp(dropX, surface.minX, surface.maxX);
     const point = {
         x: centerX - appleSize / 2,
-        y: surface.surfaceY - appleSize,
+        y: surface.surfaceY - appleSize + 2,
         centerX,
         centerY: surface.surfaceY - appleSize / 2,
         surface,
