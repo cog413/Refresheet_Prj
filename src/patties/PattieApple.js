@@ -5,7 +5,7 @@ import {
     resolveSnackLandingPoint,
 } from './snackTerrainResolver.js';
 import { getSnackApproachTarget } from './snackCollision.js';
-import { SNACK_ANIMATION_MS, waitForAnimationEnd } from './snackAnimations.js';
+import { SNACK_ANIMATION_MS } from './snackAnimations.js';
 
 const APPLE_IDLE_SRC = '/public/assets/apple/apple_idle..png';
 const APPLE_SIZE = 24;
@@ -214,18 +214,12 @@ export class PattieApple {
             return;
         }
 
-        const popEl = document.createElement('div');
-        popEl.className = 'pattie-apple-pop';
-        popEl.style.left = this.landedEl.style.left;
-        popEl.style.top = this.landedEl.style.top;
-        this.mapEl.appendChild(popEl);
-        this.popEl = popEl;
+        const landedLeft = this.landedEl.style.left;
+        const landedTop = this.landedEl.style.top;
         this.landedEl.remove();
         this.landedEl = null;
 
-        await waitForAnimationEnd(popEl, SNACK_ANIMATION_MS.APPLE_POP);
-        popEl.remove();
-        this.popEl = null;
+        await this._playApplePop(landedLeft, landedTop);
 
         this.transition(SnackState.PET_SURPRISE);
         await this.ctrl.holdSnackAnimation('surprise', SNACK_ANIMATION_MS.SURPRISE, {
@@ -246,6 +240,64 @@ export class PattieApple {
         this._removeApple();
         this.transition(SnackState.IDLE);
         this._resetFeedButton();
+    }
+
+    // apple_pop.png: 450×66, 7프레임(64×64 content), sourcePadX/Y=1
+    // PattieSprite와 동일한 방식으로 background-position 스텝핑
+    _playApplePop(left, top) {
+        const FRAME_COUNT = 7;
+        const FRAME_W = 64;
+        const FRAME_H = 64;
+        const PAD_X = 1;
+        const PAD_Y = 1;
+        const IMAGE_W = 450;
+        const IMAGE_H = 66;
+        const FRAME_MS = 300;
+        const scale = APPLE_SIZE / FRAME_W; // 24/64 = 0.375
+
+        return new Promise(resolve => {
+            const outer = document.createElement('div');
+            outer.className = 'pattie-apple-pop';
+            outer.style.left = left;
+            outer.style.top = top;
+            outer.style.width = `${APPLE_SIZE}px`;
+            outer.style.height = `${APPLE_SIZE}px`;
+
+            const inner = document.createElement('div');
+            inner.style.cssText = [
+                `width:${FRAME_W}px`,
+                `height:${FRAME_H}px`,
+                `transform-origin:0 0`,
+                `transform:scale(${scale})`,
+                `background-image:url('/public/assets/apple/apple_pop.png')`,
+                `background-size:${IMAGE_W}px ${IMAGE_H}px`,
+                `background-repeat:no-repeat`,
+                `image-rendering:pixelated`,
+            ].join(';');
+            outer.appendChild(inner);
+            this.mapEl.appendChild(outer);
+            this.popEl = outer;
+
+            let frame = 0;
+            const applyFrame = () => {
+                inner.style.backgroundPosition = `-${PAD_X + frame * FRAME_W}px -${PAD_Y}px`;
+            };
+            applyFrame();
+
+            const advance = () => {
+                if (!this.popEl) return; // cancel됨
+                frame += 1;
+                if (frame < FRAME_COUNT) {
+                    applyFrame();
+                    this._setTimer(advance, FRAME_MS);
+                } else {
+                    outer.remove();
+                    if (this.popEl === outer) this.popEl = null;
+                    resolve();
+                }
+            };
+            this._setTimer(advance, FRAME_MS);
+        });
     }
 
     _happyDurationMs() {
