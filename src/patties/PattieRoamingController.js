@@ -543,6 +543,20 @@ export class PattieRoamingController {
             this.y = m.surface.petY;
         }
 
+        if (m.mode === 'run' && !m.walkedIn) {
+            const remaining = Math.hypot(m.endX - this.x, m.endY - this.y);
+            if (remaining <= 50) {
+                m.mode = 'walk';
+                m.walkedIn = true;
+                m.startX = this.x;
+                m.startY = this.y;
+                m.duration = clamp(remaining * this.config.movement.walkDurationPerPx, 600, 7000);
+                m.startedAt = performance.now();
+                this.mode = 'walk';
+                this.sprite.play('walk', { restart: true, frameDurationMs: this.config.movement.walkFrameDurationMs });
+            }
+        }
+
         if (t >= 1) {
             this.x = m.endX;
             this.y = m.endY;
@@ -591,7 +605,7 @@ export class PattieRoamingController {
         const isJump = action.type === SnackAction.JUMP_TO;
         const mode = isJump
             ? (dy < 0 ? 'jump' : 'hopDown')
-            : (Math.abs(dx) > 80 ? 'run' : 'walk');
+            : (distance > 50 ? 'run' : 'walk');
         const duration = isJump
             ? clamp(distance * 34, 900, 1800)
             : mode === 'run'

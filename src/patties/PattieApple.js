@@ -185,11 +185,22 @@ export class PattieApple {
         this._setTimer(() => this._onLanded(), fallDuration + 40);
     }
 
-    _onLanded() {
+    async _onLanded() {
         if (!this.landedEl || !this.appleState) return;
         this.transition(SnackState.SNACK_LANDED);
         this.landedEl.classList.remove('pattie-apple-landed--falling');
         this.landedEl.classList.add('pattie-apple-landed--settled');
+
+        this.transition(SnackState.PET_SURPRISE);
+        await this.ctrl.holdSnackAnimation('surprise', SNACK_ANIMATION_MS.SURPRISE);
+
+        if (this.state !== SnackState.PET_SURPRISE || !this.appleState) {
+            this.ctrl.actionLock = false;
+            this.ctrl.setMode?.('idle');
+            return;
+        }
+
+        this.ctrl.actionLock = false;
         this._movePetToSnack();
     }
 
@@ -220,11 +231,6 @@ export class PattieApple {
         this.landedEl = null;
 
         await this._playApplePop(landedLeft, landedTop);
-
-        this.transition(SnackState.PET_SURPRISE);
-        await this.ctrl.holdSnackAnimation('surprise', SNACK_ANIMATION_MS.SURPRISE, {
-            direction: approach.direction,
-        });
 
         this.transition(SnackState.PET_HAPPY_AFTER_SNACK);
         const happyDuration = this._happyDurationMs();
