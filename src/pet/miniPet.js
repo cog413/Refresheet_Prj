@@ -358,9 +358,14 @@ async function handleAppleFed() {
     if (result.ok) {
         updateHappinessDisplay();
         updateAppleHUD();
+        return { ok: true };
     } else {
         // no_apple 에러 등 UI에 안내
         console.warn('[MiniPet] FEED 행복 변경 실패:', result.error);
+        return {
+            ok: false,
+            message: result.data?.message || '사과를 사용할 수 없습니다',
+        };
     }
 }
 
@@ -430,15 +435,21 @@ function buildWeeklySalesChart() {
 
     mapActions.addEventListener('click', e => {
         if (e.target.id === 'mp-feed-btn' || e.target.closest('#mp-feed-btn')) {
+            e.preventDefault();
+            e.stopPropagation();
             const state = getEconomyState();
             if ((state.inventory.apple || 0) <= 0) {
                 alert('사과가 없어요. 먼저 간식을 구매해주세요!');
                 return;
             }
-            if (appleController && !appleController.processing) {
-                appleController.startFeedMode();
+            if (appleController?.state && appleController.state !== 'IDLE' && !appleController.feedMode) {
+                alert('이미 간식을 처리하고 있어요');
+                return;
+            }
+            if (appleController && !appleController.processing && !appleController.feedMode) {
+                const started = appleController.startFeedMode();
                 const btn = document.getElementById('mp-feed-btn');
-                if (btn) { btn.textContent = '취소'; btn.classList.add('mp-feed-btn--active'); }
+                if (started && btn) { btn.textContent = '취소'; btn.classList.add('mp-feed-btn--active'); }
             } else if (appleController?.feedMode) {
                 appleController.stopFeedMode();
                 const btn = document.getElementById('mp-feed-btn');

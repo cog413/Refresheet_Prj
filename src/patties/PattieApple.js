@@ -1,217 +1,311 @@
-// PattieApple: 토닥이 맵 간식주기 메커니즘
-// 담당: apple 마우스 추적 → 클릭 낙하 → 지형 착지 → 토닥이 이동 → 먹기 연출
-// 우선순위: FEEDING이 최상위 액션락
+import { SnackState } from './snackInteractionState.js';
+import {
+    clampPointToMap,
+    getMapLocalPointFromMouse,
+    resolveSnackLandingPoint,
+} from './snackTerrainResolver.js';
+import { getSnackApproachTarget } from './snackCollision.js';
+import { SNACK_ANIMATION_MS, waitForAnimationEnd } from './snackAnimations.js';
 
 const APPLE_IDLE_SRC = '/public/assets/apple/apple_idle..png';
-const APPLE_POP_SRC  = '/public/assets/apple/apple_pop.png';
-const APPLE_SIZE     = 24; // px
+const APPLE_SIZE = 24;
 
 export class PattieApple {
     constructor({ mapEl, roamingController, onFed }) {
-        this.mapEl   = mapEl;       // #mp-chart (토닥이 맵 root)
-        this.ctrl    = roamingController;
-        this.onFed   = onFed;       // 먹기 완료 콜백 (행복점수 API 호출 등)
+        this.mapEl = mapEl;
+        this.ctrl = roamingController;
+        this.onFed = onFed;
 
-        this.feedMode   = false;    // 간식주기 모드 활성화 여부
-        this.processing = false;    // apple 처리 중 (착지→이동→먹기)
-        this.cursorEl   = null;     // 마우스를 따라다니는 apple 아이콘
-        this.landedEl   = null;     // 착지한 apple 아이콘
-        this.popEl      = null;     // apple_pop 스프라이트
+        this.state = SnackState.IDLE;
+        this.feedMode = false;
+        this.processing = false;
+        this.previewEl = null;
+        this.landedEl = null;
+        this.popEl = null;
+        this.appleState = null;
+        this.timers = new Set();
 
-        this._boundMouseMove  = this._onMouseMove.bind(this);
-        this._boundClick      = this._onClick.bind(this);
-        this._boundMouseLeave = this._onMouseLeave.bind(this);
+        this._boundMouseMove = this._onMouseMove.bind(this);
+        this._boundClick = this._onClick.bind(this);
+        this._boundContextMenu = this._onContextMenu.bind(this);
+        this._boundKeyDown = this._onKeyDown.bind(this);
     }
 
-    // ── 간식주기 모드 진입 ────────────────────────────────────────────────────
-
     startFeedMode() {
-        if (this.feedMode || this.processing) return;
+        if (this.state !== SnackState.IDLE || this.processing) return false;
+        this.transition(SnackState.AIMING_SNACK);
         this.feedMode = true;
-        this._createCursor();
-        this.mapEl.addEventListener('mousemove', this._boundMouseMove);
-        this.mapEl.addEventListener('click',     this._boundClick);
-        this.mapEl.addEventListener('mouseleave', this._boundMouseLeave);
+        this._createPreview();
         document.addEventListener('mousemove', this._boundMouseMove);
+        this.mapEl.addEventListener('click', this._boundClick);
+        this.mapEl.addEventListener('contextmenu', this._boundContextMenu);
+        document.addEventListener('keydown', this._boundKeyDown);
         this.mapEl.style.cursor = 'none';
+        return true;
     }
 
     stopFeedMode() {
-        this.feedMode = false;
-        this._removeCursor();
-        this.mapEl.removeEventListener('mousemove', this._boundMouseMove);
-        this.mapEl.removeEventListener('click',     this._boundClick);
-        this.mapEl.removeEventListener('mouseleave', this._boundMouseLeave);
-        document.removeEventListener('mousemove', this._boundMouseMove);
-        this.mapEl.style.cursor = '';
+        if (this.state !== SnackState.AIMING_SNACK) return;
+        this.cancel();
     }
 
-    // ── 커서 아이콘 관리 ─────────────────────────────────────────────────────
+    cancel() {
+        this.transition(SnackState.CANCELLED);
+        this.feedMode = false;
+        this.processing = false;
+        this._removePreview();
+        this._removeApple();
+        this._removeListeners();
+        this.ctrl?.clearSnackMovement?.();
+        this.transition(SnackState.IDLE);
+        this._resetFeedButton();
+    }
 
-    _createCursor() {
-        if (this.cursorEl) return;
+    _createPreview() {
+        if (this.previewEl) return;
         const el = document.createElement('img');
         el.src = APPLE_IDLE_SRC;
         el.className = 'pattie-apple-cursor';
-        el.width  = APPLE_SIZE;
+        el.width = APPLE_SIZE;
         el.height = APPLE_SIZE;
         this.mapEl.appendChild(el);
-        this.cursorEl = el;
-    }
-
-    _removeCursor() {
-        this.cursorEl?.remove();
-        this.cursorEl = null;
-    }
-
-    _onMouseMove(e) {
-        if (!this.feedMode || !this.cursorEl) return;
-        const rect = this.mapEl.getBoundingClientRect();
-        const raw = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top,
-        };
-        // 맵 가장자리에 clamp
-        const x = Math.max(0, Math.min(rect.width  - APPLE_SIZE, raw.x - APPLE_SIZE / 2));
-        const y = Math.max(0, Math.min(rect.height - APPLE_SIZE, raw.y - APPLE_SIZE / 2));
-        this.cursorEl.style.left = `${x}px`;
-        this.cursorEl.style.top  = `${y}px`;
-        this._lastMousePos = { x: x + APPLE_SIZE / 2, y: y + APPLE_SIZE / 2 };
-    }
-
-    _onMouseLeave(e) {
-        // 마우스가 맵 밖으로 나가도 cursorEl은 clamp 상태로 유지됨 (mousemove에서 처리)
-    }
-
-    // ── 낙하 / 착지 ──────────────────────────────────────────────────────────
-
-    _onClick(e) {
-        if (!this.feedMode || this.processing) return;
-        e.preventDefault();
+        this.previewEl = el;
 
         const rect = this.mapEl.getBoundingClientRect();
-        const clickX = e.clientX - rect.left;
-        const clickY = e.clientY - rect.top;
-        const landingY = this._resolveFloor(clickX, clickY);
+        this._setPreviewPoint({ x: rect.width / 2, y: rect.height / 2 });
+    }
 
-        this.stopFeedMode();
+    _removePreview() {
+        this.previewEl?.remove();
+        this.previewEl = null;
+    }
+
+    _removeApple() {
+        this.landedEl?.remove();
+        this.popEl?.remove();
+        this.landedEl = null;
+        this.popEl = null;
+        this.appleState = null;
+    }
+
+    _removeListeners() {
+        document.removeEventListener('mousemove', this._boundMouseMove);
+        this.mapEl.removeEventListener('click', this._boundClick);
+        this.mapEl.removeEventListener('contextmenu', this._boundContextMenu);
+        document.removeEventListener('keydown', this._boundKeyDown);
+        this.mapEl.style.cursor = '';
+    }
+
+    _onMouseMove(event) {
+        if (this.state !== SnackState.AIMING_SNACK || !this.previewEl) return;
+        const point = getMapLocalPointFromMouse(event, this.mapEl);
+        const clamped = clampPointToMap(point, this.mapEl, APPLE_SIZE);
+        this._setPreviewPoint(clamped);
+    }
+
+    _setPreviewPoint(point) {
+        if (!this.previewEl) return;
+        const x = point.x - APPLE_SIZE / 2;
+        const y = point.y - APPLE_SIZE / 2;
+        this.previewEl.style.left = `${Math.round(x)}px`;
+        this.previewEl.style.top = `${Math.round(y)}px`;
+        this.lastAimPoint = { x: point.x, y: point.y };
+    }
+
+    _onClick(event) {
+        if (this.state !== SnackState.AIMING_SNACK || this.processing) return;
+        if (event.target.closest('.mp-map-actions')) return;
+        if (!this.mapEl.contains(event.target)) return;
+        event.preventDefault();
+        event.stopPropagation();
+
+        const point = clampPointToMap(getMapLocalPointFromMouse(event, this.mapEl), this.mapEl, APPLE_SIZE);
+        this._dropSnack(point);
+    }
+
+    _onContextMenu(event) {
+        if (this.state !== SnackState.AIMING_SNACK) return;
+        event.preventDefault();
+        this.cancel();
+    }
+
+    _onKeyDown(event) {
+        if (event.key === 'Escape' && this.state === SnackState.AIMING_SNACK) {
+            event.preventDefault();
+            this.cancel();
+        }
+    }
+
+    _dropSnack(point) {
+        this.transition(SnackState.DROPPING_SNACK);
+        this.feedMode = false;
         this.processing = true;
+        this._removePreview();
+        this._removeListeners();
 
-        // 착지 apple 아이콘 생성
+        const landing = resolveSnackLandingPoint({
+            controller: this.ctrl,
+            mapEl: this.mapEl,
+            dropX: point.x,
+            dropY: point.y,
+            appleSize: APPLE_SIZE,
+        });
+        this.appleState = {
+            x: landing.x,
+            y: landing.y,
+            size: APPLE_SIZE,
+            surface: landing.surface,
+        };
+
         const el = document.createElement('img');
         el.src = APPLE_IDLE_SRC;
-        el.className = 'pattie-apple-landed';
-        el.width  = APPLE_SIZE;
+        el.className = 'pattie-apple-landed pattie-apple-landed--falling';
+        el.width = APPLE_SIZE;
         el.height = APPLE_SIZE;
-        el.style.left = `${clickX - APPLE_SIZE / 2}px`;
-        el.style.top  = `${-APPLE_SIZE}px`;
+        el.style.left = `${Math.round(landing.x)}px`;
+        el.style.top = `${-APPLE_SIZE}px`;
         this.mapEl.appendChild(el);
         this.landedEl = el;
 
-        // 낙하 애니메이션 (CSS transition)
+        const fallDuration = Math.max(
+            SNACK_ANIMATION_MS.DROP_MIN,
+            Math.abs(landing.y + APPLE_SIZE) * SNACK_ANIMATION_MS.DROP_PER_PX,
+        );
+        el.style.transitionDuration = `${fallDuration}ms`;
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
-                el.style.top = `${landingY}px`;
+                if (this.landedEl) this.landedEl.style.top = `${Math.round(landing.y)}px`;
             });
         });
 
-        const fallDuration = Math.max(300, Math.abs(landingY - (-APPLE_SIZE)) * 3);
-        setTimeout(() => {
-            this._onLanded(clickX - APPLE_SIZE / 2, landingY);
-        }, fallDuration + 50);
+        this._setTimer(() => this._onLanded(), fallDuration + 40);
     }
 
-    // 지형 resolver: clickX/Y 기준으로 아래 첫 번째 지형 Y좌표 반환
-    _resolveFloor(clickX, clickY) {
-        const mapRect = this.mapEl.getBoundingClientRect();
-        const surfaces = this._getSurfaces(mapRect);
-        const spriteSize = 32;
-        const floorDefault = mapRect.height - APPLE_SIZE - 16;
-
-        // clickY 기준 아래에 있는 surface 중 가장 위에 있는 것
-        let best = floorDefault;
-        for (const s of surfaces) {
-            const surfaceY = s.y - APPLE_SIZE; // apple 착지점 (surface top - apple 높이)
-            if (surfaceY < clickY) continue;   // 클릭 위치보다 위에 있는 surface는 스킵
-            if (clickX < s.minX || clickX > s.maxX) continue; // x 범위 밖
-            if (surfaceY < best) best = surfaceY;
-        }
-        return Math.max(0, Math.min(best, mapRect.height - APPLE_SIZE));
-    }
-
-    // 토닥이 RoamingController의 getChartSurfaces 로직과 동일하게 terrain 재계산
-    _getSurfaces(mapRect) {
-        if (!this.ctrl) return [];
-        try {
-            return this.ctrl.getChartSurfaces();
-        } catch {
-            return [];
-        }
-    }
-
-    // ── 착지 이후 처리 ───────────────────────────────────────────────────────
-
-    _onLanded(appleX, appleY) {
-        if (!this.landedEl) return;
+    _onLanded() {
+        if (!this.landedEl || !this.appleState) return;
+        this.transition(SnackState.SNACK_LANDED);
+        this.landedEl.classList.remove('pattie-apple-landed--falling');
         this.landedEl.classList.add('pattie-apple-landed--settled');
-
-        // 토닥이에게 apple 위치 알리고 이동 요청
-        if (this.ctrl) {
-            this.ctrl.goEat({ x: appleX, y: appleY, size: APPLE_SIZE, onReach: () => this._playEatSequence() });
-        } else {
-            this._playEatSequence();
-        }
+        this._movePetToSnack();
     }
 
-    // ── 먹기 연출 시퀀스 ─────────────────────────────────────────────────────
-    // apple_pop → idle → surprise 3초 → happy 2회 → 완료 콜백
+    _movePetToSnack() {
+        this.transition(SnackState.PET_MOVING_TO_SNACK);
+        const ok = this.ctrl?.moveToSnack?.(this.appleState, {
+            onArrive: () => this._beginEating(),
+            onFail: reason => this._fail(`간식 위치로 이동하지 못했어요 (${reason})`),
+        });
+        if (!ok) this._fail('간식 위치로 이동하지 못했어요');
+    }
 
-    async _playEatSequence() {
-        if (!this.landedEl) return;
+    async _beginEating() {
+        if (!this.appleState || !this.landedEl) return;
+        this.transition(SnackState.PET_EATING_SNACK);
+        const approach = getSnackApproachTarget(this.ctrl.getPetState(), this.appleState);
+        this.ctrl.freezeForSnack(approach.direction);
 
-        // 1) apple_idle 제거, apple_pop 표시
+        const fed = await this.onFed?.();
+        if (!fed?.ok) {
+            this._fail(fed?.message || '사과를 사용할 수 없어요');
+            return;
+        }
+
         const popEl = document.createElement('div');
         popEl.className = 'pattie-apple-pop';
         popEl.style.left = this.landedEl.style.left;
-        popEl.style.top  = this.landedEl.style.top;
+        popEl.style.top = this.landedEl.style.top;
         this.mapEl.appendChild(popEl);
         this.popEl = popEl;
         this.landedEl.remove();
         this.landedEl = null;
 
-        // pop 애니메이션 재생 (CSS animation으로 처리)
-        await this._waitMs(600); // apple_pop 재생 시간
-
-        // 2) pop 제거, idle로
+        await waitForAnimationEnd(popEl, SNACK_ANIMATION_MS.APPLE_POP);
         popEl.remove();
         this.popEl = null;
-        this.ctrl?.setActionLock(false);
-        await this._waitMs(200);
 
-        // 3) surprise 모션 (~3초)
-        this.ctrl?.playOnce('surprise', { durationMs: 2800 });
-        await this._waitMs(3000);
+        this.transition(SnackState.PET_SURPRISE);
+        await this.ctrl.holdSnackAnimation('surprise', SNACK_ANIMATION_MS.SURPRISE, {
+            direction: approach.direction,
+        });
 
-        // 4) happy 2회
-        for (let i = 0; i < 2; i++) {
-            this.ctrl?.playOnce('happy', { durationMs: 1500 });
-            await this._waitMs(1600);
+        this.transition(SnackState.PET_HAPPY_AFTER_SNACK);
+        const happyDuration = this._happyDurationMs();
+        for (let i = 0; i < 2; i += 1) {
+            await this.ctrl.holdSnackAnimation('happy', happyDuration, {
+                direction: approach.direction,
+            });
         }
 
-        // 5) 완료 콜백 (행복점수 증가 + 인벤토리 차감 API 호출)
+        this.transition(SnackState.DONE);
         this.processing = false;
-        this.onFed?.();
+        this.ctrl.completeSnackSequence();
+        this._removeApple();
+        this.transition(SnackState.IDLE);
+        this._resetFeedButton();
     }
 
-    _waitMs(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
+    _happyDurationMs() {
+        const anim = this.ctrl?.sprite?.animation;
+        if (anim?.frameCount && anim?.frameDurationMs && this.ctrl?.mode === 'happy') {
+            return anim.frameCount * anim.frameDurationMs;
+        }
+        return 3600;
+    }
+
+    _fail(message) {
+        console.warn('[PattieSnack]', message);
+        this.processing = false;
+        this.ctrl?.clearSnackMovement?.();
+        this._removeApple();
+        this.transition(SnackState.IDLE);
+        this._resetFeedButton();
+        if (message) alert(message);
+    }
+
+    _setTimer(fn, ms) {
+        const id = setTimeout(() => {
+            this.timers.delete(id);
+            fn();
+        }, ms);
+        this.timers.add(id);
+        return id;
+    }
+
+    _clearTimers() {
+        for (const id of this.timers) clearTimeout(id);
+        this.timers.clear();
+    }
+
+    _resetFeedButton() {
+        const btn = document.getElementById('mp-feed-btn');
+        if (!btn) return;
+        btn.textContent = '간식주기';
+        btn.classList.remove('mp-feed-btn--active');
+    }
+
+    transition(next) {
+        this.state = next;
+        if (next === SnackState.IDLE || next === SnackState.CANCELLED || next === SnackState.DONE) {
+            this.feedMode = false;
+        }
+        if (this._debugEnabled()) console.debug('[PattieSnack] state', next);
+    }
+
+    _debugEnabled() {
+        try {
+            return localStorage.getItem('refresheetSnackDebug') === '1';
+        } catch {
+            return false;
+        }
     }
 
     destroy() {
-        this.stopFeedMode();
-        this.landedEl?.remove();
-        this.popEl?.remove();
-        this.landedEl = null;
-        this.popEl = null;
+        this._clearTimers();
+        this._removeListeners();
+        this._removePreview();
+        this._removeApple();
+        this.ctrl?.clearSnackMovement?.();
+        this.state = SnackState.IDLE;
+        this.processing = false;
     }
 }

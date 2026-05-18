@@ -1,0 +1,19 @@
+export const SnackState = Object.freeze({
+    IDLE: 'IDLE',
+    AIMING_SNACK: 'AIMING_SNACK',
+    DROPPING_SNACK: 'DROPPING_SNACK',
+    SNACK_LANDED: 'SNACK_LANDED',
+    PET_MOVING_TO_SNACK: 'PET_MOVING_TO_SNACK',
+    PET_EATING_SNACK: 'PET_EATING_SNACK',
+    PET_SURPRISE: 'PET_SURPRISE',
+    PET_HAPPY_AFTER_SNACK: 'PET_HAPPY_AFTER_SNACK',
+    DONE: 'DONE',
+    CANCELLED: 'CANCELLED',
+});
+
+export const SnackAction = Object.freeze({
+    RUN_TO: 'RUN_TO',
+    JUMP_TO: 'JUMP_TO',
+    WAIT: 'WAIT',
+    TURN: 'TURN',
+});

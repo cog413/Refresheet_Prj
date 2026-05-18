@@ -1,6 +1,10 @@
 import { pattieAssetLoader } from './PattieAssetLoader.js';
 import { PattieSprite } from './PattieSprite.js';
 import { pattieWorldConfig } from './pattieWorldConfig.js';
+import { SnackAction } from './snackInteractionState.js';
+import { planPathToSnack } from './snackPathPlanner.js';
+import { isPetFaceTouchingApple } from './snackCollision.js';
+import { waitMs } from './snackAnimations.js';
 
 let controller = null;
 
@@ -65,6 +69,10 @@ export class PattieRoamingController {
         // 간식 먹기 목표 (goEat)
         this.eatTarget = null;
         this.eatMotion = null;
+        this.snackActionQueue = [];
+        this.snackMotion = null;
+        this.snackApple = null;
+        this.snackCallbacks = null;
         this.hasPlaced = false;
     }
 
@@ -245,9 +253,9 @@ export class PattieRoamingController {
             return;
         }
 
-        // 간식 먹기 이동 처리
-        if (this.eatMotion) {
-            this.updateEatMotion();
+        // Snack movement uses the chart terrain queue, not direct point interpolation.
+        if (this.snackMotion || this.snackActionQueue.length) {
+            this.updateSnackMovement();
             return;
         }
 
@@ -444,7 +452,7 @@ export class PattieRoamingController {
         const elapsed = performance.now() - m.startedAt;
         const t = Math.min(1, elapsed / m.duration);
         const eased = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-        const arc = Math.sin(Math.PI * t) * this.config.movement.jumpArcPx;
+        const arc = Math.sin(Math.PI * t) * (this.config.movement.jumpArcPx || 16);
         this.x = m.startX + (m.endX - m.startX) * eased;
         this.y = m.startY + (m.endY - m.startY) * eased - arc;
         if (t >= 1) {
@@ -482,59 +490,196 @@ export class PattieRoamingController {
 
     // 간식 먹기: apple 위치로 이동 후 onReach 콜백
     goEat({ x: targetX, y: targetY, size = 24, onReach }) {
-        if (this.actionLock) return;
+        return this.moveToSnack({
+            x: targetX,
+            y: targetY,
+            size,
+            surface: { id: 'legacy_floor', kind: 'floor', petY: targetY },
+        }, { onArrive: onReach });
+    }
+
+    moveToSnack(appleState, { onArrive, onFail } = {}) {
+        if (this.actionLock) return false;
         this.actionLock = true;
         this.terrainMotion = null;
         this.jumpMotion = null;
+        this.eatMotion = null;
         this.decelerating = false;
         this.pendingHappy = false;
+        this.snackApple = appleState;
+        this.snackCallbacks = { onArrive, onFail };
 
-        const spriteSize = this.config.movement.spriteSize;
-        const destX = targetX; // apple 좌측 기준 (apple 왼쪽에 토닥이 얼굴이 닿도록)
-        const destY = targetY;
-        const dx = destX - this.x;
-        const distance = Math.abs(dx);
-        this.direction = dx >= 0 ? 1 : -1;
+        const plan = planPathToSnack(this, appleState);
+        if (!plan.ok || !plan.actions.length) {
+            this.clearSnackMovement();
+            onFail?.(plan.reason || 'path_failed');
+            return false;
+        }
 
-        const speed = distance > 80 ? 'run' : 'walk';
-        const durationPerPx = speed === 'run'
-            ? this.config.movement.runDurationPerPx
-            : this.config.movement.walkDurationPerPx;
-        const duration = clamp(distance * durationPerPx, 500, 8000);
-
-        this.mode = speed;
-        this.sprite.play(speed, {
-            restart: true,
-            frameDurationMs: speed === 'run'
-                ? this.config.movement.runFrameDurationMs
-                : this.config.movement.walkFrameDurationMs,
-        });
-
-        this.eatMotion = {
-            startX: this.x, startY: this.y,
-            endX: destX, endY: destY,
-            startedAt: performance.now(),
-            duration,
-            onReach,
-        };
+        this.snackActionQueue = plan.actions;
+        this.startNextSnackAction();
+        return true;
     }
 
-    updateEatMotion() {
-        const m = this.eatMotion;
-        if (!m) return;
+    updateSnackMovement() {
+        if (!this.snackMotion) {
+            this.startNextSnackAction();
+            return;
+        }
 
+        const m = this.snackMotion;
         const elapsed = performance.now() - m.startedAt;
         const t = Math.min(1, elapsed / m.duration);
-        this.x = m.startX + (m.endX - m.startX) * t;
-        this.y = m.startY + (m.endY - m.startY) * t;
+        const eased = (m.mode === 'walk' || m.mode === 'run')
+            ? t
+            : t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+        this.x = m.startX + (m.endX - m.startX) * eased;
+        this.y = m.startY + (m.endY - m.startY) * eased;
+        if (m.mode === 'jump' || m.mode === 'hopDown') {
+            this.y -= Math.sin(Math.PI * t) * m.arcPx;
+        }
+        if ((m.mode === 'walk' || m.mode === 'run') && m.surface) {
+            this.y = m.surface.petY;
+        }
 
         if (t >= 1) {
             this.x = m.endX;
             this.y = m.endY;
-            this.eatMotion = null;
-            this.setMode('idle');
-            m.onReach?.();
+            this.snackMotion = null;
+            this.startNextSnackAction();
         }
+    }
+
+    startNextSnackAction() {
+        if (this.snackApple && isPetFaceTouchingApple(this.getPetState(), this.snackApple)) {
+            this.finishSnackArrival();
+            return;
+        }
+
+        const action = this.snackActionQueue.shift();
+        if (!action) {
+            if (this.snackApple && isPetFaceTouchingApple(this.getPetState(), this.snackApple)) {
+                this.finishSnackArrival();
+            } else {
+                this.failSnackMovement('not_touching_snack');
+            }
+            return;
+        }
+
+        if (action.type === SnackAction.TURN) {
+            this.direction = action.direction || this.direction;
+            this.setMode('idle');
+            this.startNextSnackAction();
+            return;
+        }
+        if (action.type === SnackAction.WAIT) {
+            setTimeout(() => this.startNextSnackAction(), action.ms || 0);
+            return;
+        }
+
+        const dx = action.x - this.x;
+        const dy = action.y - this.y;
+        const distance = Math.hypot(dx, dy);
+        if (distance < 2) {
+            this.x = action.x;
+            this.y = action.y;
+            this.startNextSnackAction();
+            return;
+        }
+
+        const isJump = action.type === SnackAction.JUMP_TO;
+        const mode = isJump
+            ? (dy < 0 ? 'jump' : 'hopDown')
+            : (Math.abs(dx) > 80 ? 'run' : 'walk');
+        const duration = isJump
+            ? clamp(distance * 34, 900, 1800)
+            : mode === 'run'
+                ? clamp(Math.abs(dx) * this.config.movement.runDurationPerPx, 1400, 6000)
+                : clamp(Math.abs(dx) * this.config.movement.walkDurationPerPx, 1800, 7000);
+
+        this.direction = dx >= 0 ? 1 : -1;
+        this.mode = mode;
+        this.sprite.play(mode === 'hopDown' ? 'jump' : mode, {
+            restart: true,
+            once: isJump,
+            next: 'idle',
+            frameDurationMs: mode === 'walk'
+                ? this.config.movement.walkFrameDurationMs
+                : mode === 'run'
+                    ? this.config.movement.runFrameDurationMs
+                    : null,
+        });
+        this.snackMotion = {
+            mode,
+            startX: this.x,
+            startY: this.y,
+            endX: action.x,
+            endY: action.y,
+            startedAt: performance.now(),
+            duration,
+            arcPx: isJump ? clamp(distance * 0.16, 8, 18) : 0,
+            surface: action.surface,
+        };
+    }
+
+    finishSnackArrival() {
+        const callbacks = this.snackCallbacks;
+        this.clearSnackMovement({ keepLock: true });
+        this.setMode('idle');
+        callbacks?.onArrive?.();
+    }
+
+    failSnackMovement(reason) {
+        const callbacks = this.snackCallbacks;
+        this.clearSnackMovement();
+        this.setMode('idle');
+        callbacks?.onFail?.(reason);
+    }
+
+    clearSnackMovement({ keepLock = false } = {}) {
+        this.snackActionQueue = [];
+        this.snackMotion = null;
+        this.snackApple = null;
+        this.snackCallbacks = null;
+        if (!keepLock) this.actionLock = false;
+    }
+
+    getPetState() {
+        return {
+            x: this.x,
+            y: this.y,
+            size: this.config.movement.spriteSize,
+            direction: this.direction,
+        };
+    }
+
+    freezeForSnack(direction = this.direction) {
+        this.actionLock = true;
+        this.terrainMotion = null;
+        this.jumpMotion = null;
+        this.eatMotion = null;
+        this.snackActionQueue = [];
+        this.snackMotion = null;
+        this.decelerating = false;
+        this.pendingHappy = false;
+        this.direction = direction;
+        this.setMode('idle');
+    }
+
+    async holdSnackAnimation(animationName, durationMs, { direction = this.direction } = {}) {
+        this.freezeForSnack(direction);
+        this.mode = animationName;
+        await this.sprite.play(animationName, { restart: true, once: false, next: animationName });
+        await waitMs(durationMs);
+    }
+
+    completeSnackSequence() {
+        this.clearSnackMovement();
+        this.actionLock = false;
+        this.setMode('idle');
+        this.lastInteractionAt = Date.now();
+        this.lastDecisionAt = performance.now() + this.config.movement.initialIdleMs;
     }
 
     handleSpeech(event) {
