@@ -42,6 +42,8 @@ export const pattieWorldConfig = {
         sleepAfterMs: 45000,
         spriteSize: 32,
         jumpDurationMs: 980,
+        jumpArcPx: 16,
+        maxJumpDistancePx: 80,
         walkDurationPerPx: 460,
         runDurationPerPx: 256,
         walkFrameDurationMs: 350,
