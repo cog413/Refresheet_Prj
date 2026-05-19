@@ -815,7 +815,7 @@ body.dark-mode .newgame-locked-notice {
     left: 0; /* Offset removed since row-headers are outside */
     z-index: 0;
     width: 2000px;
-    height: 600px;
+    height: 900px;
     pointer-events: none;
     background-image:
         linear-gradient(to right, #e9e7e4 1px, transparent 1px),
@@ -1238,13 +1238,13 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     display: block;
     padding: 6px 8px 0;
     min-width: 1040px;
-    min-height: 620px;
+    min-height: 820px;
     background: transparent;
-    overflow: auto;
+    overflow: visible;
 }
 .pattie-world {
     position: relative;
-    overflow: auto;
+    overflow: visible;
 }
 .pattie-sprite {
     position: absolute;
@@ -1764,7 +1764,7 @@ body.dark-mode .mps-foot {
 }
 
 /* ?? ?ㅽ겕紐⑤뱶 ??????????????????????????????????????? */
-body.dark-mode .mp-scene { background: #1e1e1e; }
+body.dark-mode .mp-scene { background: transparent; }
 body.dark-mode .mp-table { border-color: #444; }
 body.dark-mode .mht-cell { border-color: #444; color: #d4d4d4; }
 body.dark-mode .mht-even .mht-cell { background: #2a2a2a; }
