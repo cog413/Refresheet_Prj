@@ -344,11 +344,6 @@ body {
     flex-grow: 1;
     overflow: auto;
     position: relative;
-    background-image:
-        linear-gradient(to right, #e9e7e4 1px, transparent 1px),
-        linear-gradient(to bottom, #e9e7e4 1px, transparent 1px);
-    background-size: 80px 22px;
-    background-attachment: local;
 }
 
 .row-headers {
@@ -372,13 +367,16 @@ body {
     color: #333;
 }
 
-/* Game Grids positioned like Excel cells */
+/* Grid background lives on sheet-view — only tiles over actual content, not beyond right edge */
 .sheet-view {
     position: absolute;
     top: 0;
     left: 0;
-    /* We align the games inside the dummy grid by just rendering them as grids */
     z-index: 1;
+    background-image:
+        linear-gradient(to right, #e9e7e4 1px, transparent 1px),
+        linear-gradient(to bottom, #e9e7e4 1px, transparent 1px);
+    background-size: 80px 22px;
 }
 
 .game-grid {
@@ -608,10 +606,14 @@ body.dark-mode .newgame-locked-notice {
 .safe-mode .game-grid {
     display: none !important;
 }
-.safe-mode .dummy-grid {
-    display: block !important;
-}
 .safe-mode .sheet-view { display: none !important; }
+.safe-mode .grid-content {
+    background-image:
+        linear-gradient(to right, #e9e7e4 1px, transparent 1px),
+        linear-gradient(to bottom, #e9e7e4 1px, transparent 1px);
+    background-size: 80px 22px;
+    background-attachment: local;
+}
 
 /* Review sheet: Excel frame with compact comment-panel behavior */
 .review-sheet-wrap {
@@ -1099,7 +1101,7 @@ body.dark-mode .tab.active {
     background-color: #1e1e1e;
     color: #4CAF50;
 }
-body.dark-mode .grid-content {
+body.dark-mode .sheet-view {
     background-image:
         linear-gradient(to right, #3e3e3e 1px, transparent 1px),
         linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
