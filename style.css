@@ -392,8 +392,8 @@ body {
 .excel-cell {
     width: 80px;
     height: 25px;
-    border-right: 1px solid #e1dfdd;
-    border-bottom: 1px solid #e1dfdd;
+    border-right: 1px solid #e9e7e4;
+    border-bottom: 1px solid #e9e7e4;
     display: flex;
     align-items: center;
     justify-content: flex-end; /* Numbers right-aligned */
@@ -815,11 +815,11 @@ body.dark-mode .newgame-locked-notice {
     left: 0; /* Offset removed since row-headers are outside */
     z-index: 0;
     width: 2000px;
-    height: 1000px;
+    height: 600px;
     pointer-events: none;
-    background-image: 
-        linear-gradient(to right, #e1dfdd 1px, transparent 1px),
-        linear-gradient(to bottom, #e1dfdd 1px, transparent 1px);
+    background-image:
+        linear-gradient(to right, #e9e7e4 1px, transparent 1px),
+        linear-gradient(to bottom, #e9e7e4 1px, transparent 1px);
     background-size: 80px 25px; /* Matches col/row size */
 }
 
@@ -867,8 +867,8 @@ body.dark-mode .newgame-locked-notice {
     grid-template-columns: 240px 80px; /* 3 cols + 1 col = 4 cols (320px) */
     background-color: transparent;
     font-size: 13px;
-    border-top: 1px solid #e1dfdd;
-    border-left: 1px solid #e1dfdd;
+    border-top: 1px solid #c0bebe;
+    border-left: 1px solid #c0bebe;
 }
 .fake-table-header {
     background-color: #dbe5f1; /* Pivot table blue */
@@ -878,8 +878,8 @@ body.dark-mode .newgame-locked-notice {
     height: 25px;
     display: flex;
     align-items: center;
-    border-right: 1px solid #e1dfdd;
-    border-bottom: 1px solid #e1dfdd;
+    border-right: 1px solid #c0bebe;
+    border-bottom: 1px solid #c0bebe;
     color: #333;
 }
 .fake-table-cell {
@@ -888,8 +888,8 @@ body.dark-mode .newgame-locked-notice {
     align-items: center;
     padding: 0 4px;
     background-color: #fff;
-    border-right: 1px solid #e1dfdd;
-    border-bottom: 1px solid #e1dfdd;
+    border-right: 1px solid #c0bebe;
+    border-bottom: 1px solid #c0bebe;
     color: #333;
 }
 .fake-table-cell.label {
@@ -1094,8 +1094,8 @@ body.dark-mode .tab.active {
 }
 body.dark-mode .dummy-grid {
     background-image: 
-        linear-gradient(to right, #444 1px, transparent 1px),
-        linear-gradient(to bottom, #444 1px, transparent 1px);
+        linear-gradient(to right, #3e3e3e 1px, transparent 1px),
+        linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
 }
 body.dark-mode .fake-table, body.dark-mode .fake-chart { background-color: transparent; border-color: #444; }
 body.dark-mode .fake-table-header { background-color: #1a365d; border-color: #444; color: #d4d4d4; }
@@ -1239,7 +1239,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     padding: 6px 8px 0;
     min-width: 1040px;
     min-height: 620px;
-    background: #fff;
+    background: transparent;
     overflow: auto;
 }
 .pattie-world {

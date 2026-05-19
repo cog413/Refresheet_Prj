@@ -27,6 +27,14 @@ export function initExcelLayout() {
         }
     }
 
+    // Sync row header scroll with grid content
+    const gridContent = document.getElementById('grid-content');
+    if (gridContent && rowHeaders) {
+        gridContent.addEventListener('scroll', () => {
+            rowHeaders.scrollTop = gridContent.scrollTop;
+        });
+    }
+
     // 3. View tab toggles dark mode.
     const fileMenuTab = document.getElementById('file-menu-tab');
     const homeMenuTab = document.getElementById('home-menu-tab');
