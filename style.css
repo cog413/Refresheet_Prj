@@ -307,7 +307,7 @@ body {
     top: 0;
     left: 0;
     width: 30px;
-    height: 25px;
+    height: 22px;
     background-color: #f3f2f1;
     border-right: 1px solid #c8c6c4;
     border-bottom: 1px solid #c8c6c4;
@@ -329,7 +329,7 @@ body {
 
 .col-header {
     width: 80px; /* Default cell width */
-    height: 25px;
+    height: 22px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -357,8 +357,8 @@ body {
 }
 
 .row-header {
-    height: 25px;
-    flex: 0 0 25px;
+    height: 22px;
+    flex: 0 0 22px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -391,7 +391,7 @@ body {
 /* Base cell styling to look like Excel */
 .excel-cell {
     width: 80px;
-    height: 25px;
+    height: 22px;
     border-right: 1px solid #e9e7e4;
     border-bottom: 1px solid #e9e7e4;
     display: flex;
@@ -820,7 +820,7 @@ body.dark-mode .newgame-locked-notice {
     background-image:
         linear-gradient(to right, #e9e7e4 1px, transparent 1px),
         linear-gradient(to bottom, #e9e7e4 1px, transparent 1px);
-    background-size: 80px 25px; /* Matches col/row size */
+    background-size: 80px 22px; /* Matches col/row size */
 }
 
 /* Fake Dashboard & Account Button */
@@ -864,33 +864,40 @@ body.dark-mode .newgame-locked-notice {
 }
 .fake-table {
     display: grid;
-    grid-template-columns: 240px 80px; /* 3 cols + 1 col = 4 cols (320px) */
+    grid-template-columns: 200px 120px; /* label 200 + value 120 = 320px (4 grid cols) */
     background-color: transparent;
-    font-size: 13px;
+    font-size: 12px;
     border-top: 1px solid #c0bebe;
     border-left: 1px solid #c0bebe;
 }
 .fake-table-header {
     background-color: #dbe5f1; /* Pivot table blue */
-    padding: 0 4px;
+    padding: 0 6px;
     font-weight: bold;
     grid-column: span 2;
-    height: 25px;
+    height: 22px;
     display: flex;
     align-items: center;
     border-right: 1px solid #c0bebe;
     border-bottom: 1px solid #c0bebe;
-    color: #333;
+    color: #1f3864;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .fake-table-cell {
-    height: 25px;
+    height: 22px;
     display: flex;
     align-items: center;
-    padding: 0 4px;
+    padding: 0 6px;
     background-color: #fff;
     border-right: 1px solid #c0bebe;
     border-bottom: 1px solid #c0bebe;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .fake-table-cell.label {
     background-color: #f2f2f2;
@@ -906,10 +913,12 @@ body.dark-mode .newgame-locked-notice {
 .fake-table-cell.note {
     grid-column: span 2;
     height: auto;
-    min-height: 25px;
+    min-height: 22px;
     align-items: flex-start;
     white-space: normal;
-    line-height: 1.35;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.4;
     font-size: 11px;
     color: #666;
     background-color: #fffef2;
@@ -917,7 +926,7 @@ body.dark-mode .newgame-locked-notice {
 
 .fake-chart {
     background-color: #fff;
-    border: 1px solid #e1dfdd;
+    border: 1px solid #c0bebe;
     padding: 15px;
     /* Chart doesn't need to be cell-aligned, floating is fine */
 }
