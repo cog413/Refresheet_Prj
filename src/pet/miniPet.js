@@ -210,7 +210,6 @@ function buildManageBox() {
     feedDesc.innerHTML = `
         <p class="mp-desc-text"><strong>간식주기</strong> : 토닥이 맵에는 토닥이 간식주기 옵션이 있어요. 간식주기를 누르고 맵 원하는 곳에 떨어뜨려보세요. 토닥이는 간식을 먹으면 행복점수가 많이 올라요.</p>
         <div class="mp-buy-btn-row">
-            <button class="mp-buy-btn" id="mp-buy-apple-btn">먹이구매하기</button>
             <button class="mp-buy-btn" id="mp-buy-snack-btn">간식구매하기</button>
         </div>`;
 
@@ -225,7 +224,7 @@ function buildManageBox() {
 
     // 구매 팝업 연결
     box.addEventListener('click', e => {
-        if (e.target.id === 'mp-buy-apple-btn' || e.target.id === 'mp-buy-snack-btn') openPurchaseModal();
+        if (e.target.id === 'mp-buy-snack-btn') openPurchaseModal();
     });
 
     return box;
