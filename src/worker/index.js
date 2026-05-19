@@ -589,7 +589,7 @@ async function handleTodayScores(request, env) {
          WHERE user_id = ? AND played_at >= ? AND played_at < ?`
     ).bind(session.user_id, hourStart, hourEnd);
 
-    const [rows, avatar, hourlyRow] = await Promise.all([
+    const [rows, avatar, hourlyRow, happinessRow] = await Promise.all([
         db.prepare(
             `SELECT game_type, score, played_at, duration_seconds
              FROM game_scores
@@ -599,16 +599,20 @@ async function handleTodayScores(request, env) {
         db.prepare(`SELECT last_minime_at FROM avatars WHERE user_id=?`)
             .bind(session.user_id).first(),
         hourlyStmt.first(),
+        db.prepare(`SELECT current_score FROM pet_happiness_state WHERE user_id=?`)
+            .bind(session.user_id).first(),
     ]);
 
     const lastMinimeAt = avatar?.last_minime_at || null;
     const minimeCaredToday = lastMinimeAt && lastMinimeAt >= todayStart;
     const hourlyPlaysUsed = hourlyRow?.cnt ?? 0;
+    const happinessScore = happinessRow?.current_score ?? 0;
 
     return withCors(json({
         authenticated: true,
         scores: rows.results || [],
         minime_cared_today: Boolean(minimeCaredToday),
+        happiness_score: happinessScore,
         hourly_plays_used: hourlyPlaysUsed,
         hourly_plays_remaining: Math.max(0, GLOBAL_HOURLY_PLAY_LIMIT - hourlyPlaysUsed),
         hourly_plays_limit: GLOBAL_HOURLY_PLAY_LIMIT,

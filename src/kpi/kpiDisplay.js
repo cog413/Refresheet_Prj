@@ -51,9 +51,7 @@ function renderKpi(auth, data) {
     const commuteEnd   = auth.commute_end   || '18:00';
     const enduranceIndex = calcEnduranceIndex(commuteStart, commuteEnd);
 
-    // 케어 Index: 0→0%, 1회 이상→50%, 2종 이상→100%
-    // 현재는 단일 활동 타입만 지원 → 1회 이상 시 50%
-    const careIndex = minimeCared ? 50 : 0;
+    const careIndex = data.happiness_score ?? 0;
 
     setKpiNumber('kpi-focus-val', `${focusIndex}%`, getColorClass(focusIndex));
     setKpiNumber('kpi-endurance-val', `${enduranceIndex}%`, getColorClass(enduranceIndex));
