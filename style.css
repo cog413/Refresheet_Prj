@@ -325,6 +325,8 @@ body {
     background-color: #f3f2f1;
     border-bottom: 1px solid #c8c6c4;
     overflow: hidden;
+    height: 22px;
+    flex-shrink: 0;
 }
 
 .col-header {

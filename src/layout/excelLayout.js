@@ -28,11 +28,12 @@ export function initExcelLayout() {
         }
     }
 
-    // Sync row header scroll with grid content
+    // Sync row/column header scroll with grid content
     const gridContent = document.getElementById('grid-content');
     if (gridContent && rowHeaders) {
         gridContent.addEventListener('scroll', () => {
             rowHeaders.scrollTop = gridContent.scrollTop;
+            if (colHeaders) colHeaders.scrollLeft = gridContent.scrollLeft;
         });
     }
 
