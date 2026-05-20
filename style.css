@@ -1441,7 +1441,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     left: 0;
     top: 154px; /* proj-table 110px + 44px gap */
     width: 640px;
-    height: 154px; /* rows 8–14 = 7 × 22px */
+    height: 132px; /* rows 8–13 = 6 × 22px */
 }
 .proj-table {
     position: absolute;
@@ -1496,7 +1496,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 .mp-chart {
     position: absolute;
     left: 560px;
-    top: 330px;    /* row 16 = 15×22px */
+    top: 308px;    /* row 15 = 14×22px */
     width: 480px;  /* H~M = 6×80px, 560+480=1040=N left edge */
     height: 264px; /* rows 16–27 = 12×22px, 330+264=594=27×22 */
     border: 1px solid var(--rs-obj-border);
@@ -1598,7 +1598,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     top: 0;
     width: 280px;  /* J mid → M right: 280+280=560px container */
     min-width: 0;
-    height: 154px; /* fixed = rows 8–14 */
+    height: 132px; /* fixed = rows 8–13 */
     border: 1px solid var(--rs-tbl-inner);
     border-radius: var(--rs-obj-radius);
     background: #fff;
@@ -1848,7 +1848,7 @@ body.dark-mode .pattie-speech::before { border-top-color: #2a2a2a; }
     left: 80px;    /* H col left */
     top: 0;
     width: 160px;  /* H+I = 2×80px */
-    height: 154px; /* = rows 8–14 */
+    height: 132px; /* = rows 8–13 */
     border: 1px solid var(--rs-tbl-inner);
     border-radius: var(--rs-obj-radius);
     background: #fff;
@@ -2902,7 +2902,7 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 .mp-manage-box {
     position: absolute;
     left: 80px;
-    top: 330px;    /* row 16 = 15×22px */
+    top: 308px;    /* row 15 = 14×22px */
     width: 400px;  /* B~F = 5×80px */
     height: 264px; /* rows 16–27 = 12×22px, 330+264=594=27×22 */
     border: 1px solid var(--rs-obj-border);
