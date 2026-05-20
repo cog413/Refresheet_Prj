@@ -1427,10 +1427,10 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     border-left: 1px solid var(--rs-tbl-outer);
     border-top:  1px solid var(--rs-tbl-outer);
 }
-.mp-table:nth-of-type(1) { left: 0; top: 22px; }
+.mp-table:nth-of-type(1) { left: 80px; top: 22px; }
 .mp-dashboard-main-section {
     position: absolute;
-    left: 400px;
+    left: 480px;
     top: 22px;
     width: 560px;
     display: grid;
@@ -1452,7 +1452,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 
 .mht-row {
     display: grid;
-    grid-template-columns: 120px 50px 50px 50px 50px; /* total 320px = 4 cols × 80px */
+    grid-template-columns: 80px 80px 80px 80px 80px; /* total 400px = 5 cols × 80px, B–F */
 }
 .proj-table .mht-row {
     grid-template-columns: minmax(180px, 260px) 58px 58px 96px 76px;
