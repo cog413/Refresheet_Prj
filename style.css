@@ -1433,7 +1433,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     position: absolute;
     left: 480px;
     top: 0;
-    width: 560px;
+    width: 640px;
     display: grid;
     gap: 44px; /* proj-table 110px + 44px = 154px → analysis-row top at row 8 */
 }
@@ -1590,9 +1590,9 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 /* ?? ?쒖떇吏 留??????????????????????????????????????? */
 .mp-minimap {
     position: absolute;
-    left: 400px;   /* L col within dashboard container: 880px scene */
+    left: 400px;   /* L col left */
     top: 0;
-    width: 160px;  /* L+M = 2×80px, right edge = 560px = M col right */
+    width: 240px;  /* L+M+N = 3×80px, right = N col right */
     min-width: 0;
     height: 154px; /* fixed = rows 8–14 */
     border: 1px solid var(--rs-tbl-inner);
@@ -1841,9 +1841,9 @@ body.dark-mode .pattie-speech::before { border-top-color: #2a2a2a; }
 /* Trend chart panel */
 .mp-trend {
     position: absolute;
-    left: 80px;    /* H col within dashboard container */
+    left: 80px;    /* H col left */
     top: 0;
-    width: 270px;  /* H–K: 3.375 cols, gap 20px before minimap */
+    width: 240px;  /* H+I+J = 3×80px, right = J col right */
     height: 154px; /* = rows 8–14 */
     border: 1px solid var(--rs-tbl-inner);
     border-radius: var(--rs-obj-radius);
