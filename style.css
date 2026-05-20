@@ -887,7 +887,7 @@ body.dark-mode .newgame-locked-notice {
     grid-template-columns: 240px 80px; /* 3 cols (label) + 1 col (value) = 4 cols × 80px */
     background-color: transparent;
     font-size: 12px;
-    border-top: 1px solid var(--rs-tbl-outer);
+    /* no border-top — top frame lives on header cells to avoid 1px offset above row 1 */
     border-left: 1px solid var(--rs-tbl-outer);
 }
 .fake-table-header {
@@ -898,6 +898,7 @@ body.dark-mode .newgame-locked-notice {
     height: var(--rs-row-h); /* exactly 1 grid row */
     display: flex;
     align-items: center;
+    border-top: 1px solid var(--rs-tbl-outer); /* table top frame within border-box */
     border-right: 1px solid var(--rs-tbl-outer);
     border-bottom: 1px solid var(--rs-tbl-head-bd);
     color: #1f3864;
@@ -1425,7 +1426,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 .mp-table {
     position: absolute;
     border-left: 1px solid var(--rs-tbl-outer);
-    border-top:  1px solid var(--rs-tbl-outer);
+    /* no border-top here — top border lives on the header row cells so the first row starts exactly on the grid line */
 }
 .mp-table:nth-of-type(1) { left: 80px; top: 22px; }
 .mp-dashboard-main-section {
@@ -1434,7 +1435,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     top: 22px;
     width: 560px;
     display: grid;
-    gap: 28px; /* proj-table 126px + 28px = 154px = row 9 offset from row 2 */
+    gap: 44px; /* proj-table 5×22px=110px + 44px=2×22px = 154px = row 9 offset from row 2 */
 }
 .mp-analysis-row {
     display: grid;
@@ -1473,10 +1474,11 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     font-weight: bold;
     color: #1f3864;
     justify-content: center;
+    border-top: 1px solid var(--rs-tbl-outer); /* table's top frame — within cell's border-box */
 }
 
 .mht-cell {
-    height: 25px;           /* JS: ROW_H=25 — must stay 25px to match JS layout */
+    height: 22px;           /* = var(--rs-row-h): one sheet grid row, no accumulated drift */
     border-right:  1px solid var(--rs-tbl-inner);
     border-bottom: 1px solid var(--rs-tbl-inner);
     display: flex;
