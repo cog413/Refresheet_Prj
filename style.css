@@ -2904,7 +2904,7 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     left: 80px;
     top: 330px;    /* row 16 = 15×22px */
     width: 400px;  /* B~F = 5×80px */
-    height: 286px; /* rows 16–28 = 13×22px, 330+286=616=28×22 */
+    height: 264px; /* rows 16–27 = 12×22px, 330+264=594=27×22 */
     border: 1px solid var(--rs-obj-border);
     border-radius: var(--rs-obj-radius);
     background: #ffffff;

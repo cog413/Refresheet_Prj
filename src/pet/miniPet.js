@@ -70,7 +70,9 @@ async function startScene() {
         bar.style.height = '0%';
         setTimeout(() => {
             bar.style.transition = 'height .7s ease-out';
-            bar.style.height = `${bar.dataset.h}%`;
+            bar.style.height = bar.classList.contains('mp-bar-offline')
+                ? `${parseFloat(bar.dataset.h) * 0.34}%`
+                : `${bar.dataset.h}%`;
         }, i * 70);
     });
     const chart = document.getElementById('mp-chart');
@@ -141,7 +143,7 @@ function updateChartTitle(nickname) {
     const titleEl = document.getElementById('mp-chart-title');
     if (!titleEl) return;
     const name = truncateName(nickname || 'Mong');
-    titleEl.textContent = `주간 매출 추이  ·  프로덕트명 : ${name}`;
+    titleEl.textContent = `프로젝트 명 : ${name}`;
 }
 
 function truncateName(name) {
@@ -205,27 +207,14 @@ function buildManageBox() {
     const petDesc = el('div', 'mp-manage-row mp-manage-desc');
     petDesc.innerHTML = `<p class="mp-desc-text"><strong>토닥여주기</strong> : 토닥이를 마우스로 클릭해보세요. 토닥이가 행복해져요. 단, 행복점수가 오르는 것은 1일 3회</p>`;
 
-    // 4) 간식주기 설명 + 구매 버튼
-    const feedDesc = el('div', 'mp-manage-row mp-manage-desc');
-    feedDesc.innerHTML = `
-        <p class="mp-desc-text"><strong>간식주기</strong> : 토닥이 맵에는 토닥이 간식주기 옵션이 있어요. 간식주기를 누르고 맵 원하는 곳에 떨어뜨려보세요. 토닥이는 간식을 먹으면 행복점수가 많이 올라요.</p>
-        <div class="mp-buy-btn-row">
-            <button class="mp-buy-btn" id="mp-buy-snack-btn">간식구매하기</button>
-        </div>`;
-
-    // 5) 말걸기 설명
+    // 4) 말걸기 설명
     const talkDesc = el('div', 'mp-manage-row mp-manage-desc');
     talkDesc.innerHTML = `<p class="mp-desc-text"><strong>말 걸기</strong> : 토닥이에게 말을 걸어보세요. 선택한 기분에 맞춰 토닥이가 반응해요.</p>`;
 
     // 6) 말걸기 nested box (기존 버튼 6개)
     const talkBox = buildTalkBox();
 
-    box.append(pointsRow, happySection, petDesc, feedDesc, talkDesc, talkBox);
-
-    // 구매 팝업 연결
-    box.addEventListener('click', e => {
-        if (e.target.id === 'mp-buy-snack-btn') openPurchaseModal();
-    });
+    box.append(pointsRow, happySection, petDesc, talkDesc, talkBox);
 
     return box;
 }
@@ -397,7 +386,7 @@ function buildWeeklySalesChart() {
 
     const title = el('div', 'mp-chart-title');
     title.id = 'mp-chart-title';
-    title.textContent = '주간 매출 추이';
+    title.textContent = '프로젝트 명';
     const legend = el('div', 'mp-chart-legend');
     legend.innerHTML = `
         <span><i class="mp-dot mp-dot-online"></i>온라인</span>
@@ -433,9 +422,11 @@ function buildWeeklySalesChart() {
             <span class="mp-apple-hud-x">×</span>
             <span class="mp-apple-hud-count" id="mp-apple-hud-count">0</span>
         </div>
-        <button class="mp-feed-btn" id="mp-feed-btn" disabled>간식주기</button>`;
+        <button class="mp-feed-btn" id="mp-feed-btn" disabled>간식주기</button>
+        <button class="mp-buy-btn" id="mp-buy-snack-btn">간식구매</button>`;
 
     mapActions.addEventListener('click', e => {
+        if (e.target.id === 'mp-buy-snack-btn') { openPurchaseModal(); return; }
         if (e.target.id === 'mp-feed-btn' || e.target.closest('#mp-feed-btn')) {
             e.preventDefault();
             e.stopPropagation();
