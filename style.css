@@ -1455,14 +1455,14 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     grid-template-columns: 80px 80px 80px 80px 80px; /* total 400px = 5 cols × 80px, B–F */
 }
 .proj-table .mht-row {
-    grid-template-columns: 240px 80px 80px 80px 80px; /* H-J=name(3×80), K L M N=others */
+    grid-template-columns: 160px 80px 80px 80px 80px; /* H-I=name(2×80), J K L M=others */
 }
 .proj-table .mht-cell {
     font-size: 10.5px;
 }
 .proj-table .mht-cell:first-child {
-    min-width: 240px;
-    max-width: 240px;
+    min-width: 160px;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
