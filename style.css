@@ -1271,7 +1271,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     position: relative;
     display: block;
     padding: 0;
-    min-width: 1040px;
+    min-width: 1360px; /* extends to column Q right (17 × 80px) */
     min-height: 680px;
     background: transparent;
     overflow: visible;
@@ -1430,17 +1430,18 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 .mp-table:nth-of-type(1) { left: 80px; top: 22px; }
 .mp-dashboard-main-section {
     position: absolute;
-    left: 480px;
+    left: 560px;
     top: 22px;
     width: 560px;
     display: grid;
-    gap: 20px;
+    gap: 28px; /* proj-table 126px + 28px = 154px = row 9 offset from row 2 */
 }
 .mp-analysis-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 20px;
     align-items: stretch;
+    height: 154px; /* rows 9–15 = 7 × 22px */
 }
 .proj-table {
     position: relative;
@@ -1491,7 +1492,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 /* ?? 李⑦듃 ??????????????????????????????????????????? */
 .mp-chart {
     position: absolute;
-    left: 400px;
+    left: 560px;
     top: 352px;
     width: 430px;
     height: 230px;
@@ -1594,14 +1595,14 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     top: unset;
     width: auto;
     min-width: 0;
-    height: 150px;
+    height: 100%;
     border: 1px solid var(--rs-tbl-inner);
     border-radius: var(--rs-obj-radius);
     background: #fff;
     padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    justify-content: space-between;
     box-shadow: var(--rs-obj-shadow);
     overflow: hidden;
 }
@@ -1845,14 +1846,14 @@ body.dark-mode .pattie-speech::before { border-top-color: #2a2a2a; }
     top: auto;
     min-width: 0;
     width: auto;
-    height: 150px;
+    height: 100%;
     border: 1px solid var(--rs-tbl-inner);
     border-radius: var(--rs-obj-radius);
     background: #fff;
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    justify-content: space-between;
     box-shadow: var(--rs-obj-shadow);
 }
 .mp-trend-svg {
@@ -2898,17 +2899,18 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 /* 위치: 토닥이 맵(mp-chart) 왼쪽, 같은 top 기준 */
 .mp-manage-box {
     position: absolute;
-    left: 0;
+    left: 80px;
     top: 352px;
     width: 388px;
-    min-height: 230px;
+    height: 286px; /* rows 17–29 = 13 × 22px = 286px */
     border: 1px solid var(--rs-obj-border);
     border-radius: var(--rs-obj-radius);
     background: #ffffff;
-    padding: 12px 14px 14px;
+    padding: 10px 14px 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    justify-content: space-between;
+    gap: 4px;
     box-shadow: var(--rs-obj-shadow);
     font-size: 11px;
     box-sizing: border-box;
