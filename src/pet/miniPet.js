@@ -207,14 +207,18 @@ function buildManageBox() {
     const petDesc = el('div', 'mp-manage-row mp-manage-desc');
     petDesc.innerHTML = `<p class="mp-desc-text"><strong>토닥여주기</strong> : 토닥이를 마우스로 클릭해보세요. 토닥이가 행복해져요. 단, 행복점수가 오르는 것은 1일 3회</p>`;
 
-    // 4) 말걸기 설명
+    // 4) 간식주기 설명
+    const feedDesc = el('div', 'mp-manage-row mp-manage-desc');
+    feedDesc.innerHTML = `<p class="mp-desc-text"><strong>간식주기</strong> : 토닥이 맵에는 토닥이 간식주기 옵션이 있어요. 간식주기를 누르고 맵 원하는 곳에 떨어뜨려보세요. 토닥이는 간식을 먹으면 행복점수가 많이 올라요.</p>`;
+
+    // 5) 말걸기 설명
     const talkDesc = el('div', 'mp-manage-row mp-manage-desc');
     talkDesc.innerHTML = `<p class="mp-desc-text"><strong>말 걸기</strong> : 토닥이에게 말을 걸어보세요. 선택한 기분에 맞춰 토닥이가 반응해요.</p>`;
 
     // 6) 말걸기 nested box (기존 버튼 6개)
     const talkBox = buildTalkBox();
 
-    box.append(pointsRow, happySection, petDesc, talkDesc, talkBox);
+    box.append(pointsRow, happySection, petDesc, feedDesc, talkDesc, talkBox);
 
     return box;
 }
