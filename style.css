@@ -1434,19 +1434,20 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     left: 480px;
     top: 0;
     width: 640px;
-    display: grid;
-    gap: 44px; /* proj-table 110px + 44px = 154px → analysis-row top at row 8 */
+    display: block;
 }
 .mp-analysis-row {
-    position: relative;
+    position: absolute;
+    left: 0;
+    top: 154px; /* proj-table 110px + 44px gap */
+    width: 640px;
     height: 154px; /* rows 8–14 = 7 × 22px */
 }
 .proj-table {
-    position: relative;
-    left: auto;
-    top: auto;
+    position: absolute;
+    left: 80px; /* H col */
+    top: 0;
     width: max-content;
-    max-width: 100%;
 }
 
 .mht-row {
@@ -1464,6 +1465,9 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     max-width: 240px;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+.proj-table .mht-row:not(.mht-header) .mht-cell:first-child {
+    background: #f0f0f0;
 }
 
 .mht-header .mht-cell {
@@ -1590,9 +1594,9 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 /* ?? ?쒖떇吏 留??????????????????????????????????????? */
 .mp-minimap {
     position: absolute;
-    left: 400px;   /* L col left */
+    left: 280px;   /* J col midpoint */
     top: 0;
-    width: 240px;  /* L+M+N = 3×80px, right = N col right */
+    width: 280px;  /* J mid → M right: 280+280=560px container */
     min-width: 0;
     height: 154px; /* fixed = rows 8–14 */
     border: 1px solid var(--rs-tbl-inner);
@@ -1843,7 +1847,7 @@ body.dark-mode .pattie-speech::before { border-top-color: #2a2a2a; }
     position: absolute;
     left: 80px;    /* H col left */
     top: 0;
-    width: 240px;  /* H+I+J = 3×80px, right = J col right */
+    width: 160px;  /* H+I = 2×80px */
     height: 154px; /* = rows 8–14 */
     border: 1px solid var(--rs-tbl-inner);
     border-radius: var(--rs-obj-radius);
