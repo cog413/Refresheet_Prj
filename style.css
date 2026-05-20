@@ -1435,14 +1435,14 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     top: 22px;
     width: 560px;
     display: grid;
-    gap: 44px; /* proj-table 5×22px=110px + 44px=2×22px = 154px = row 9 offset from row 2 */
+    gap: 22px; /* proj-table 5×22px=110px + 22px=1×22px = 132px → analysis-row at row 8 (154px) */
 }
 .mp-analysis-row {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 20px;
     align-items: stretch;
-    height: 154px; /* rows 9–15 = 7 × 22px */
+    height: 176px; /* rows 8–15 = 8 × 22px */
 }
 .proj-table {
     position: relative;
@@ -1457,14 +1457,14 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     grid-template-columns: 80px 80px 80px 80px 80px; /* total 400px = 5 cols × 80px, B–F */
 }
 .proj-table .mht-row {
-    grid-template-columns: minmax(180px, 260px) 58px 58px 96px 76px;
+    grid-template-columns: 240px 80px 80px 80px 80px; /* H–J=name(3×80), K L M N=others */
 }
 .proj-table .mht-cell {
     font-size: 10.5px;
 }
 .proj-table .mht-cell:first-child {
-    min-width: 180px;
-    max-width: 260px;
+    min-width: 240px;
+    max-width: 240px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
@@ -1489,15 +1489,15 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     white-space: nowrap;
 }
 .mht-num { justify-content: flex-end; }
-.mht-even .mht-cell { background: #f9f9f9; }
+.mht-even .mht-cell { background: #ffffff; } /* white: covers grid lines so verticals don't bleed through */
 
 /* ?? 李⑦듃 ??????????????????????????????????????????? */
 .mp-chart {
     position: absolute;
     left: 560px;
-    top: 352px;
-    width: 430px;
-    height: 230px;
+    top: 330px;    /* row 16 = 15×22px */
+    width: 480px;  /* H~M = 6×80px, 560+480=1040=N left edge */
+    height: 264px; /* rows 16–27 = 12×22px, 330+264=594=27×22 */
     border: 1px solid var(--rs-obj-border);
     border-radius: var(--rs-obj-radius);
     background: #ffffff;
@@ -2902,9 +2902,9 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 .mp-manage-box {
     position: absolute;
     left: 80px;
-    top: 352px;
-    width: 388px;
-    height: 286px; /* rows 17–29 = 13 × 22px = 286px */
+    top: 330px;    /* row 16 = 15×22px */
+    width: 400px;  /* B~F = 5×80px */
+    height: 308px; /* rows 16–29 = 14×22px, 330+308=638=29×22 */
     border: 1px solid var(--rs-obj-border);
     border-radius: var(--rs-obj-radius);
     background: #ffffff;
