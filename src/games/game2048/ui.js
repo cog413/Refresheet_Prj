@@ -169,7 +169,7 @@ export function initGame2048UI() {
         const cellSize = isMobile
             ? Math.min(80, Math.floor((window.innerWidth - 16) / boardSize))
             : 80;
-        const cellH = isMobile ? cellSize : 25;
+        const cellH = isMobile ? cellSize : 22;
 
         grid.style.gridTemplateColumns = `repeat(${boardSize}, ${cellSize}px)`;
         grid.style.gridTemplateRows    = `repeat(${boardSize}, ${cellH}px)`;

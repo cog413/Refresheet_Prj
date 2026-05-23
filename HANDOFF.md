@@ -327,3 +327,9 @@ git log --oneline -10
 ```
 
 Other agents commit to this repo. Never assume file state matches memory.
+
+**Multi-Agent Rules:**
+- 멀티 에이전트 작업 시 `ORCHESTRATION.md`를 함께 읽습니다.
+- commit/push/deploy 전 user 승인이 필요합니다.
+- migration/schema/auth/deploy 변경은 항상 approval-required 입니다.
+- `#SMCP#` workflow는 아래 Branch Strategy를 따릅니다.

@@ -107,6 +107,10 @@ Canonical files:
 
 Multiple agents work on this repo. You are not the only one.
 
+- 기본 모드는 Orchestrated Mode입니다.
+- `ORCHESTRATION.md`가 존재하면 해당 routing/mode rules를 따릅니다.
+- 단, `AGENT_GUIDELINES.md`의 Simplicity / Surgical Changes / Goal-Driven Execution / Documentation Discipline 규칙이 항상 우선합니다.
+
 **During work:**
 - Read another agent's code before overwriting it
 - Do not silently change architecture — update `HANDOFF.md`

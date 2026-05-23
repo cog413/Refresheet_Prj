@@ -1,0 +1,48 @@
+The : 'The' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� Ȯ���ϰ� ��ΰ� ��
+�Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ ��:2 ����:1
++ The user reports that tables are still not aligned with the Excel cel ...
++ ~~~
+    + CategoryInfo          : ObjectNotFound: (The:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Row : 'Row' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� Ȯ���ϰ� ��ΰ� ��
+�Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ ��:3 ����:86
++ ... les and game grids align perfectly with the background grid (Row 12).
++                                                                  ~~~
+    + CategoryInfo          : ObjectNotFound: (Row:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Current : 'Current' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� Ȯ���ϰ� ��
+�ΰ� ���Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ ��:4 ����:1
++ Current state uses 22px height and inset box-shadow for .fake-table-c ...
++ ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Current:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Issue: : 'Issue:' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� Ȯ���ϰ� ���
+�� ���Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ ��:5 ����:1
++ Issue: Even with 22px, cumulative drift exists.
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Issue::String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Check : 'Check' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� Ȯ���ϰ� ��ΰ�
+ ���Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ ��:6 ����:1
++ Check if .fake-table has a gap or if individual cells have margin/pad ...
++ ~~~~~
+    + CategoryInfo          : ObjectNotFound: (Check:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+Target : 'Target' �� cmdlet, �Լ�, ��ũ��Ʈ ���� �Ǵ� ������ �� �ִ� ���α׷� �̸����� �νĵ��� �ʽ��ϴ�. �̸��� ��Ȯ���� Ȯ���ϰ� ���
+�� ���Ե� ��� ��ΰ� �ùٸ��� ������ ���� �ٽ� �õ��Ͻʽÿ�.
+��ġ ��:7 ����:1
++ Target files: style.css, src/games/game2048/ui.js, src/games/sudoku/s ...
++ ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Target:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
