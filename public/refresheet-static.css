@@ -51,6 +51,37 @@ a { color: var(--green); }
 .site-header nav a {
     color: var(--muted);
     text-decoration: none;
+    transition: color 0.2s;
+}
+
+.site-header nav a:hover {
+    color: var(--green);
+}
+
+.site-header nav a.active {
+    color: var(--green);
+    border-bottom: 2px solid var(--green);
+}
+
+.logo-icon {
+    vertical-align: middle;
+    margin-right: 8px;
+    border-radius: 4px;
+}
+
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--green);
+    color: white;
+    padding: 8px;
+    z-index: 100;
+    transition: top 0.2s;
+}
+
+.skip-link:focus {
+    top: 0;
 }
 
 .hero {
@@ -179,10 +210,84 @@ ul {
     font-size: 22px;
 }
 
+.cta-section {
+    margin: 48px 0;
+    text-align: center;
+    padding-top: 32px;
+    border-top: 1px solid var(--line);
+}
+
+.cta-btn {
+    display: inline-block;
+    background: var(--green);
+    color: #fff !important;
+    text-decoration: none;
+    padding: 12px 32px;
+    border-radius: 6px;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.cta-btn:hover {
+    background: #1a5c38;
+}
+
 .site-footer {
     border-top: 1px solid var(--line);
     color: var(--muted);
     font-size: 14px;
+    padding: 64px 24px 32px;
+}
+
+.footer-grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(2, 1fr);
+    gap: 48px;
+    margin-bottom: 64px;
+}
+
+.footer-brand h3 {
+    color: var(--green);
+    margin-bottom: 16px;
+}
+
+.footer-links h4 {
+    color: var(--ink);
+    margin-bottom: 16px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.footer-links a {
+    display: block;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 8px;
+}
+
+.footer-links a:hover {
+    color: var(--green);
+}
+
+.footer-bottom {
+    border-top: 1px solid var(--line);
+    padding-top: 32px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+@media (max-width: 900px) {
+    .hero-inner {
+        grid-template-columns: 1fr;
+        padding-top: 42px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
 }
 
 @media (max-width: 760px) {
@@ -191,12 +296,7 @@ ul {
         flex-direction: column;
     }
 
-    .hero-inner,
     .article-grid {
         grid-template-columns: 1fr;
-    }
-
-    .hero-inner {
-        padding-top: 42px;
     }
 }
