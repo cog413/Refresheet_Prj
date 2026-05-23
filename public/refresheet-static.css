@@ -192,19 +192,67 @@ h1 {
     display: inline-block;
 }
 
+/* State modifiers */
+.pattie-frame.happy { background-position: -577px -1px; }
+.pattie-frame.sleep { background-position: -193px -1px; }
+.pattie-frame.run { background-position: -193px -1px; }
+.pattie-frame.idle { background-position: -1px -1px; }
+.pattie-frame.surprise { background-position: -1px -1px; }
+.pattie-frame.walk { background-position: -1px -1px; }
+
+.pattie-mosaic {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    background: var(--soft);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+}
+
+.icon-apple {
+    width: 32px;
+    height: 32px;
+    background-image: url('/public/assets/apple/apple_idle..png');
+    background-size: 32px 32px;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.happiness-bar {
+    width: 100%;
+    height: 12px;
+    background: var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 16px 0;
+}
+.happiness-bar::after {
+    content: '';
+    display: block;
+    height: 100%;
+    width: var(--happiness, 0%);
+    background: var(--green);
+    transition: width 0.3s ease;
+}
+
 /* Mong (Corgi) States */
 .mong-idle { background-image: url('/public/assets/corgi/mong_idle.png'); }
-.mong-happy { background-image: url('/public/assets/corgi/mong_happy.png'); background-position: -1px 0; }
+.mong-happy { background-image: url('/public/assets/corgi/mong_happy.png'); }
 .mong-sleep { background-image: url('/public/assets/corgi/mong_sleep.png'); }
 .mong-run { background-image: url('/public/assets/corgi/mong_run.png'); }
 .mong-surprise { background-image: url('/public/assets/corgi/mong_surprise.png'); }
+.mong-walk { background-image: url('/public/assets/corgi/mong_walk..png'); }
 
 /* Cabul (Kitty) States */
 .cabul-idle { background-image: url('/public/assets/kitty/cabul_idle..png'); }
-.cabul-happy { background-image: url('/public/assets/kitty/cabul_happy.png'); background-position: -1px 0; }
+.cabul-happy { background-image: url('/public/assets/kitty/cabul_happy.png'); }
 .cabul-run { background-image: url('/public/assets/kitty/cabul_run.png'); }
 .cabul-surprise { background-image: url('/public/assets/kitty/cabul_surprise.png'); }
 .cabul-sleep { background-image: url('/public/assets/kitty/cabul_sleep.png'); }
+.cabul-walk { background-image: url('/public/assets/kitty/cabul_walk..png'); }
 
 .cell-highlight {
     position: absolute;
