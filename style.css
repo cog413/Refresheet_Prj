@@ -2638,14 +2638,16 @@ body.dark-mode .ob-consent-row a { color: #6dba8a; }
 
 /* ── Typing Game ──────────────────────────────────────────────── */
 .game-grid.tg {
-    flex: 1;
+    flex: none;
     display: flex;
     flex-direction: column;
-    padding: 16px 20px;
+    padding: 16px 0;
     min-width: 0;
     overflow-y: auto;
     align-self: flex-start;
     background: #fff;
+    width: 400px;
+    box-sizing: border-box;
 }
 .tg-title {
     font-size: 15px;
@@ -2748,6 +2750,8 @@ body.dark-mode .tg-ticket-info { color: #aaa; }
     color: #1a1a1a;
     line-height: 1.6;
     word-break: keep-all;
+    overflow-wrap: break-word;
+    white-space: normal;
     flex: 1;
 }
 
