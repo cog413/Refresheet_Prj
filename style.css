@@ -1891,7 +1891,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     display: flex;
     align-items: flex-start;
     gap: 0;
-    padding: 25px 40px 60px;
+    padding: 22px 40px 60px 80px;
     font-size: 12px;
     font-family: 'Segoe UI', Calibri, sans-serif;
     color: #333;
