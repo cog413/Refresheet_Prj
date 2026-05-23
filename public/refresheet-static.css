@@ -128,6 +128,63 @@ h1 {
     margin: 0;
 }
 
+.hero-composition {
+    margin: 0;
+    position: relative;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    overflow: hidden;
+    aspect-ratio: 4 / 3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-stage {
+    width: 100%;
+    height: 100%;
+    background-image: 
+        repeating-linear-gradient(var(--line) 0 1px, transparent 1px 48px),
+        repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 48px);
+    background-size: 48px 48px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 48px;
+}
+
+.char {
+    width: 96px;
+    height: 96px;
+    image-rendering: pixelated;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 2;
+}
+
+.char--mong {
+    background-image: url('/public/assets/corgi/mong_idle.png');
+}
+
+.char--cabul {
+    background-image: url('/public/assets/kitty/cabul_idle..png');
+    transform: scaleX(-1);
+}
+
+.cell-highlight {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--green);
+    background: rgba(33, 115, 70, 0.1);
+    top: 96px;
+    left: 144px;
+    z-index: 1;
+}
+
 .hero-media img,
 .article-figure img {
     display: block;
