@@ -133,28 +133,22 @@ nav a.active {
     image-rendering: pixelated;
     background-repeat: no-repeat;
     display: inline-block;
+    overflow: hidden;
 }
 
-/* State Modifiers (1px padding logic) */
-.pattie-frame.idle { background-position: -1px -1px; }
-.pattie-frame.happy { background-position: -577px -1px; } /* 10th frame */
-.pattie-frame.sleep { background-position: -193px -1px; } /* 4th frame */
-.pattie-frame.surprise { background-position: -1px -1px; }
-.pattie-frame.run { background-position: -193px -1px; } /* 4th frame */
+/* Mong (Corgi) Assets - Enforced State Logic */
+.pattie-frame.mong-idle.idle { background-image: url('/public/assets/corgi/mong_idle.png'); background-size: 66px 66px; background-position: -1px -1px; }
+.pattie-frame.mong-surprise.surprise { background-image: url('/public/assets/corgi/mong_surprise.png'); background-size: 66px 66px; background-position: -1px -1px; }
+.pattie-frame.mong-happy.happy { background-image: url('/public/assets/corgi/mong_happy.png'); background-size: 642px 66px; background-position: -577px -1px; }
+.pattie-frame.mong-run.run { background-image: url('/public/assets/corgi/mong_run.png'); background-size: 642px 66px; background-position: -193px -1px; }
+.pattie-frame.mong-sleep.sleep { background-image: url('/public/assets/corgi/mong_sleep.png'); background-size: 450px 66px; background-position: -193px -1px; }
 
-/* Mong (Corgi) Assets */
-.mong-idle { background-image: url('/public/assets/corgi/mong_idle.png'); background-size: 66px 66px; }
-.mong-happy { background-image: url('/public/assets/corgi/mong_happy.png'); background-size: 642px 66px; }
-.mong-sleep { background-image: url('/public/assets/corgi/mong_sleep.png'); background-size: 450px 66px; }
-.mong-run { background-image: url('/public/assets/corgi/mong_run.png'); background-size: 642px 66px; }
-.mong-surprise { background-image: url('/public/assets/corgi/mong_surprise.png'); background-size: 66px 66px; }
-
-/* Cabul (Kitty) Assets */
-.cabul-idle { background-image: url('/public/assets/kitty/cabul_idle..png'); background-size: 66px 66px; }
-.cabul-happy { background-image: url('/public/assets/kitty/cabul_happy.png'); background-size: 642px 66px; }
-.cabul-sleep { background-image: url('/public/assets/kitty/cabul_sleep.png'); background-size: 450px 66px; }
-.cabul-run { background-image: url('/public/assets/kitty/cabul_run.png'); background-size: 642px 66px; }
-.cabul-surprise { background-image: url('/public/assets/kitty/cabul_surprise.png'); background-size: 66px 66px; }
+/* Cabul (Kitty) Assets - Enforced State Logic */
+.pattie-frame.cabul-idle.idle { background-image: url('/public/assets/kitty/cabul_idle..png'); background-size: 66px 66px; background-position: -1px -1px; }
+.pattie-frame.cabul-surprise.surprise { background-image: url('/public/assets/kitty/cabul_surprise.png'); background-size: 66px 66px; background-position: -1px -1px; }
+.pattie-frame.cabul-happy.happy { background-image: url('/public/assets/kitty/cabul_happy.png'); background-size: 642px 66px; background-position: -577px -1px; }
+.pattie-frame.cabul-run.run { background-image: url('/public/assets/kitty/cabul_run.png'); background-size: 642px 66px; background-position: -193px -1px; }
+.pattie-frame.cabul-sleep.sleep { background-image: url('/public/assets/kitty/cabul_sleep.png'); background-size: 450px 66px; background-position: -193px -1px; }
 
 .pattie-mosaic {
     display: grid;
