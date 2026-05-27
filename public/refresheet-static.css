@@ -157,6 +157,16 @@ nav a.active {
     to { background-position: -449px -1px; }
 }
 
+@keyframes pattie-idle {
+    from { background-position: -1px -1px; }
+    to { background-position: -129px -1px; }
+}
+
+@keyframes pattie-surprise {
+    from { background-position: -1px -1px; }
+    to { background-position: -129px -1px; }
+}
+
 @keyframes pattie-breathe {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-2px); }
@@ -181,12 +191,12 @@ nav a.active {
 }
 
 .pattie-frame.idle {
-    animation: pattie-breathe 3s ease-in-out infinite;
+    animation: pattie-idle 1.04s steps(2) infinite, pattie-breathe 3s ease-in-out infinite;
 }
 
 .pattie-frame.surprise {
     position: relative;
-    animation: pattie-breathe 4s ease-in-out infinite;
+    animation: pattie-surprise 0.8s steps(2) infinite, pattie-breathe 4s ease-in-out infinite;
 }
 
 .pattie-frame.surprise::after {
@@ -208,15 +218,15 @@ nav a.active {
 }
 
 /* Mong (Corgi) Assets - Enforced State Logic */
-.pattie-frame.mong-idle.idle { background-image: url('/public/assets/corgi/mong_idle.png'); background-size: 66px 66px; background-position: -1px -1px; }
-.pattie-frame.mong-surprise.surprise { background-image: url('/public/assets/corgi/mong_surprise.png'); background-size: 66px 66px; background-position: -1px -1px; }
+.pattie-frame.mong-idle.idle { background-image: url('/public/assets/corgi/mong_idle.png'); background-size: 130px 66px; }
+.pattie-frame.mong-surprise.surprise { background-image: url('/public/assets/corgi/mong_surprise.png'); background-size: 130px 66px; }
 .pattie-frame.mong-happy.happy { background-image: url('/public/assets/corgi/mong_happy.png'); background-size: 642px 66px; }
 .pattie-frame.mong-run.run { background-image: url('/public/assets/corgi/mong_run.png'); background-size: 642px 66px; }
 .pattie-frame.mong-sleep.sleep { background-image: url('/public/assets/corgi/mong_sleep.png'); background-size: 450px 66px; }
 
 /* Cabul (Kitty) Assets - Enforced State Logic */
-.pattie-frame.cabul-idle.idle { background-image: url('/public/assets/kitty/cabul_idle..png'); background-size: 66px 66px; background-position: -1px -1px; }
-.pattie-frame.cabul-surprise.surprise { background-image: url('/public/assets/kitty/cabul_surprise.png'); background-size: 66px 66px; background-position: -1px -1px; }
+.pattie-frame.cabul-idle.idle { background-image: url('/public/assets/kitty/cabul_idle..png'); background-size: 130px 66px; }
+.pattie-frame.cabul-surprise.surprise { background-image: url('/public/assets/kitty/cabul_surprise.png'); background-size: 130px 66px; }
 .pattie-frame.cabul-happy.happy { background-image: url('/public/assets/kitty/cabul_happy.png'); background-size: 642px 66px; }
 .pattie-frame.cabul-run.run { background-image: url('/public/assets/kitty/cabul_run.png'); background-size: 642px 66px; }
 .pattie-frame.cabul-sleep.sleep { background-image: url('/public/assets/kitty/cabul_sleep.png'); background-size: 450px 66px; }
