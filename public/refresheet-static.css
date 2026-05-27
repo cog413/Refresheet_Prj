@@ -133,22 +133,93 @@ nav a.active {
     image-rendering: pixelated;
     background-repeat: no-repeat;
     display: inline-block;
-    overflow: hidden;
+    overflow: visible;
+    transition: transform 0.2s ease;
+}
+
+.pattie-frame:hover {
+    transform: scale(1.1);
+}
+
+/* Pattie Animations */
+@keyframes pattie-happy {
+    from { background-position: -1px -1px; }
+    to { background-position: -641px -1px; }
+}
+
+@keyframes pattie-run {
+    from { background-position: -1px -1px; }
+    to { background-position: -641px -1px; }
+}
+
+@keyframes pattie-sleep {
+    from { background-position: -1px -1px; }
+    to { background-position: -449px -1px; }
+}
+
+@keyframes pattie-breathe {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+
+@keyframes pattie-bubble-pop {
+    0% { transform: scale(0); opacity: 0; }
+    70% { transform: scale(1.2); }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.pattie-frame.happy {
+    animation: pattie-happy 3.6s steps(10) infinite;
+}
+
+.pattie-frame.run {
+    animation: pattie-run 2.2s steps(10) infinite;
+}
+
+.pattie-frame.sleep {
+    animation: pattie-sleep 5.04s steps(7) infinite;
+}
+
+.pattie-frame.idle {
+    animation: pattie-breathe 3s ease-in-out infinite;
+}
+
+.pattie-frame.surprise {
+    position: relative;
+    animation: pattie-breathe 4s ease-in-out infinite;
+}
+
+.pattie-frame.surprise::after {
+    content: '?!!';
+    position: absolute;
+    top: -10px;
+    right: -5px;
+    background: #fff;
+    border: 1.5px solid #333;
+    border-radius: 3px;
+    padding: 0 4px;
+    font-size: 10px;
+    font-weight: 900;
+    color: #333;
+    line-height: 1.4;
+    box-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+    animation: pattie-bubble-pop 0.4s ease-out forwards;
+    z-index: 10;
 }
 
 /* Mong (Corgi) Assets - Enforced State Logic */
 .pattie-frame.mong-idle.idle { background-image: url('/public/assets/corgi/mong_idle.png'); background-size: 66px 66px; background-position: -1px -1px; }
 .pattie-frame.mong-surprise.surprise { background-image: url('/public/assets/corgi/mong_surprise.png'); background-size: 66px 66px; background-position: -1px -1px; }
-.pattie-frame.mong-happy.happy { background-image: url('/public/assets/corgi/mong_happy.png'); background-size: 642px 66px; background-position: -577px -1px; }
-.pattie-frame.mong-run.run { background-image: url('/public/assets/corgi/mong_run.png'); background-size: 642px 66px; background-position: -193px -1px; }
-.pattie-frame.mong-sleep.sleep { background-image: url('/public/assets/corgi/mong_sleep.png'); background-size: 450px 66px; background-position: -193px -1px; }
+.pattie-frame.mong-happy.happy { background-image: url('/public/assets/corgi/mong_happy.png'); background-size: 642px 66px; }
+.pattie-frame.mong-run.run { background-image: url('/public/assets/corgi/mong_run.png'); background-size: 642px 66px; }
+.pattie-frame.mong-sleep.sleep { background-image: url('/public/assets/corgi/mong_sleep.png'); background-size: 450px 66px; }
 
 /* Cabul (Kitty) Assets - Enforced State Logic */
 .pattie-frame.cabul-idle.idle { background-image: url('/public/assets/kitty/cabul_idle..png'); background-size: 66px 66px; background-position: -1px -1px; }
 .pattie-frame.cabul-surprise.surprise { background-image: url('/public/assets/kitty/cabul_surprise.png'); background-size: 66px 66px; background-position: -1px -1px; }
-.pattie-frame.cabul-happy.happy { background-image: url('/public/assets/kitty/cabul_happy.png'); background-size: 642px 66px; background-position: -577px -1px; }
-.pattie-frame.cabul-run.run { background-image: url('/public/assets/kitty/cabul_run.png'); background-size: 642px 66px; background-position: -193px -1px; }
-.pattie-frame.cabul-sleep.sleep { background-image: url('/public/assets/kitty/cabul_sleep.png'); background-size: 450px 66px; background-position: -193px -1px; }
+.pattie-frame.cabul-happy.happy { background-image: url('/public/assets/kitty/cabul_happy.png'); background-size: 642px 66px; }
+.pattie-frame.cabul-run.run { background-image: url('/public/assets/kitty/cabul_run.png'); background-size: 642px 66px; }
+.pattie-frame.cabul-sleep.sleep { background-image: url('/public/assets/kitty/cabul_sleep.png'); background-size: 450px 66px; }
 
 .pattie-mosaic {
     display: grid;

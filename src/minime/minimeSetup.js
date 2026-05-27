@@ -4,6 +4,7 @@ import { pattieAssetLoader } from '../patties/PattieAssetLoader.js';
 let setupEl = null;
 let settingsButton = null;
 export let currentAvatar = null;
+let currentCharacters = [];
 const KITTY_LOCK_MESSAGE = '친구 추천 2회 이상 필요';
 
 const CHARACTER_LABELS = {
@@ -54,8 +55,9 @@ async function onMinimeSheetShown() {
         return;
     }
 
-    const avatar = await fetchPattie();
+    const { pattie: avatar, characters } = await fetchPattie();
     currentAvatar = avatar;
+    currentCharacters = characters;
     if (!avatar?.character_key || !avatar?.nickname) showSetupFlow();
     else applyAvatarToScene(avatar);
 }
@@ -84,8 +86,9 @@ function ensureSettingsButton() {
             });
             return;
         }
-        const avatar = await fetchPattie();
+        const { pattie: avatar, characters } = await fetchPattie();
         currentAvatar = avatar;
+        currentCharacters = characters;
         showSetupFlow(avatar);
     });
     parent.appendChild(settingsButton);
@@ -94,18 +97,18 @@ function ensureSettingsButton() {
 async function fetchPattie() {
     try {
         const res = await fetch('/api/pattie', { credentials: 'include' });
-        if (!res.ok) return null;
+        if (!res.ok) return { pattie: null, characters: [] };
         const data = await res.json();
-        return data.pattie || null;
+        return { pattie: data.pattie || null, characters: data.characters || [] };
     } catch {
-        return null;
+        return { pattie: null, characters: [] };
     }
 }
 
 async function showSetupFlow(avatar = currentAvatar) {
     await ensureSetupModal();
     await renderChoices();
-    fillForm(avatar);
+    fillForm(avatar, currentCharacters);
     setupEl.style.display = 'flex';
 }
 
@@ -272,9 +275,15 @@ function hideCharTooltip() {
     if (tt) tt.style.display = 'none';
 }
 
-function fillForm(avatar) {
+function fillForm(avatar, allCharacters = []) {
     const characterKey = avatar?.character_key || mapLegacyCharacter(avatar?.character_type) || 'mong';
-    // 서버에 저장된 이름을 localStorage에 없을 때 bootstrap
+    // 서버에서 받은 전체 캐릭터 목록으로 localStorage 일괄 복구 (새 기기/캐시 삭제 대응)
+    for (const { character_key, nickname } of allCharacters) {
+        if (nickname && !getPattieNameFromStorage(character_key)) {
+            setPattieNameToStorage(character_key, nickname);
+        }
+    }
+    // allCharacters 없는 경우 폴백: 활성 캐릭터만 bootstrap
     if (avatar?.nickname && !getPattieNameFromStorage(characterKey)) {
         setPattieNameToStorage(characterKey, avatar.nickname);
     }
@@ -320,6 +329,7 @@ async function saveAvatar() {
     if (!res.ok) return;
     const data = await res.json();
     currentAvatar = data.pattie;
+    currentCharacters = data.characters || currentCharacters;
     applyAvatarToScene(currentAvatar);
     setupEl.style.display = 'none';
 }

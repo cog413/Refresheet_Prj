@@ -394,18 +394,52 @@ async function handleSaveAvatar(request, env) {
     return withCors(json({ ok: true, nickname, character_type: characterType }));
 }
 
+async function ensurePattieCharactersSchema(db) {
+    try {
+        await db.prepare(`
+            CREATE TABLE IF NOT EXISTS pattie_characters (
+                user_id        TEXT NOT NULL,
+                character_key  TEXT NOT NULL,
+                nickname       TEXT NOT NULL,
+                equipped_item_keys TEXT DEFAULT '[]',
+                updated_at     TEXT,
+                PRIMARY KEY (user_id, character_key)
+            )
+        `).run();
+    } catch {}
+}
+
 async function handleGetPattie(request, env) {
     const session = await getSessionUser(getDb(env), request);
-    if (!session) return withCors(json({ authenticated: false, pattie: null }));
+    if (!session) return withCors(json({ authenticated: false, pattie: null, characters: [] }));
 
-    const avatar = await getDb(env).prepare(
+    const db = getDb(env);
+    await ensurePattieCharactersSchema(db);
+
+    const avatar = await db.prepare(
         `SELECT nickname, character_type, character_key, equipped_item_keys, last_minime_at
          FROM avatars WHERE user_id=?`
     ).bind(session.user_id).first();
 
+    if (!avatar) return withCors(json({ authenticated: true, pattie: null, characters: [] }));
+
+    const normalized = normalizePattieRow(avatar);
+
+    // 기존 유저 온더플라이 마이그레이션: pattie_characters에 없으면 avatars 데이터로 시드
+    await db.prepare(
+        `INSERT OR IGNORE INTO pattie_characters (user_id, character_key, nickname, equipped_item_keys, updated_at)
+         VALUES (?, ?, ?, ?, ?)`
+    ).bind(session.user_id, normalized.character_key, normalized.nickname,
+        JSON.stringify(normalized.equipped_item_keys), new Date().toISOString()).run();
+
+    const chars = await db.prepare(
+        `SELECT character_key, nickname, equipped_item_keys FROM pattie_characters WHERE user_id=?`
+    ).bind(session.user_id).all();
+
     return withCors(json({
         authenticated: true,
-        pattie: avatar ? normalizePattieRow(avatar) : null,
+        pattie: normalized,
+        characters: (chars.results || []).map(normalizePattieCharacterRow),
     }));
 }
 
@@ -423,6 +457,7 @@ async function handleSavePattie(request, env) {
     if (!nickname) return withCors(json({ error: 'nickname required' }, 400));
 
     const db = getDb(env);
+    await ensurePattieCharactersSchema(db);
 
     if (characterKey === 'cabul') {
         await ensureUnlockSchema(db);
@@ -435,6 +470,7 @@ async function handleSavePattie(request, env) {
     const itemJson = JSON.stringify(equippedItems);
     const characterType = characterKey;
     const stmts = [
+        // 활성 캐릭터 정보 (avatars: 현재 활성 캐릭터 추적용)
         db.prepare(
             `INSERT INTO avatars (user_id, nickname, character_type, character_key, equipped_item_keys, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -445,6 +481,15 @@ async function handleSavePattie(request, env) {
                equipped_item_keys=excluded.equipped_item_keys,
                updated_at=excluded.updated_at`
         ).bind(session.user_id, nickname, characterType, characterKey, itemJson, now, now),
+        // 캐릭터별 개별 데이터 (pattie_characters: 캐릭터 수 무관하게 확장)
+        db.prepare(
+            `INSERT INTO pattie_characters (user_id, character_key, nickname, equipped_item_keys, updated_at)
+             VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT(user_id, character_key) DO UPDATE SET
+               nickname=excluded.nickname,
+               equipped_item_keys=excluded.equipped_item_keys,
+               updated_at=excluded.updated_at`
+        ).bind(session.user_id, characterKey, nickname, itemJson, now),
     ];
 
     for (const itemKey of equippedItems) {
@@ -457,9 +502,15 @@ async function handleSavePattie(request, env) {
     }
 
     await db.batch(stmts);
+
+    const chars = await db.prepare(
+        `SELECT character_key, nickname, equipped_item_keys FROM pattie_characters WHERE user_id=?`
+    ).bind(session.user_id).all();
+
     return withCors(json({
         ok: true,
         pattie: { nickname, character_type: characterType, character_key: characterKey, equipped_item_keys: equippedItems },
+        characters: (chars.results || []).map(normalizePattieCharacterRow),
     }));
 }
 
@@ -475,6 +526,16 @@ async function handlePattieItems(request, env) {
     ).all();
 
     return withCors(json({ authenticated: true, items: rows.results || [] }));
+}
+
+function normalizePattieCharacterRow(row) {
+    let equipped = [];
+    try { equipped = row.equipped_item_keys ? JSON.parse(row.equipped_item_keys) : []; } catch {}
+    return {
+        character_key: row.character_key,
+        nickname: row.nickname,
+        equipped_item_keys: Array.isArray(equipped) ? equipped : [],
+    };
 }
 
 function normalizePattieRow(row) {
