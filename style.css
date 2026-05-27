@@ -3210,50 +3210,79 @@ body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
    Mobile Media Queries
    ===================================================== */
 @media (max-width: 768px) {
+    /* ── App frame ── */
     #excel-app {
-        padding-bottom: 40px;
+        padding-bottom: 44px; /* room for fixed sheet-tabs (tabs row only) */
     }
-    .game-mobile-bar { 
-        display: flex; 
-    }
-    .mobile-numpad { 
-        display: grid; 
-    }
-    .ribbon { 
-        overflow-x: auto; 
-        white-space: nowrap; 
+
+    /* ── Mobile extras ── */
+    .game-mobile-bar { display: flex; }
+    .mobile-numpad   { display: grid; }
+
+    /* ── Top ribbon: horizontal scroll, no text wrap ── */
+    .ribbon {
+        overflow-x: auto;
+        white-space: nowrap;
     }
     .menu-tabs {
         white-space: nowrap;
         flex-wrap: nowrap;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;   /* Firefox */
     }
+    .menu-tabs::-webkit-scrollbar { height: 0; display: none; }
     .menu-tab {
         flex: 0 0 auto;
+        white-space: nowrap;
+        min-width: max-content;
     }
+
+    /* ── Bottom sheet-tabs: fixed, compact ── */
     .sheet-tabs {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
         z-index: 1000;
+        background: #f3f2f1;
+        border-top: 1px solid #c8c6c4;
     }
+    /* Hide non-essential chrome on mobile */
+    .sheet-tabs .tab-controls { display: none; }
+    .sheet-tabs + .status-bar,
+    .sheet-tabs .status-bar   { display: none; }
     .sheet-tabs .tabs {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        min-height: 32px;
     }
-    
-    #file-sheet {
-        padding: 16px;
+    .sheet-tabs .tabs::-webkit-scrollbar { height: 0; display: none; }
+    .sheet-tabs .tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
+
+    /* ── File-tab sheet ── */
+    #file-sheet { padding: 16px; }
+
+    /* ── File-tab hero (single column) ── */
     .fg-hero {
         grid-template-columns: 1fr;
         padding: 32px 20px;
         gap: 32px;
     }
+
+    /* ── File-tab link cards (1 column, no overflow) ── */
     .fg-link-grid {
         grid-template-columns: 1fr;
+    }
+    .fg-link-grid a {
+        min-height: auto;
+        word-break: break-word;
+        overflow-wrap: break-word;
     }
 }
 

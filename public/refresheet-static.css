@@ -103,6 +103,9 @@ nav a.active::after {
     grid-template-columns: 1.2fr 0.8fr;
     gap: 60px;
     align-items: center;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 40px;
 }
 
 .hero h1 {
@@ -477,6 +480,46 @@ nav a.active::after {
     color: #888;
 }
 
+/* Skip link (accessibility) */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+.skip-link:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    background: var(--green);
+    color: #fff;
+    padding: 8px 16px;
+    font-weight: 700;
+    z-index: 999;
+}
+
+/* Pill tags */
+.pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.pill {
+    display: inline-block;
+    background: #e2f0d9;
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
 /* CTA */
 .cta-section {
     margin-top: 48px;
@@ -507,34 +550,87 @@ nav a.active::after {
 }
 
 @media (max-width: 768px) {
+    /* ── Layout ── */
     .container {
         padding: 0 16px;
     }
-    
+
+    /* ── Header: stack brand + nav vertically ── */
     .site-header .container {
         flex-direction: column;
         align-items: flex-start;
         padding-top: 12px;
         padding-bottom: 12px;
     }
-    
+
+    /* ── Nav: horizontal scroll tab bar ── */
     nav {
         width: 100%;
-        margin-top: 12px;
-        padding-bottom: 4px;
+        margin-top: 10px;
+        padding: 0 0 4px 0;
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         white-space: nowrap;
         display: flex;
         justify-content: flex-start;
+        scrollbar-width: none;
     }
-    
+    nav::-webkit-scrollbar { height: 0; display: none; }
+
     nav a {
+        flex: 0 0 auto;
+        white-space: nowrap;
         margin-left: 0;
-        margin-right: 24px;
+        margin-right: 20px;
+        padding: 6px 2px;
     }
-    
-    nav a:last-child {
-        margin-right: 16px; /* give some room at the end of scroll */
+    nav a:last-child { margin-right: 16px; }
+    nav a:focus { outline: 2px solid var(--green); outline-offset: 2px; }
+
+    /* ── Hero: add horizontal padding, align with container ── */
+    .hero {
+        padding-left: 0;
+        padding-right: 0;
     }
+    .hero-inner {
+        padding: 0 16px;
+    }
+    .hero h1 {
+        font-size: 28px;
+    }
+    .hero .lede {
+        font-size: 17px;
+    }
+
+    /* ── Article body: horizontal padding ── */
+    .article {
+        padding-top: 48px;
+        padding-bottom: 48px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    /* ── Content blocks: prevent edge bleed ── */
+    .callout {
+        padding: 20px 16px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .sop-box   { padding: 24px 16px; }
+    .status-box { padding: 24px 16px; }
+
+    /* ── Images: never overflow viewport ── */
+    .article img,
+    .hero-media img,
+    .article-figure img {
+        max-width: 100%;
+        height: auto;
+    }
+    .pattie-mosaic {
+        max-width: 100%;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+
+    /* ── Footer ── */
+    .site-footer { padding: 40px 0 24px; margin-top: 40px; }
 }
