@@ -59,6 +59,11 @@ body {
     border-radius: 6px;
 }
 
+nav {
+    display: flex;
+    align-items: center;
+}
+
 nav a {
     text-decoration: none;
     color: #666;
@@ -68,6 +73,7 @@ nav a {
     transition: all 0.2s;
     padding: 6px 0;
     position: relative;
+    white-space: nowrap;
 }
 
 nav a:hover { color: var(--green); }
@@ -298,8 +304,11 @@ nav a.active::after {
     height: 64px;
     overflow: hidden;
     background: #fff;
-    border: 1px solid var(--line);
     border-radius: 8px;
+}
+
+.pattie-box.with-border {
+    border: 1px solid var(--line);
 }
 
 .pattie-frame {
@@ -494,4 +503,38 @@ nav a.active::after {
     .hero-inner, .footer-grid { grid-template-columns: 1fr; }
     .hero { padding: 40px 0; text-align: center; }
     .pattie-mosaic { grid-template-columns: repeat(5, 1fr); }
+    .article-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 0 16px;
+    }
+    
+    .site-header .container {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+    
+    nav {
+        width: 100%;
+        margin-top: 12px;
+        padding-bottom: 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        display: flex;
+        justify-content: flex-start;
+    }
+    
+    nav a {
+        margin-left: 0;
+        margin-right: 24px;
+    }
+    
+    nav a:last-child {
+        margin-right: 16px; /* give some room at the end of scroll */
+    }
 }
