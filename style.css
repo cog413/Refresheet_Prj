@@ -36,6 +36,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
 }
 
 /* Ribbon Menu */
@@ -2572,10 +2573,6 @@ body.dark-mode .mps-body-b { background:
    ===================================================== */
 .mobile-numpad { display: none; }
 
-
-
-}
-
 /* Dark mode mobile extras */
 body.dark-mode .game-mobile-bar { background: #1f3f2a; border-color: #2f6f44; color: #aaa; }
 body.dark-mode .mobile-numpad { background: #2a2a2a; border-color: #444; }
@@ -3208,4 +3205,27 @@ body.dark-mode .mp-qty-val { color: #d4d4d4; }
 body.dark-mode .mp-purchase-total { color: #90cdf4; }
 body.dark-mode .mp-apple-hud { color: #aaa; }
 body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
+
+/* =====================================================
+   Mobile Media Queries
+   ===================================================== */
+@media (max-width: 768px) {
+    .game-mobile-bar { 
+        display: flex; 
+    }
+    .mobile-numpad { 
+        display: grid; 
+    }
+    .ribbon { 
+        overflow-x: auto; 
+        white-space: nowrap; 
+    }
+    .sheet-tabs {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+    }
+}
 
