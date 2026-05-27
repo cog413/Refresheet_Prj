@@ -13,7 +13,8 @@
     "pattie:replace-assets": "node scripts/replace-pattie-assets.js",
     "test:qa": "playwright test --config playwright.config.js",
     "test:qa:headed": "playwright test --config playwright.config.js --headed",
-    "test:qa:report": "playwright show-report test-results/report"
+    "test:qa:report": "playwright show-report test-results/report",
+    "cron:deploy": "npx wrangler deploy --config wrangler.cron.toml"
   },
   "devDependencies": {
     "@playwright/test": "^1.44.0"
