@@ -117,17 +117,25 @@ body {
 
 .fg-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 380px);
-    gap: 36px;
+    grid-template-columns: 1fr 400px;
+    gap: 60px;
     align-items: center;
     width: 100%;
     max-width: 1360px;
-    min-height: 34vh;
-    margin: 0 auto 24px;
+    margin: 0 auto 32px;
     background: #fff;
     border: 1px solid #cfe0d3;
-    border-radius: 8px;
-    padding: 48px;
+    border-radius: 12px;
+    padding: 64px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.fg-hero > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .fg-eyebrow {
