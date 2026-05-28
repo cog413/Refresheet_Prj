@@ -15,179 +15,248 @@
 
   <link rel="stylesheet" href="/public/refresheet-static.css">
   <style>
-    /* Demo Specific Styles */
-    .demo-container {
+    /* ── Demo Scene (mimics mp-manage-box + mp-chart/pattie-world) ── */
+    .demo-scene {
         display: flex;
         flex-direction: column;
-        gap: 20px;
-        margin: 40px 0;
-        border: 1px solid var(--line);
-        border-radius: 12px;
-        padding: 24px;
-        background: #fdfdfd;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        gap: 12px;
+        margin: 32px 0 40px;
+    }
+    @media (min-width: 640px) {
+        .demo-scene { flex-direction: row; align-items: stretch; }
+        .dm-manage-box { order: -1; flex: 0 0 280px; }
+        .dm-chart { flex: 1; }
     }
 
-    @media (min-width: 768px) {
-        .demo-container {
-            flex-direction: row;
-        }
-        .demo-map-area {
-            flex: 1.5;
-        }
-        .demo-manage-area {
-            flex: 1;
-            max-width: 320px;
-        }
+    /* shared panel look — Excel floating object style */
+    .dm-manage-box,
+    .dm-chart {
+        border: 1px solid #c8c6c4;
+        border-radius: 4px;
+        background: #ffffff;
+        box-shadow: 0 1px 4px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05);
+        box-sizing: border-box;
     }
 
-    .demo-map-area {
+    /* ── Management Box ── */
+    .dm-manage-box {
+        padding: 10px 14px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        font-size: 11px;
+    }
+    .dm-label { color: #1f3864; font-size: 11px; }
+
+    .dm-points-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: #f0f7ee;
+        border: 1px solid #c6e0b4;
+        border-radius: 4px;
+        padding: 5px 8px;
+        font-weight: bold;
+    }
+    .dm-points-value { color: #217346; font-weight: bold; font-size: 13px; margin-left: auto; }
+
+    .dm-happy-section { display: flex; flex-direction: column; gap: 4px; }
+    .dm-happy-header { display: flex; align-items: center; justify-content: space-between; }
+    .dm-happy-score { color: #e67e22; font-weight: bold; font-size: 12px; }
+    .dm-happy-bar-wrap {
         position: relative;
-        height: 240px;
-        background-image: linear-gradient(to right, #eee 1px, transparent 1px), linear-gradient(to bottom, #eee 1px, transparent 1px);
-        background-size: 40px 20px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        overflow: hidden;
-        background-color: #fff;
+        height: 8px;
+        background: #e8f0e8;
+        border-radius: 4px;
+        overflow: visible;
+    }
+    .dm-happy-bar {
+        position: absolute;
+        left: 0; top: 0; height: 100%;
+        background: linear-gradient(90deg, #a9d18e, #70ad47);
+        border-radius: 4px;
+        transition: width 0.5s ease-out;
+    }
+    .dm-happy-marker {
+        position: absolute;
+        top: -3px;
+        width: 14px; height: 14px;
+        background: #fff;
+        border: 2px solid #70ad47;
+        border-radius: 50%;
+        transform: translateX(-50%);
+        transition: left 0.5s ease-out;
+        pointer-events: none;
     }
 
-    .demo-sprite {
+    .dm-desc { margin: 0; line-height: 1.5; color: #44546a; font-size: 10.5px; }
+    .dm-desc strong { color: #1f3864; }
+
+    .dm-action-row { display: flex; }
+    .dm-feed-btn {
+        font-size: 11px;
+        padding: 4px 12px;
+        border: 1px solid #e67e22;
+        border-radius: 10px;
+        background: #fef9f0;
+        color: #e67e22;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.12s;
+    }
+    .dm-feed-btn:hover { background: #fde8c8; }
+
+    .dm-talk-box {
+        border: 1px solid #d8e6f0;
+        border-radius: 4px;
+        background: #f5f9fd;
+        padding: 6px 8px;
+    }
+    .dm-talk-buttons { display: flex; flex-wrap: wrap; gap: 4px; }
+    .dm-talk-btn {
+        font-size: 10px;
+        padding: 3px 8px;
+        border: 1px solid #5b9bd5;
+        border-radius: 3px;
+        background: #fff;
+        color: #1f3864;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.12s;
+    }
+    .dm-talk-btn:hover { background: #dce8f5; border-color: #2e75b6; }
+    .dm-talk-btn:active { background: #bdd7ee; }
+
+    .dm-buy-row { display: flex; align-items: center; gap: 6px; }
+    .dm-buy-btn {
+        font-size: 10px;
+        padding: 3px 8px;
+        border: 1px solid #70ad47;
+        border-radius: 3px;
+        background: #f0f7ee;
+        color: #217346;
+        cursor: not-allowed;
+        white-space: nowrap;
+        opacity: 0.4;
+    }
+    .dm-buy-note { font-size: 10px; color: #aaa; }
+
+    .dm-char-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border-top: 1px solid #e9e8e8;
+        padding-top: 8px;
+        margin-top: 2px;
+    }
+    .dm-char-btn {
+        font-size: 10px;
+        padding: 3px 10px;
+        border: 1px solid #c8c6c4;
+        border-radius: 10px;
+        background: #fff;
+        color: #666;
+        cursor: pointer;
+        transition: background 0.12s;
+    }
+    .dm-char-btn.active { background: #217346; color: #fff; border-color: #217346; }
+    .dm-char-btn:hover:not(.active) { background: #f3f2f1; }
+
+    /* ── Chart / Pattie World ── */
+    .dm-chart {
+        padding: 10px 14px 12px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 220px;
+    }
+    .dm-chart-title {
+        font-size: 12px;
+        font-weight: bold;
+        color: #1f3864;
+        padding-bottom: 8px;
+        padding-right: 80px;
+        flex-shrink: 0;
+    }
+    .dm-map-actions {
+        position: absolute;
+        top: 8px; right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .dm-apple-hud {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 11px;
+        color: #44546a;
+        background: #fef9f0;
+        border: 1px solid #f0c060;
+        border-radius: 3px;
+        padding: 2px 6px;
+    }
+    .dm-pattie-world {
+        flex: 1;
+        position: relative;
+        background-image:
+            linear-gradient(to right, #e8e8e8 1px, transparent 1px),
+            linear-gradient(to bottom, #e8e8e8 1px, transparent 1px);
+        background-size: 80px 22px;
+        background-color: #fafafa;
+        border: 1px solid #e0e0e0;
+        border-radius: 2px;
+        min-height: 180px;
+        overflow: hidden;
+    }
+    .dm-sprite-wrap {
         position: absolute;
         left: 50%;
         top: 50%;
-        transform: translate(-50%, -50%) scale(1.5);
+        transform: translate(-50%, -50%);
     }
-
-    .demo-speech {
+    .dm-speech {
         position: absolute;
-        left: 50%;
         top: 20%;
-        transform: translateX(-50%);
-        padding: 8px 16px;
+        left: 50%;
+        transform: translateX(-50%) translateY(-100%);
+        max-width: 160px;
+        min-width: 80px;
+        padding: 6px 10px;
         background: #fff;
-        border: 1.5px solid var(--green);
+        border: 1.5px solid #70ad47;
         border-radius: 8px;
-        font-size: 12px;
-        color: #333;
-        white-space: nowrap;
+        font-size: 11px;
+        color: #1a1a1a;
+        text-align: center;
+        line-height: 1.45;
+        pointer-events: none;
+        white-space: pre-wrap;
+        word-break: break-word;
         opacity: 0;
-        transition: opacity 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: opacity 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        z-index: 5;
     }
-
-    .demo-speech.visible {
-        opacity: 1;
-    }
-
-    .demo-speech::after {
+    .dm-speech.visible { opacity: 1; }
+    .dm-speech::after {
         content: '';
         position: absolute;
-        bottom: -7px;
-        left: 50%;
+        bottom: -7px; left: 50%;
         transform: translateX(-50%);
         border: 6px solid transparent;
-        border-top-color: var(--green);
+        border-top-color: #70ad47;
         border-bottom: none;
     }
-
-    .demo-manage-area {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        background: #fff;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        padding: 20px;
-    }
-
-    .demo-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid var(--line);
-        padding-bottom: 12px;
-    }
-
-    .demo-header h3 {
-        margin: 0;
-        font-size: 14px;
-        color: var(--green);
-    }
-
-    .demo-points {
-        font-size: 14px;
-        font-weight: 700;
-        color: #e67e22;
-    }
-
-    .demo-happy-row {
-        display: flex;
-        justify-content: space-between;
-        font-size: 13px;
-    }
-
-    .demo-btn-group {
-        display: flex;
-        gap: 8px;
-    }
-
-    .demo-btn {
-        flex: 1;
-        padding: 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: center;
-        transition: all 0.2s;
-    }
-
-    .demo-btn-feed {
-        background: #f0f7ee;
-        border: 1px solid #70ad47;
-        color: #217346;
-    }
-
-    .demo-btn-feed:hover { background: #e2f0d9; }
-
-    .demo-btn-talk {
-        background: #fff;
-        border: 1px solid var(--line);
-        color: #666;
-    }
-
-    .demo-btn-talk:hover { background: #f3f2f1; }
-
-    .demo-btn-buy {
-        background: #fdfdfd;
-        border: 1px dashed var(--line);
-        color: #aaa;
-        cursor: not-allowed;
-    }
-
-    .demo-char-select {
-        display: flex;
-        gap: 8px;
-        margin-top: 8px;
-        border-top: 1px solid var(--line);
-        padding-top: 16px;
-    }
-
-    .demo-char-btn {
-        padding: 4px 12px;
-        font-size: 11px;
-        border: 1px solid var(--line);
-        background: #fff;
-        border-radius: 12px;
-        cursor: pointer;
-        color: #666;
-    }
-
-    .demo-char-btn.active {
-        background: var(--green);
-        color: #fff;
-        border-color: var(--green);
+    .dm-speech::before {
+        content: '';
+        position: absolute;
+        bottom: -5px; left: 50%;
+        z-index: 1;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #fff;
+        border-bottom: none;
     }
   </style>
 </head>
@@ -234,106 +303,103 @@
     <h2>토닥이의 서식지: 관리시트</h2>
     <p>관리시트는 토닥이가 자유롭게 돌아다니는 메인 공간입니다. 엑셀의 광활한 셀들을 배경으로 토닥이는 산책을 하거나 잠을 자고, 때때로 당신에게 말을 걸기도 합니다. 아래 데모에서 토닥이와 상호작용해 보세요.</p>
 
-    <div class="demo-container">
-        <!-- Map Area -->
-        <div class="demo-map-area">
-            <div class="demo-speech" id="demoSpeech">오늘도 화이팅!</div>
-            <div class="pattie-frame mong-idle idle demo-sprite" id="demoSprite"></div>
+    <div class="demo-scene">
+        <!-- Pattie World (map) — top on mobile, right on desktop -->
+        <div class="dm-chart">
+            <div class="dm-chart-title">토닥이의 서식지</div>
+            <div class="dm-map-actions">
+                <span class="dm-apple-hud">🍎 × ∞</span>
+            </div>
+            <div class="dm-pattie-world">
+                <div class="dm-speech" id="dmSpeech">오늘도 화이팅!</div>
+                <div class="dm-sprite-wrap">
+                    <div class="pattie-frame mong-idle idle" id="dmSprite"></div>
+                </div>
+            </div>
         </div>
 
-        <!-- Manage Area -->
-        <div class="demo-manage-area">
-            <div class="demo-header">
-                <h3>관리박스</h3>
-                <span class="demo-points">1,430 pt</span>
+        <!-- Management Box — bottom on mobile, left on desktop -->
+        <div class="dm-manage-box">
+            <div class="dm-points-row">
+                <span>🪙</span>
+                <span class="dm-label">보유 포인트</span>
+                <span class="dm-points-value">1,430 pt</span>
             </div>
-
-            <div>
-                <div class="demo-happy-row">
-                    <span style="color:#666;">행복지수</span>
-                    <span style="color:var(--green); font-weight:700;" id="demoHappyText">82%</span>
+            <div class="dm-happy-section">
+                <div class="dm-happy-header">
+                    <span class="dm-label">행복점수</span>
+                    <span class="dm-happy-score" id="dmHappyText">82점</span>
                 </div>
-                <div class="happiness-bar" style="margin: 8px 0 16px 0;">
-                    <div class="happiness-bar-fill" id="demoHappyBar" style="width: 82%;"></div>
+                <div class="dm-happy-bar-wrap">
+                    <div class="dm-happy-bar" id="dmHappyBar" style="width:82%"></div>
+                    <div class="dm-happy-marker" id="dmHappyMarker" style="left:82%"></div>
                 </div>
             </div>
-
-            <div class="demo-btn-group">
-                <button class="demo-btn demo-btn-feed" onclick="demoFeed()">간식 주기</button>
-                <button class="demo-btn demo-btn-talk" onclick="demoTalk()">말 걸기</button>
+            <p class="dm-desc">간식을 주거나 말을 걸어 <strong>행복점수</strong>를 올려보세요.</p>
+            <div class="dm-action-row">
+                <button class="dm-feed-btn" onclick="demoFeed()">🍎 간식 주기</button>
             </div>
-            <button class="demo-btn demo-btn-buy" disabled>사과 구매 (50pt) - 데모용</button>
-
-            <div class="demo-char-select">
-                <button class="demo-char-btn active" id="btnCorgi" onclick="demoSetChar('mong')">웰시코기</button>
-                <button class="demo-char-btn" id="btnKitty" onclick="demoSetChar('cabul')">아기고양이</button>
+            <div class="dm-talk-box">
+                <div class="dm-talk-buttons">
+                    <button class="dm-talk-btn" onclick="demoTalk('잠깐 쉬었다 할까요?')">응원하기</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('오늘도 수고 많으셨어요!')">칭찬하기</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('스트레칭 한 번 어때요?')">스트레칭</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('잘 하고 있어요!')">격려하기</button>
+                </div>
+            </div>
+            <div class="dm-buy-row">
+                <button class="dm-buy-btn" disabled>사과 구매 (50 pt)</button>
+                <span class="dm-buy-note">데모 — 구매 비활성</span>
+            </div>
+            <div class="dm-char-row">
+                <span class="dm-label">캐릭터</span>
+                <button class="dm-char-btn active" id="btnCorgi" onclick="demoSetChar('mong')">웰시코기</button>
+                <button class="dm-char-btn" id="btnKitty" onclick="demoSetChar('cabul')">아기고양이</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Interactive Demo Logic
         let currentChar = 'mong';
         let isAnimating = false;
         let happiness = 82;
 
-        const sprite = document.getElementById('demoSprite');
-        const speech = document.getElementById('demoSpeech');
-        const happyText = document.getElementById('demoHappyText');
-        const happyBar = document.getElementById('demoHappyBar');
-
-        const talkMessages = [
-            "잠깐 쉬었다 할까요?",
-            "오늘도 수고 많으셨어요!",
-            "스트레칭 한 번 어때요?",
-            "커피 한 잔 할 시간이에요 ☕",
-            "잘 하고 있어요!",
-            "엑셀은 잠시 내려놓고..."
-        ];
+        const sprite      = document.getElementById('dmSprite');
+        const speech      = document.getElementById('dmSpeech');
+        const happyText   = document.getElementById('dmHappyText');
+        const happyBar    = document.getElementById('dmHappyBar');
+        const happyMarker = document.getElementById('dmHappyMarker');
 
         function demoSetChar(charName) {
-            if(isAnimating) return;
+            if (isAnimating) return;
             currentChar = charName;
-
-            document.getElementById('btnCorgi').classList.remove('active');
-            document.getElementById('btnKitty').classList.remove('active');
-            if(charName === 'mong') document.getElementById('btnCorgi').classList.add('active');
-            else document.getElementById('btnKitty').classList.add('active');
-
-            sprite.className = `pattie-frame ${currentChar}-idle idle demo-sprite`;
+            document.getElementById('btnCorgi').classList.toggle('active', charName === 'mong');
+            document.getElementById('btnKitty').classList.toggle('active', charName === 'cabul');
+            sprite.className = `pattie-frame ${currentChar}-idle idle`;
         }
 
         function demoFeed() {
-            if(isAnimating) return;
+            if (isAnimating) return;
             isAnimating = true;
-
-            // Temporary reaction
-            sprite.className = `pattie-frame ${currentChar}-happy happy demo-sprite`;
-
-            // Increase happiness (cap at 100)
+            sprite.className = `pattie-frame ${currentChar}-happy happy`;
             happiness = Math.min(100, happiness + 5);
-            happyText.innerText = `${happiness}%`;
+            happyText.innerText = `${happiness}점`;
             happyBar.style.width = `${happiness}%`;
-
-            showSpeech("냠냠! 맛있다 🍎");
-
+            happyMarker.style.left = `${happiness}%`;
+            showSpeech('냠냠! 맛있다 🍎');
             setTimeout(() => {
-                sprite.className = `pattie-frame ${currentChar}-idle idle demo-sprite`;
+                sprite.className = `pattie-frame ${currentChar}-idle idle`;
                 isAnimating = false;
             }, 2000);
         }
 
-        function demoTalk() {
-            if(isAnimating) return;
+        function demoTalk(msg) {
+            if (isAnimating) return;
             isAnimating = true;
-
-            sprite.className = `pattie-frame ${currentChar}-surprise surprise demo-sprite`;
-
-            const randomMsg = talkMessages[Math.floor(Math.random() * talkMessages.length)];
-            showSpeech(randomMsg);
-
+            sprite.className = `pattie-frame ${currentChar}-surprise surprise`;
+            showSpeech(msg);
             setTimeout(() => {
-                sprite.className = `pattie-frame ${currentChar}-idle idle demo-sprite`;
+                sprite.className = `pattie-frame ${currentChar}-idle idle`;
                 isAnimating = false;
             }, 1500);
         }
@@ -341,9 +407,7 @@
         function showSpeech(text) {
             speech.innerText = text;
             speech.classList.add('visible');
-            setTimeout(() => {
-                speech.classList.remove('visible');
-            }, 2000);
+            setTimeout(() => speech.classList.remove('visible'), 2500);
         }
     </script>
 
