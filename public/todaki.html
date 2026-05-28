@@ -15,7 +15,7 @@
 
   <link rel="stylesheet" href="/public/refresheet-static.css">
   <style>
-    /* ── Demo Scene (mimics mp-manage-box + mp-chart/pattie-world) ── */
+    /* ── Demo Scene layout ── */
     .demo-scene {
         display: flex;
         flex-direction: column;
@@ -23,46 +23,258 @@
         margin: 32px 0 40px;
     }
     @media (min-width: 640px) {
-        .demo-scene { flex-direction: row; align-items: stretch; }
-        .dm-manage-box { order: -1; flex: 0 0 280px; }
+        .demo-scene { flex-direction: row; align-items: flex-start; }
+        .dm-manage-box { order: -1; flex: 0 0 288px; }
         .dm-chart { flex: 1; }
     }
 
-    /* shared panel look — Excel floating object style */
-    .dm-manage-box,
-    .dm-chart {
+    /* shared Excel floating-object panel */
+    .dm-manage-box, .dm-chart {
         border: 1px solid #c8c6c4;
         border-radius: 4px;
-        background: #ffffff;
+        background: #fff;
         box-shadow: 0 1px 4px rgba(0,0,0,.10), 0 2px 8px rgba(0,0,0,.05);
         box-sizing: border-box;
+        overflow: visible;
     }
 
-    /* ── Management Box ── */
+    /* ── mp-chart style panel ── */
+    .dm-chart {
+        padding: 10px 14px 8px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-height: 240px;
+    }
+    .dm-chart-title {
+        font-size: 12px;
+        font-weight: bold;
+        color: #1f3864;
+        padding-bottom: 3px;
+        padding-right: 190px;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .dm-chart-legend {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        height: 18px;
+        margin-bottom: 4px;
+        font-size: 10px;
+        color: #44546a;
+        border-bottom: 1px solid #e3ebf2;
+        flex-shrink: 0;
+    }
+    .dm-dot {
+        display: inline-block;
+        width: 7px; height: 7px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+    .dm-dot-online  { background: #8fc5ea; }
+    .dm-dot-offline { background: #f2b07d; }
+
+    /* map actions (top-right of chart, matches mp-map-actions) */
+    .dm-map-actions {
+        position: absolute;
+        top: 8px; right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        z-index: 10;
+    }
+    .dm-apple-hud {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 10px;
+        color: #44546a;
+    }
+    .dm-apple-hud-icon { font-size: 12px; line-height: 1; }
+    .dm-apple-hud-x   { font-weight: bold; }
+    .dm-apple-hud-cnt { font-weight: bold; }
+    .dm-feed-btn {
+        font-size: 10px;
+        padding: 3px 8px;
+        border: 1px solid #e67e22;
+        border-radius: 10px;
+        background: #fef9f0;
+        color: #e67e22;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.12s;
+    }
+    .dm-feed-btn:hover { background: #fde8c8; }
+    .dm-feed-btn.active { background: #fde8c8; border-color: #c0392b; color: #c0392b; }
+    .dm-buy-btn-chart {
+        font-size: 10px;
+        padding: 3px 8px;
+        border: 1px solid #70ad47;
+        border-radius: 3px;
+        background: #f0f7ee;
+        color: #217346;
+        cursor: not-allowed;
+        opacity: 0.4;
+        white-space: nowrap;
+    }
+
+    /* chart body: bars + pattie-world overlap */
+    .dm-chart-body {
+        position: relative;
+        flex: 1;
+        min-height: 160px;
+        overflow: hidden;
+    }
+
+    /* bar chart (matches mp-bars) */
+    .dm-bars {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        padding: 10px 8px 0 18px;
+        border-left: 1px solid #d6dee7;
+        border-bottom: 1px solid #d6dee7;
+        background:
+            repeating-linear-gradient(to top, transparent 0 27px, rgba(214,222,231,.65) 27px 28px),
+            linear-gradient(180deg, rgba(248,251,253,.8), rgba(255,255,255,.9));
+    }
+    .dm-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        flex: 1;
+        height: 100%;
+        gap: 2px;
+    }
+    .dm-bar-pair {
+        position: relative;
+        width: 100%;
+        flex: 1;
+    }
+    .dm-bar {
+        position: absolute;
+        bottom: 0;
+        width: 28px;
+        border-radius: 2px 2px 0 0;
+        min-height: 6px;
+        border: 1px solid rgba(80,112,140,.16);
+        box-sizing: border-box;
+    }
+    .dm-bar-online  { left: calc(50% - 24px); background: linear-gradient(to top, #79b9e3, #b7dbf2); }
+    .dm-bar-offline { left: calc(50% - 6px);  background: linear-gradient(to top, #eba06b, #f6c39c); opacity:.94; }
+    .dm-lbl { font-size: 10px; font-weight: bold; color: #555; flex-shrink: 0; }
+
+    /* pattie-world overlay (matches pattie-world inside mp-chart) */
+    .dm-pattie-world {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        overflow: hidden;
+        cursor: default;
+    }
+    .dm-pattie-world.feed-mode { cursor: crosshair; }
+
+    /* sprite anchor — JS drives transform: translate(x,y) */
+    .dm-anchor {
+        position: absolute;
+        left: 0; top: 0;
+        pointer-events: auto;
+    }
+    /* flip wrapper for direction */
+    .dm-flip { display: inline-block; }
+    .dm-flip.facing-left .pattie-frame { transform: scaleX(-1); }
+    .dm-flip.facing-left .pattie-frame:hover { transform: scaleX(-1) scale(1.2); }
+
+    /* speech bubble (matches pattie-speech) */
+    .dm-speech {
+        position: absolute;
+        z-index: 5;
+        max-width: 180px;
+        min-width: 80px;
+        padding: 6px 10px;
+        background: #fff;
+        border: 1.5px solid #70ad47;
+        border-radius: 8px;
+        font-size: 11px;
+        color: #1a1a1a;
+        text-align: center;
+        line-height: 1.45;
+        pointer-events: none;
+        white-space: pre-wrap;
+        word-break: break-word;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        transform: translateX(-50%) translateY(calc(-100% - 4px));
+    }
+    .dm-speech.visible { opacity: 1; }
+    .dm-speech::after {
+        content: '';
+        position: absolute;
+        bottom: -7px; left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #70ad47;
+        border-bottom: none;
+    }
+    .dm-speech::before {
+        content: '';
+        position: absolute;
+        bottom: -5px; left: 50%;
+        z-index: 1;
+        transform: translateX(-50%);
+        border: 5px solid transparent;
+        border-top-color: #fff;
+        border-bottom: none;
+    }
+
+    /* apple drop element */
+    .dm-apple-drop {
+        position: absolute;
+        display: none;
+        font-size: 18px;
+        z-index: 3;
+        pointer-events: none;
+        transition: top 0.35s cubic-bezier(0.3, 0, 0.8, 0.6);
+    }
+
+    /* ── mp-manage-box style panel ── */
     .dm-manage-box {
         padding: 10px 14px 12px;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        justify-content: space-between;
+        gap: 5px;
         font-size: 11px;
+        overflow: hidden;
     }
-    .dm-label { color: #1f3864; font-size: 11px; }
-
-    .dm-points-row {
+    .dm-manage-row {
         display: flex;
         align-items: center;
         gap: 6px;
+        flex-wrap: wrap;
+    }
+    .dm-manage-label { color: #1f3864; font-size: 11px; }
+
+    /* points row */
+    .dm-manage-points {
         background: #f0f7ee;
         border: 1px solid #c6e0b4;
         border-radius: 4px;
         padding: 5px 8px;
         font-weight: bold;
     }
-    .dm-points-value { color: #217346; font-weight: bold; font-size: 13px; margin-left: auto; }
+    .dm-coin-icon   { font-size: 14px; line-height: 1; }
+    .dm-points-val  { color: #217346; font-weight: bold; font-size: 13px; margin-left: auto; }
 
-    .dm-happy-section { display: flex; flex-direction: column; gap: 4px; }
+    /* happiness bar */
+    .dm-manage-happy { flex-direction: column; align-items: stretch; gap: 4px; }
     .dm-happy-header { display: flex; align-items: center; justify-content: space-between; }
-    .dm-happy-score { color: #e67e22; font-weight: bold; font-size: 12px; }
+    .dm-happy-score  { color: #e67e22; font-weight: bold; font-size: 12px; }
     .dm-happy-bar-wrap {
         position: relative;
         height: 8px;
@@ -89,28 +301,18 @@
         pointer-events: none;
     }
 
-    .dm-desc { margin: 0; line-height: 1.5; color: #44546a; font-size: 10.5px; }
-    .dm-desc strong { color: #1f3864; }
+    /* desc rows */
+    .dm-manage-desc { flex-direction: column; align-items: flex-start; gap: 2px; }
+    .dm-desc-text   { margin: 0; line-height: 1.5; color: #44546a; font-size: 10.5px; }
+    .dm-desc-text strong { color: #1f3864; }
 
-    .dm-action-row { display: flex; }
-    .dm-feed-btn {
-        font-size: 11px;
-        padding: 4px 12px;
-        border: 1px solid #e67e22;
-        border-radius: 10px;
-        background: #fef9f0;
-        color: #e67e22;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background 0.12s;
-    }
-    .dm-feed-btn:hover { background: #fde8c8; }
-
+    /* talk box */
     .dm-talk-box {
         border: 1px solid #d8e6f0;
         border-radius: 4px;
         background: #f5f9fd;
         padding: 6px 8px;
+        margin-top: 2px;
     }
     .dm-talk-buttons { display: flex; flex-wrap: wrap; gap: 4px; }
     .dm-talk-btn {
@@ -124,23 +326,10 @@
         white-space: nowrap;
         transition: background 0.12s;
     }
-    .dm-talk-btn:hover { background: #dce8f5; border-color: #2e75b6; }
+    .dm-talk-btn:hover  { background: #dce8f5; border-color: #2e75b6; }
     .dm-talk-btn:active { background: #bdd7ee; }
 
-    .dm-buy-row { display: flex; align-items: center; gap: 6px; }
-    .dm-buy-btn {
-        font-size: 10px;
-        padding: 3px 8px;
-        border: 1px solid #70ad47;
-        border-radius: 3px;
-        background: #f0f7ee;
-        color: #217346;
-        cursor: not-allowed;
-        white-space: nowrap;
-        opacity: 0.4;
-    }
-    .dm-buy-note { font-size: 10px; color: #aaa; }
-
+    /* character select */
     .dm-char-row {
         display: flex;
         align-items: center;
@@ -161,103 +350,6 @@
     }
     .dm-char-btn.active { background: #217346; color: #fff; border-color: #217346; }
     .dm-char-btn:hover:not(.active) { background: #f3f2f1; }
-
-    /* ── Chart / Pattie World ── */
-    .dm-chart {
-        padding: 10px 14px 12px;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        min-height: 220px;
-    }
-    .dm-chart-title {
-        font-size: 12px;
-        font-weight: bold;
-        color: #1f3864;
-        padding-bottom: 8px;
-        padding-right: 80px;
-        flex-shrink: 0;
-    }
-    .dm-map-actions {
-        position: absolute;
-        top: 8px; right: 10px;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .dm-apple-hud {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 11px;
-        color: #44546a;
-        background: #fef9f0;
-        border: 1px solid #f0c060;
-        border-radius: 3px;
-        padding: 2px 6px;
-    }
-    .dm-pattie-world {
-        flex: 1;
-        position: relative;
-        background-image:
-            linear-gradient(to right, #e8e8e8 1px, transparent 1px),
-            linear-gradient(to bottom, #e8e8e8 1px, transparent 1px);
-        background-size: 80px 22px;
-        background-color: #fafafa;
-        border: 1px solid #e0e0e0;
-        border-radius: 2px;
-        min-height: 180px;
-        overflow: hidden;
-    }
-    .dm-sprite-wrap {
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-    }
-    .dm-speech {
-        position: absolute;
-        top: 20%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-100%);
-        max-width: 160px;
-        min-width: 80px;
-        padding: 6px 10px;
-        background: #fff;
-        border: 1.5px solid #70ad47;
-        border-radius: 8px;
-        font-size: 11px;
-        color: #1a1a1a;
-        text-align: center;
-        line-height: 1.45;
-        pointer-events: none;
-        white-space: pre-wrap;
-        word-break: break-word;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-        z-index: 5;
-    }
-    .dm-speech.visible { opacity: 1; }
-    .dm-speech::after {
-        content: '';
-        position: absolute;
-        bottom: -7px; left: 50%;
-        transform: translateX(-50%);
-        border: 6px solid transparent;
-        border-top-color: #70ad47;
-        border-bottom: none;
-    }
-    .dm-speech::before {
-        content: '';
-        position: absolute;
-        bottom: -5px; left: 50%;
-        z-index: 1;
-        transform: translateX(-50%);
-        border: 5px solid transparent;
-        border-top-color: #fff;
-        border-bottom: none;
-    }
   </style>
 </head>
 <body>
@@ -304,30 +396,59 @@
     <p>관리시트는 토닥이가 자유롭게 돌아다니는 메인 공간입니다. 엑셀의 광활한 셀들을 배경으로 토닥이는 산책을 하거나 잠을 자고, 때때로 당신에게 말을 걸기도 합니다. 아래 데모에서 토닥이와 상호작용해 보세요.</p>
 
     <div class="demo-scene">
-        <!-- Pattie World (map) — top on mobile, right on desktop -->
+        <!-- mp-chart — top on mobile, RIGHT on desktop -->
         <div class="dm-chart">
-            <div class="dm-chart-title">토닥이의 서식지</div>
-            <div class="dm-map-actions">
-                <span class="dm-apple-hud">🍎 × ∞</span>
+            <div class="dm-chart-title">이번 주 프로젝트 현황</div>
+            <div class="dm-chart-legend">
+                <span><i class="dm-dot dm-dot-online"></i>온라인</span>
+                <span><i class="dm-dot dm-dot-offline"></i>오프라인</span>
             </div>
-            <div class="dm-pattie-world">
-                <div class="dm-speech" id="dmSpeech">오늘도 화이팅!</div>
-                <div class="dm-sprite-wrap">
-                    <div class="pattie-frame mong-idle idle" id="dmSprite"></div>
+            <!-- mp-map-actions -->
+            <div class="dm-map-actions">
+                <div class="dm-apple-hud">
+                    <span class="dm-apple-hud-icon">🍎</span>
+                    <span class="dm-apple-hud-x">×</span>
+                    <span class="dm-apple-hud-cnt">∞</span>
+                </div>
+                <button class="dm-feed-btn" id="dmFeedBtn" onclick="demoToggleFeed()">간식주기</button>
+                <button class="dm-buy-btn-chart" disabled>간식구매</button>
+            </div>
+            <!-- chart body: bars + pattie-world overlay -->
+            <div class="dm-chart-body">
+                <div class="dm-bars">
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:55%"></div><div class="dm-bar dm-bar-offline" style="height:38%"></div></div><div class="dm-lbl">W1</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:62%"></div><div class="dm-bar dm-bar-offline" style="height:45%"></div></div><div class="dm-lbl">W2</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:48%"></div><div class="dm-bar dm-bar-offline" style="height:52%"></div></div><div class="dm-lbl">W3</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:71%"></div><div class="dm-bar dm-bar-offline" style="height:35%"></div></div><div class="dm-lbl">W4</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:65%"></div><div class="dm-bar dm-bar-offline" style="height:55%"></div></div><div class="dm-lbl">W5</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:42%"></div><div class="dm-bar dm-bar-offline" style="height:30%"></div></div><div class="dm-lbl">W6</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:58%"></div><div class="dm-bar dm-bar-offline" style="height:42%"></div></div><div class="dm-lbl">W7</div></div>
+                </div>
+                <!-- pattie-world overlay — sprite roams on top of bars -->
+                <div class="dm-pattie-world" id="dmWorld">
+                    <div class="dm-speech" id="dmSpeech"></div>
+                    <div class="dm-anchor" id="dmAnchor">
+                        <div class="dm-flip" id="dmFlip">
+                            <div class="pattie-frame mong-idle idle" id="dmSprite"></div>
+                        </div>
+                    </div>
+                    <div class="dm-apple-drop" id="dmApple">🍎</div>
                 </div>
             </div>
         </div>
 
-        <!-- Management Box — bottom on mobile, left on desktop -->
+        <!-- mp-manage-box — bottom on mobile, LEFT on desktop -->
         <div class="dm-manage-box">
-            <div class="dm-points-row">
-                <span>🪙</span>
-                <span class="dm-label">보유 포인트</span>
-                <span class="dm-points-value">1,430 pt</span>
+            <!-- points row -->
+            <div class="dm-manage-row dm-manage-points">
+                <span class="dm-coin-icon">🪙</span>
+                <span class="dm-manage-label">현재 보유 포인트</span>
+                <span class="dm-points-val">1,430 pt</span>
             </div>
-            <div class="dm-happy-section">
+            <!-- happiness bar -->
+            <div class="dm-manage-row dm-manage-happy">
                 <div class="dm-happy-header">
-                    <span class="dm-label">행복점수</span>
+                    <span class="dm-manage-label">토닥이 행복점수</span>
                     <span class="dm-happy-score" id="dmHappyText">82점</span>
                 </div>
                 <div class="dm-happy-bar-wrap">
@@ -335,24 +456,29 @@
                     <div class="dm-happy-marker" id="dmHappyMarker" style="left:82%"></div>
                 </div>
             </div>
-            <p class="dm-desc">간식을 주거나 말을 걸어 <strong>행복점수</strong>를 올려보세요.</p>
-            <div class="dm-action-row">
-                <button class="dm-feed-btn" onclick="demoFeed()">🍎 간식 주기</button>
+            <!-- desc rows (matches actual mp-manage-box 3 rows) -->
+            <div class="dm-manage-row dm-manage-desc">
+                <p class="dm-desc-text"><strong>토닥여주기</strong>: 토닥이를 클릭하면 행복해져요.</p>
             </div>
+            <div class="dm-manage-row dm-manage-desc">
+                <p class="dm-desc-text"><strong>간식주기</strong>: 우상단 버튼 → 맵에 클릭해 떨어뜨리면 달려와 먹어요.</p>
+            </div>
+            <div class="dm-manage-row dm-manage-desc">
+                <p class="dm-desc-text"><strong>말 걸기</strong>: 기분에 맞는 버튼을 선택하면 토닥이가 반응해요.</p>
+            </div>
+            <!-- talk box (5 buttons matching actual mp-talk-btn) -->
             <div class="dm-talk-box">
                 <div class="dm-talk-buttons">
-                    <button class="dm-talk-btn" onclick="demoTalk('잠깐 쉬었다 할까요?')">응원하기</button>
-                    <button class="dm-talk-btn" onclick="demoTalk('오늘도 수고 많으셨어요!')">칭찬하기</button>
-                    <button class="dm-talk-btn" onclick="demoTalk('스트레칭 한 번 어때요?')">스트레칭</button>
-                    <button class="dm-talk-btn" onclick="demoTalk('잘 하고 있어요!')">격려하기</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('stress')">스트레스</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('tired')">피곤함</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('hard')">힘든 날</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('encourage')">응원</button>
+                    <button class="dm-talk-btn" onclick="demoTalk('secret')">비밀작전</button>
                 </div>
             </div>
-            <div class="dm-buy-row">
-                <button class="dm-buy-btn" disabled>사과 구매 (50 pt)</button>
-                <span class="dm-buy-note">데모 — 구매 비활성</span>
-            </div>
-            <div class="dm-char-row">
-                <span class="dm-label">캐릭터</span>
+            <!-- character select -->
+            <div class="dm-manage-row dm-char-row">
+                <span class="dm-manage-label">캐릭터</span>
                 <button class="dm-char-btn active" id="btnCorgi" onclick="demoSetChar('mong')">웰시코기</button>
                 <button class="dm-char-btn" id="btnKitty" onclick="demoSetChar('cabul')">아기고양이</button>
             </div>
@@ -360,55 +486,237 @@
     </div>
 
     <script>
-        let currentChar = 'mong';
-        let isAnimating = false;
-        let happiness = 82;
+    // ── Demo State (mirrors PattieRoamingController pattern) ────────
+    var D = {
+        char: 'mong',
+        mode: 'idle',       // idle | run | happy | surprise | sleep
+        x: 80,              // anchor X (px, left edge of sprite)
+        y: 0,               // anchor Y (px, top edge of sprite) — set after init
+        dir: 1,             // 1=right, -1=left
+        targetX: -1,
+        idleMs: 1500,       // ms remaining in idle
+        speed: 0.055,       // px per ms
+        lastTime: 0,
+        raf: null,
+        feedMode: false,
+        goEat: false,
+        appleTargetX: -1,
+        locked: false,      // true while eating/reacting
+        happiness: 82,
+        speechTimer: null,
+    };
 
-        const sprite      = document.getElementById('dmSprite');
-        const speech      = document.getElementById('dmSpeech');
-        const happyText   = document.getElementById('dmHappyText');
-        const happyBar    = document.getElementById('dmHappyBar');
-        const happyMarker = document.getElementById('dmHappyMarker');
+    var TALK = {
+        stress:   '다 잘 될 거예요! 💪',
+        tired:    '조금만 쉬었다 해요~ 😴',
+        hard:     '오늘도 정말 수고 많으셨어요 ❤️',
+        encourage:'파이팅! 응원해요 ✨',
+        secret:   '우리만의 비밀이에요 🤫',
+    };
 
-        function demoSetChar(charName) {
-            if (isAnimating) return;
-            currentChar = charName;
-            document.getElementById('btnCorgi').classList.toggle('active', charName === 'mong');
-            document.getElementById('btnKitty').classList.toggle('active', charName === 'cabul');
-            sprite.className = `pattie-frame ${currentChar}-idle idle`;
+    var sprite, anchor, flip, speechEl, appleEl, worldEl, feedBtn;
+    var happyTextEl, happyBarEl, happyMarkerEl;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        sprite       = document.getElementById('dmSprite');
+        anchor       = document.getElementById('dmAnchor');
+        flip         = document.getElementById('dmFlip');
+        speechEl     = document.getElementById('dmSpeech');
+        appleEl      = document.getElementById('dmApple');
+        worldEl      = document.getElementById('dmWorld');
+        feedBtn      = document.getElementById('dmFeedBtn');
+        happyTextEl  = document.getElementById('dmHappyText');
+        happyBarEl   = document.getElementById('dmHappyBar');
+        happyMarkerEl= document.getElementById('dmHappyMarker');
+
+        // click sprite → happy reaction (mirrors handleClick)
+        anchor.addEventListener('click', onSpriteClick);
+
+        // click world in feed mode → drop apple
+        worldEl.addEventListener('click', function(e) {
+            if (!D.feedMode || D.goEat) return;
+            var rect = worldEl.getBoundingClientRect();
+            dropApple(e.clientX - rect.left);
+        });
+
+        initPosition();
+        D.lastTime = performance.now();
+        D.raf = requestAnimationFrame(roamTick);
+    });
+
+    function initPosition() {
+        var h = worldEl.offsetHeight;
+        D.y = Math.max(0, h - 64 - 10);
+        D.x = 60;
+        D.targetX = 80 + Math.random() * Math.max(0, worldEl.offsetWidth - 200);
+        applyPosition();
+    }
+
+    // ── Roam loop (mirrors PattieRoamingController.tick + RAF) ──────
+    function roamTick(now) {
+        D.raf = requestAnimationFrame(roamTick);
+        var dt = Math.min(now - D.lastTime, 50);
+        D.lastTime = now;
+
+        // keep floor Y updated (responsive resize)
+        var newY = Math.max(0, worldEl.offsetHeight - 64 - 10);
+        if (newY !== D.y) { D.y = newY; }
+
+        if (D.locked) return;
+
+        if (D.goEat) {
+            stepToApple(dt);
+            return;
         }
 
-        function demoFeed() {
-            if (isAnimating) return;
-            isAnimating = true;
-            sprite.className = `pattie-frame ${currentChar}-happy happy`;
-            happiness = Math.min(100, happiness + 5);
-            happyText.innerText = `${happiness}점`;
-            happyBar.style.width = `${happiness}%`;
-            happyMarker.style.left = `${happiness}%`;
-            showSpeech('냠냠! 맛있다 🍎');
-            setTimeout(() => {
-                sprite.className = `pattie-frame ${currentChar}-idle idle`;
-                isAnimating = false;
-            }, 2000);
+        if (D.mode === 'run') {
+            var dx = D.targetX - D.x;
+            if (Math.abs(dx) < 2) {
+                D.x = D.targetX;
+                setMode('idle');
+                D.idleMs = 900 + Math.random() * 3500;
+            } else {
+                D.dir = dx > 0 ? 1 : -1;
+                D.x += D.dir * D.speed * dt;
+            }
+            applyPosition();
+        } else if (D.mode === 'idle') {
+            D.idleMs -= dt;
+            if (D.idleMs <= 0) pickTarget();
         }
+    }
 
-        function demoTalk(msg) {
-            if (isAnimating) return;
-            isAnimating = true;
-            sprite.className = `pattie-frame ${currentChar}-surprise surprise`;
-            showSpeech(msg);
-            setTimeout(() => {
-                sprite.className = `pattie-frame ${currentChar}-idle idle`;
-                isAnimating = false;
-            }, 1500);
-        }
+    function pickTarget() {
+        var w = worldEl.offsetWidth;
+        D.targetX = 16 + Math.random() * Math.max(0, w - 80);
+        setMode('run');
+    }
 
-        function showSpeech(text) {
-            speech.innerText = text;
-            speech.classList.add('visible');
-            setTimeout(() => speech.classList.remove('visible'), 2500);
+    function stepToApple(dt) {
+        var dx = D.appleTargetX - D.x;
+        if (Math.abs(dx) < 3) {
+            D.x = D.appleTargetX;
+            D.goEat = false;
+            eatApple();
+        } else {
+            D.dir = dx > 0 ? 1 : -1;
+            D.x += D.dir * D.speed * 1.6 * dt;
+            applyPosition();
         }
+    }
+
+    function eatApple() {
+        D.locked = true;
+        setMode('happy');
+        addHappiness(10);
+        showSpeech('냠냠! 🍎');
+        appleEl.style.display = 'none';
+        setTimeout(function() {
+            D.locked = false;
+            setMode('idle');
+            D.idleMs = 800;
+            if (D.feedMode) demoToggleFeed();
+        }, 2200);
+    }
+
+    // ── State helpers ────────────────────────────────────────────────
+    function setMode(mode) {
+        if (D.mode === mode) return;
+        D.mode = mode;
+        sprite.className = 'pattie-frame ' + D.char + '-' + mode + ' ' + mode;
+    }
+
+    function applyPosition() {
+        anchor.style.transform = 'translate(' + Math.round(D.x) + 'px,' + Math.round(D.y) + 'px)';
+        flip.className = 'dm-flip' + (D.dir < 0 ? ' facing-left' : '');
+    }
+
+    // ── Interactions ─────────────────────────────────────────────────
+    function onSpriteClick() {
+        if (D.locked || D.feedMode) return;
+        D.locked = true;
+        setMode('happy');
+        addHappiness(3);
+        showSpeech('토닥토닥 😊');
+        setTimeout(function() {
+            D.locked = false;
+            setMode('idle');
+            D.idleMs = 400;
+        }, 2000);
+    }
+
+    function demoToggleFeed() {
+        if (D.locked) return;
+        D.feedMode = !D.feedMode;
+        feedBtn.classList.toggle('active', D.feedMode);
+        worldEl.classList.toggle('feed-mode', D.feedMode);
+    }
+
+    function dropApple(clickX) {
+        var worldH = worldEl.offsetHeight;
+        var floorY = worldH - 10 - 18; // apple bottom at floor (18px emoji height)
+
+        appleEl.style.left  = (clickX - 9) + 'px';
+        appleEl.style.top   = '4px';
+        appleEl.style.display = 'block';
+
+        // two-frame delay to trigger CSS transition
+        requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+                appleEl.style.top = floorY + 'px';
+            });
+        });
+
+        // sprite reacts: surprise → run to apple
+        D.appleTargetX = Math.max(8, Math.min(clickX - 32, worldEl.offsetWidth - 64));
+        setMode('surprise');
+        setTimeout(function() {
+            if (D.feedMode) {
+                D.goEat = true;
+                setMode('run');
+            }
+        }, 350);
+    }
+
+    function demoTalk(emotion) {
+        if (D.locked) return;
+        D.locked = true;
+        setMode('surprise');
+        showSpeech(TALK[emotion] || '...');
+        setTimeout(function() {
+            setMode('idle');
+            D.locked = false;
+            D.idleMs = 400;
+        }, 2500);
+    }
+
+    function demoSetChar(charName) {
+        D.char = charName;
+        document.getElementById('btnCorgi').classList.toggle('active', charName === 'mong');
+        document.getElementById('btnKitty').classList.toggle('active', charName === 'cabul');
+        sprite.className = 'pattie-frame ' + D.char + '-' + D.mode + ' ' + D.mode;
+    }
+
+    // ── Speech bubble ────────────────────────────────────────────────
+    function showSpeech(text) {
+        speechEl.innerText = text;
+        // position above sprite center
+        speechEl.style.left = (D.x + 32) + 'px';
+        speechEl.style.top  = D.y + 'px';
+        speechEl.classList.add('visible');
+        clearTimeout(D.speechTimer);
+        D.speechTimer = setTimeout(function() {
+            speechEl.classList.remove('visible');
+        }, 2600);
+    }
+
+    // ── Happiness bar ────────────────────────────────────────────────
+    function addHappiness(delta) {
+        D.happiness = Math.min(100, D.happiness + delta);
+        happyTextEl.innerText  = D.happiness + '점';
+        happyBarEl.style.width = D.happiness + '%';
+        happyMarkerEl.style.left = D.happiness + '%';
+    }
     </script>
 
     <h2>성장과 관리</h2>
