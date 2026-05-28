@@ -29,22 +29,26 @@ export function initGame2048UI() {
     document.addEventListener('keydown', onKeyDown);
 
     // Touch swipe — covers entire sheet area, prevents iOS back-swipe on horizontal
-    let _tx = 0, _ty = 0, _moved = false;
-    const swipeTarget = document.getElementById('game2048-sheet') || grid;
-    swipeTarget.addEventListener('touchstart', e => {
+    let _tx = 0, _ty = 0, _moved = false, _gridSwipe = false;
+    grid.addEventListener('touchstart', e => {
+        _gridSwipe = e.target instanceof Node && grid.contains(e.target);
+        if (!_gridSwipe) return;
         _tx = e.changedTouches[0].clientX;
         _ty = e.changedTouches[0].clientY;
         _moved = false;
     }, { passive: true });
-    swipeTarget.addEventListener('touchmove', e => {
+    grid.addEventListener('touchmove', e => {
+        if (!_gridSwipe) return;
         const dx = e.changedTouches[0].clientX - _tx;
         const dy = e.changedTouches[0].clientY - _ty;
         if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
-            e.preventDefault(); // prevents scroll AND iOS swipe-back navigation
+            e.preventDefault();
             _moved = true;
         }
     }, { passive: false });
-    swipeTarget.addEventListener('touchend', e => {
+    grid.addEventListener('touchend', e => {
+        if (!_gridSwipe) return;
+        _gridSwipe = false;
         if (gameOver || !_moved) return;
         const sheet = document.getElementById('game2048-sheet');
         if (!sheet || sheet.style.display === 'none') return;
@@ -55,6 +59,10 @@ export function initGame2048UI() {
             ? (dx > 0 ? 'ArrowRight' : 'ArrowLeft')
             : (dy > 0 ? 'ArrowDown'  : 'ArrowUp');
         document.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    }, { passive: true });
+    grid.addEventListener('touchcancel', () => {
+        _gridSwipe = false;
+        _moved = false;
     }, { passive: true });
 
     const gameOverModal = document.getElementById('game-over-modal');
@@ -169,7 +177,7 @@ export function initGame2048UI() {
         const cellSize = isMobile
             ? Math.min(80, Math.floor((window.innerWidth - 16) / boardSize))
             : 80;
-        const cellH = isMobile ? cellSize : 22;
+        const cellH = 22;
 
         grid.style.gridTemplateColumns = `repeat(${boardSize}, ${cellSize}px)`;
         grid.style.gridTemplateRows    = `repeat(${boardSize}, ${cellH}px)`;
