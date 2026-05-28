@@ -15,17 +15,13 @@
 
   <link rel="stylesheet" href="/public/refresheet-static.css">
   <style>
-    /* ── Demo Scene layout ── */
+    /* ── Demo Scene layout — always top/bottom, equal width ── */
     .demo-scene {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        margin: 32px 0 40px;
-    }
-    @media (min-width: 640px) {
-        .demo-scene { flex-direction: row; align-items: flex-start; }
-        .dm-manage-box { order: -1; flex: 0 0 288px; }
-        .dm-chart { flex: 1; }
+        margin: 32px auto 40px;
+        max-width: 540px;
     }
 
     /* shared Excel floating-object panel */
@@ -176,7 +172,7 @@
         overflow: hidden;
         cursor: default;
     }
-    .dm-pattie-world.feed-mode { cursor: crosshair; }
+    .dm-pattie-world.feed-mode { cursor: none; }
 
     /* sprite anchor — JS drives transform: translate(x,y) */
     .dm-anchor {
@@ -186,8 +182,23 @@
     }
     /* flip wrapper for direction */
     .dm-flip { display: inline-block; }
-    .dm-flip.facing-left .pattie-frame { transform: scaleX(-1); }
-    .dm-flip.facing-left .pattie-frame:hover { transform: scaleX(-1) scale(1.2); }
+
+    /* sprite wrapper: clips layout to 32×32 (matching pattieWorldConfig spriteSize) */
+    .dm-sprite-wrap {
+        display: inline-block;
+        width: 32px;
+        height: 32px;
+        overflow: visible;
+        pointer-events: auto;
+    }
+    .dm-sprite-wrap .pattie-frame {
+        transform: scale(0.5);
+        transform-origin: top left;
+    }
+    /* direction flip via wrapper */
+    .dm-flip.facing-left .dm-sprite-wrap .pattie-frame { transform: scale(0.5) scaleX(-1); transform-origin: top left; }
+    /* suppress CSS ?!! bubble in demo world (MP uses JS-controlled bubble instead) */
+    .dm-pattie-world .pattie-frame.surprise::after { display: none; }
 
     /* speech bubble (matches pattie-speech) */
     .dm-speech {
@@ -232,14 +243,20 @@
         border-bottom: none;
     }
 
-    /* apple drop element */
-    .dm-apple-drop {
+    /* apple image assets (dynamic, created by JS like PattieApple) */
+    .dm-apple-landed {
         position: absolute;
-        display: none;
-        font-size: 18px;
+        width: 24px; height: 24px;
         z-index: 3;
         pointer-events: none;
-        transition: top 0.35s cubic-bezier(0.3, 0, 0.8, 0.6);
+        image-rendering: pixelated;
+        transition-property: top;
+        transition-timing-function: cubic-bezier(0.3, 0, 0.8, 0.6);
+    }
+    .pattie-apple-pop {
+        position: absolute;
+        pointer-events: none;
+        z-index: 4;
     }
 
     /* ── mp-manage-box style panel ── */
@@ -303,7 +320,7 @@
 
     /* desc rows */
     .dm-manage-desc { flex-direction: column; align-items: flex-start; gap: 2px; }
-    .dm-desc-text   { margin: 0; line-height: 1.5; color: #44546a; font-size: 10.5px; }
+    .dm-desc-text   { margin: 0; line-height: 1.5; color: #44546a; font-size: 9px; }
     .dm-desc-text strong { color: #1f3864; }
 
     /* talk box */
@@ -406,7 +423,7 @@
             <!-- mp-map-actions -->
             <div class="dm-map-actions">
                 <div class="dm-apple-hud">
-                    <span class="dm-apple-hud-icon">🍎</span>
+                    <img src="/public/assets/apple/apple_idle..png" width="13" height="13" style="image-rendering:pixelated;vertical-align:middle;">
                     <span class="dm-apple-hud-x">×</span>
                     <span class="dm-apple-hud-cnt">∞</span>
                 </div>
@@ -416,23 +433,24 @@
             <!-- chart body: bars + pattie-world overlay -->
             <div class="dm-chart-body">
                 <div class="dm-bars">
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:55%"></div><div class="dm-bar dm-bar-offline" style="height:38%"></div></div><div class="dm-lbl">W1</div></div>
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:62%"></div><div class="dm-bar dm-bar-offline" style="height:45%"></div></div><div class="dm-lbl">W2</div></div>
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:48%"></div><div class="dm-bar dm-bar-offline" style="height:52%"></div></div><div class="dm-lbl">W3</div></div>
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:71%"></div><div class="dm-bar dm-bar-offline" style="height:35%"></div></div><div class="dm-lbl">W4</div></div>
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:65%"></div><div class="dm-bar dm-bar-offline" style="height:55%"></div></div><div class="dm-lbl">W5</div></div>
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:42%"></div><div class="dm-bar dm-bar-offline" style="height:30%"></div></div><div class="dm-lbl">W6</div></div>
-                    <div class="dm-col"><div class="dm-bar-pair"><div class="dm-bar dm-bar-online" style="height:58%"></div><div class="dm-bar dm-bar-offline" style="height:42%"></div></div><div class="dm-lbl">W7</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:55%"></div><div class="dm-bar dm-bar-offline" style="height:38%"></div></div><div class="dm-lbl">W1</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:62%"></div><div class="dm-bar dm-bar-offline" style="height:45%"></div></div><div class="dm-lbl">W2</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:48%"></div><div class="dm-bar dm-bar-offline" style="height:52%"></div></div><div class="dm-lbl">W3</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:71%"></div><div class="dm-bar dm-bar-offline" style="height:35%"></div></div><div class="dm-lbl">W4</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:65%"></div><div class="dm-bar dm-bar-offline" style="height:55%"></div></div><div class="dm-lbl">W5</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:42%"></div><div class="dm-bar dm-bar-offline" style="height:30%"></div></div><div class="dm-lbl">W6</div></div>
+                    <div class="dm-col"><div class="dm-bar-pair" data-pattie-terrain="chart-bar"><div class="dm-bar dm-bar-online" style="height:58%"></div><div class="dm-bar dm-bar-offline" style="height:42%"></div></div><div class="dm-lbl">W7</div></div>
                 </div>
                 <!-- pattie-world overlay — sprite roams on top of bars -->
                 <div class="dm-pattie-world" id="dmWorld">
                     <div class="dm-speech" id="dmSpeech"></div>
                     <div class="dm-anchor" id="dmAnchor">
                         <div class="dm-flip" id="dmFlip">
-                            <div class="pattie-frame mong-idle idle" id="dmSprite"></div>
+                            <div class="dm-sprite-wrap" id="dmSpriteWrap">
+                                <div class="pattie-frame mong-idle idle" id="dmSprite"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="dm-apple-drop" id="dmApple">🍎</div>
                 </div>
             </div>
         </div>
@@ -486,24 +504,41 @@
     </div>
 
     <script>
-    // ── Demo State (mirrors PattieRoamingController pattern) ────────
+    // ── Constants (from snackAnimations.js + pattieWorldConfig.js) ──
+    var SPRITE_SIZE   = 32;   // pattieWorldConfig.movement.spriteSize
+    var DROP_MIN_MS   = 953;  // SNACK_ANIMATION_MS.DROP_MIN
+    var DROP_PER_PX   = 8.93; // SNACK_ANIMATION_MS.DROP_PER_PX
+    var SURPRISE_MS   = 3000; // SNACK_ANIMATION_MS.SURPRISE
+    var HAPPY_MS      = 3650; // pattie-happy 3.6s + 50ms
+
+    // ── Helpers (same functions as PattieRoamingController) ──────────
+    function weightedPick(weights) {
+        var entries = Object.entries(weights);
+        var total = entries.reduce(function(s, e) { return s + e[1]; }, 0);
+        var point = Math.random() * total;
+        for (var i = 0; i < entries.length; i++) { point -= entries[i][1]; if (point <= 0) return entries[i][0]; }
+        return entries[0][0];
+    }
+    function randomBetween(min, max) { return max <= min ? min : min + Math.random() * (max - min); }
+    function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+    // chart-zone weights: { idle: 45, move: 55 } (move → startChartTerrainMove)
+    var CHART_W = { idle: 45, move: 55 };
+    // animation name map: walk/hopDown → use run asset; jump → run asset (no jump anim in pattie-frame CSS)
+    var ANIM = { walk: 'run', hopDown: 'run', jump: 'run' };
+
+    // ── State ─────────────────────────────────────────────────────────
     var D = {
-        char: 'mong',
-        mode: 'idle',       // idle | run | happy | surprise | sleep
-        x: 80,              // anchor X (px, left edge of sprite)
-        y: 0,               // anchor Y (px, top edge of sprite) — set after init
-        dir: 1,             // 1=right, -1=left
-        targetX: -1,
-        idleMs: 1500,       // ms remaining in idle
-        speed: 0.055,       // px per ms
-        lastTime: 0,
-        raf: null,
-        feedMode: false,
-        goEat: false,
-        appleTargetX: -1,
-        locked: false,      // true while eating/reacting
-        happiness: 82,
-        speechTimer: null,
+        char: 'mong', mode: 'idle',
+        x: 60, y: 0, dir: 1,
+        idleMs: 1500,
+        lastTime: 0, raf: null,
+        feedMode: false, goEat: false,
+        locked: false,
+        happiness: 82, speechTimer: null,
+        terrainMotion: null,  // { mode, startX,startY,endX,endY,startedAt,duration,arcPx,surfaceId,surfaces }
+        appleLandedEl: null,
+        appleState: null,     // { x, y }
     };
 
     var TALK = {
@@ -514,29 +549,30 @@
         secret:   '우리만의 비밀이에요 🤫',
     };
 
-    var sprite, anchor, flip, speechEl, appleEl, worldEl, feedBtn;
+    var spriteEl, anchorEl, flipEl, speechEl, worldEl, feedBtn;
     var happyTextEl, happyBarEl, happyMarkerEl;
+    var applePreviewEl = null;
 
     document.addEventListener('DOMContentLoaded', function() {
-        sprite       = document.getElementById('dmSprite');
-        anchor       = document.getElementById('dmAnchor');
-        flip         = document.getElementById('dmFlip');
+        spriteEl     = document.getElementById('dmSprite');
+        anchorEl     = document.getElementById('dmAnchor');
+        flipEl       = document.getElementById('dmFlip');
         speechEl     = document.getElementById('dmSpeech');
-        appleEl      = document.getElementById('dmApple');
         worldEl      = document.getElementById('dmWorld');
         feedBtn      = document.getElementById('dmFeedBtn');
         happyTextEl  = document.getElementById('dmHappyText');
         happyBarEl   = document.getElementById('dmHappyBar');
         happyMarkerEl= document.getElementById('dmHappyMarker');
 
-        // click sprite → happy reaction (mirrors handleClick)
-        anchor.addEventListener('click', onSpriteClick);
+        // sprite click → happy (mirrors handleClick)
+        document.getElementById('dmSpriteWrap').addEventListener('click', onSpriteClick);
 
-        // click world in feed mode → drop apple
+        // world click in feed mode → drop apple
         worldEl.addEventListener('click', function(e) {
-            if (!D.feedMode || D.goEat) return;
-            var rect = worldEl.getBoundingClientRect();
-            dropApple(e.clientX - rect.left);
+            if (!D.feedMode || D.goEat || D.locked) return;
+            if (e.target.closest('.dm-map-actions')) return;
+            var r = worldEl.getBoundingClientRect();
+            dropApple(e.clientX - r.left, e.clientY - r.top);
         });
 
         initPosition();
@@ -544,177 +580,322 @@
         D.raf = requestAnimationFrame(roamTick);
     });
 
-    function initPosition() {
-        var h = worldEl.offsetHeight;
-        D.y = Math.max(0, h - 64 - 10);
-        D.x = 60;
-        D.targetX = 80 + Math.random() * Math.max(0, worldEl.offsetWidth - 200);
-        applyPosition();
+    // ── Terrain surface detection (mirrors getChartSurfaces) ─────────
+    function getLocalRect(el) {
+        var w = worldEl.getBoundingClientRect(), e = el.getBoundingClientRect();
+        return { left: e.left - w.left, top: e.top - w.top,
+                 right: e.right - w.left, bottom: e.bottom - w.top,
+                 width: e.width, height: e.height };
     }
 
-    // ── Roam loop (mirrors PattieRoamingController.tick + RAF) ──────
+    function getChartSurfaces() {
+        var wW = worldEl.offsetWidth, wH = worldEl.offsetHeight;
+        var floor = { id:'floor', kind:'floor',
+                      minX: 14, maxX: wW - SPRITE_SIZE - 14,
+                      y: wH - SPRITE_SIZE - 16 };
+        var surfaces = [floor];
+        var barsContainer = worldEl.closest('.dm-chart-body').querySelector('.dm-bars');
+        if (!barsContainer) return surfaces;
+        var pairs = barsContainer.querySelectorAll('[data-pattie-terrain="chart-bar"]');
+        pairs.forEach(function(pair, idx) {
+            var pr = getLocalRect(pair);
+            var online  = pair.querySelector('.dm-bar-online');
+            var offline = pair.querySelector('.dm-bar-offline');
+            var topY = Infinity;
+            [online, offline].forEach(function(b) {
+                if (!b) return;
+                var r = getLocalRect(b);
+                if (r.top < topY) topY = r.top;
+            });
+            if (topY === Infinity) return;
+            var surfY = topY - SPRITE_SIZE + 6;
+            var hFromFloor = Math.abs(surfY - floor.y);
+            if (hFromFloor <= 132) {
+                var minX = pr.left + 1, maxX = pr.left + pr.width - SPRITE_SIZE - 1;
+                if (maxX >= minX) surfaces.push({ id:'bar-'+idx, kind:'bar', minX:minX, maxX:maxX, y:surfY });
+            }
+        });
+        return surfaces;
+    }
+
+    function findNearestSurface(surfaces) {
+        return surfaces.slice().sort(function(a, b) {
+            var ax = clamp(D.x, a.minX, a.maxX), bx = clamp(D.x, b.minX, b.maxX);
+            return Math.hypot(D.x-ax, D.y-a.y) - Math.hypot(D.x-bx, D.y-b.y);
+        })[0] || null;
+    }
+
+    // ── Terrain move decision (mirrors startChartTerrainMove) ────────
+    function startChartTerrainMove() {
+        var surfaces = getChartSurfaces();
+        if (!surfaces.length) { setMode('idle'); D.idleMs = 1200; return; }
+        var current = findNearestSurface(surfaces);
+        var candidates = surfaces.filter(function(s) {
+            if (s.id === (current && current.id)) return false;
+            if (Math.abs(s.y - D.y) > 96) return false;
+            var nx = clamp(D.x, s.minX, s.maxX);
+            return Math.hypot(D.x-nx, D.y-s.y) <= 80;
+        });
+        var canWander = current && (current.maxX > current.minX + 4);
+        var stayOn = canWander && (candidates.length === 0 || Math.random() < 0.72);
+        var target, targetX, targetY;
+        if (stayOn) {
+            target = current;
+            var mid = (target.minX + target.maxX) / 2;
+            targetX = D.x <= mid
+                ? randomBetween(Math.max(mid, target.minX+2), target.maxX)
+                : randomBetween(target.minX, Math.min(mid, target.maxX-2));
+            targetY = target.y;
+        } else {
+            var pool = candidates.length ? candidates : [current || surfaces[0]];
+            target = pool[Math.floor(Math.random() * pool.length)];
+            targetX = randomBetween(target.minX, target.maxX);
+            targetY = target.y;
+        }
+        var dx = targetX - D.x, dy = targetY - D.y, dist = Math.hypot(dx, dy);
+        var moveMode = stayOn ? (dist > 120 ? 'run' : 'walk')
+                              : (dy < 0 ? 'jump' : 'hopDown');
+        var duration = moveMode === 'walk' ? clamp(dist * 460, 4200, 14000)
+                     : moveMode === 'run'  ? clamp(dist * 256, 3000, 9000)
+                     : clamp(dist * 34, 1400, 2600);
+        var arcPx = (moveMode === 'jump' || moveMode === 'hopDown') ? clamp(dist * 0.12, 2, 10) : 0;
+        D.dir = targetX >= D.x ? 1 : -1;
+        D.terrainMotion = {
+            mode: moveMode, startX: D.x, startY: D.y,
+            endX: targetX, endY: targetY,
+            startedAt: performance.now(), duration: duration,
+            arcPx: arcPx, surfaceId: stayOn ? target.id : null, surfaces: surfaces
+        };
+        setMode(moveMode);
+    }
+
+    // ── RAF roam loop ─────────────────────────────────────────────────
     function roamTick(now) {
         D.raf = requestAnimationFrame(roamTick);
         var dt = Math.min(now - D.lastTime, 50);
         D.lastTime = now;
-
-        // keep floor Y updated (responsive resize)
-        var newY = Math.max(0, worldEl.offsetHeight - 64 - 10);
-        if (newY !== D.y) { D.y = newY; }
-
-        if (D.locked) return;
-
-        if (D.goEat) {
-            stepToApple(dt);
-            return;
-        }
-
-        if (D.mode === 'run') {
-            var dx = D.targetX - D.x;
-            if (Math.abs(dx) < 2) {
-                D.x = D.targetX;
-                setMode('idle');
-                D.idleMs = 900 + Math.random() * 3500;
-            } else {
-                D.dir = dx > 0 ? 1 : -1;
-                D.x += D.dir * D.speed * dt;
-            }
-            applyPosition();
-        } else if (D.mode === 'idle') {
+        if (D.locked) { applyPosition(); return; }
+        if (D.goEat) { stepToApple(now, dt); return; }
+        if (D.terrainMotion) { updateTerrainMotion(now); applyPosition(); return; }
+        if (D.mode === 'idle') {
             D.idleMs -= dt;
-            if (D.idleMs <= 0) pickTarget();
+            if (D.idleMs <= 0) {
+                var pick = weightedPick(CHART_W);
+                if (pick === 'move') startChartTerrainMove();
+                else D.idleMs = 1200 + Math.random() * 2400;
+            }
+        }
+        applyPosition();
+    }
+
+    function updateTerrainMotion(now) {
+        var m = D.terrainMotion;
+        var t = Math.min(1, (now - m.startedAt) / m.duration);
+        var eased = (m.mode === 'walk' || m.mode === 'run') ? t
+            : (t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2, 2)/2);
+        D.x = m.startX + (m.endX - m.startX) * eased;
+        D.y = m.startY + (m.endY - m.startY) * eased;
+        if (m.mode === 'jump' || m.mode === 'hopDown') D.y -= Math.sin(Math.PI * t) * m.arcPx;
+        // surface lock for walk/run
+        if ((m.mode === 'walk' || m.mode === 'run') && t < 0.98 && m.surfaceId) {
+            var src = m.surfaces.find(function(s) { return s.id === m.surfaceId; });
+            if (src && D.x >= src.minX - 3 && D.x <= src.maxX + 3) D.y = src.y;
+            else { D.terrainMotion = null; D.dir *= -1; setMode('idle'); D.idleMs = 800; return; }
+        }
+        D.x = clamp(D.x, 4, worldEl.offsetWidth - SPRITE_SIZE - 4);
+        D.y = clamp(D.y, 4, worldEl.offsetHeight - SPRITE_SIZE - 6);
+        if (t >= 1) {
+            D.x = m.endX; D.y = m.endY; D.terrainMotion = null;
+            setMode('idle'); D.idleMs = 600 + Math.random() * 1800;
         }
     }
 
-    function pickTarget() {
-        var w = worldEl.offsetWidth;
-        D.targetX = 16 + Math.random() * Math.max(0, w - 80);
-        setMode('run');
+    function initPosition() {
+        D.y = Math.max(0, worldEl.offsetHeight - SPRITE_SIZE - 16);
+        D.x = 60;
+        applyPosition();
+        setTimeout(startChartTerrainMove, 1500);
     }
 
-    function stepToApple(dt) {
-        var dx = D.appleTargetX - D.x;
-        if (Math.abs(dx) < 3) {
-            D.x = D.appleTargetX;
-            D.goEat = false;
-            eatApple();
-        } else {
-            D.dir = dx > 0 ? 1 : -1;
-            D.x += D.dir * D.speed * 1.6 * dt;
-            applyPosition();
-        }
-    }
-
-    function eatApple() {
-        D.locked = true;
-        setMode('happy');
-        addHappiness(10);
-        showSpeech('냠냠! 🍎');
-        appleEl.style.display = 'none';
-        setTimeout(function() {
-            D.locked = false;
-            setMode('idle');
-            D.idleMs = 800;
-            if (D.feedMode) demoToggleFeed();
-        }, 2200);
-    }
-
-    // ── State helpers ────────────────────────────────────────────────
+    // ── State helpers ─────────────────────────────────────────────────
     function setMode(mode) {
-        if (D.mode === mode) return;
         D.mode = mode;
-        sprite.className = 'pattie-frame ' + D.char + '-' + mode + ' ' + mode;
+        var css = ANIM[mode] || mode;
+        spriteEl.className = 'pattie-frame ' + D.char + '-' + css + ' ' + css;
     }
 
     function applyPosition() {
-        anchor.style.transform = 'translate(' + Math.round(D.x) + 'px,' + Math.round(D.y) + 'px)';
-        flip.className = 'dm-flip' + (D.dir < 0 ? ' facing-left' : '');
+        anchorEl.style.transform = 'translate(' + Math.round(D.x) + 'px,' + Math.round(D.y) + 'px)';
+        flipEl.className = 'dm-flip' + (D.dir < 0 ? ' facing-left' : '');
+        // speech bubble follows sprite center (32px sprite, so center at +16)
+        speechEl.style.left = (D.x + 16) + 'px';
+        speechEl.style.top  = D.y + 'px';
     }
 
-    // ── Interactions ─────────────────────────────────────────────────
-    function onSpriteClick() {
-        if (D.locked || D.feedMode) return;
-        D.locked = true;
-        setMode('happy');
-        addHappiness(3);
-        showSpeech('토닥토닥 😊');
-        setTimeout(function() {
-            D.locked = false;
-            setMode('idle');
-            D.idleMs = 400;
-        }, 2000);
+    // ── Interactions ──────────────────────────────────────────────────
+    function onSpriteClick(e) {
+        if (D.locked || D.goEat || D.feedMode) return;
+        D.locked = true; D.terrainMotion = null;
+        setMode('happy'); addHappiness(3); showSpeech('토닥토닥 😊');
+        setTimeout(function() { D.locked = false; setMode('idle'); D.idleMs = 400; }, 2000);
     }
 
     function demoToggleFeed() {
-        if (D.locked) return;
-        D.feedMode = !D.feedMode;
-        feedBtn.classList.toggle('active', D.feedMode);
-        worldEl.classList.toggle('feed-mode', D.feedMode);
+        if (D.locked || D.goEat) return;
+        if (D.feedMode) stopFeedMode(); else startFeedMode();
     }
 
-    function dropApple(clickX) {
-        var worldH = worldEl.offsetHeight;
-        var floorY = worldH - 10 - 18; // apple bottom at floor (18px emoji height)
+    function startFeedMode() {
+        D.feedMode = true;
+        feedBtn.classList.add('active');
+        worldEl.classList.add('feed-mode');
+        applePreviewEl = document.createElement('img');
+        applePreviewEl.src = '/public/assets/apple/apple_idle..png';
+        applePreviewEl.style.cssText = 'position:absolute;width:24px;height:24px;pointer-events:none;z-index:4;image-rendering:pixelated;left:50%;top:50%;';
+        worldEl.appendChild(applePreviewEl);
+        worldEl.addEventListener('mousemove', onFeedMouseMove);
+    }
 
-        appleEl.style.left  = (clickX - 9) + 'px';
-        appleEl.style.top   = '4px';
-        appleEl.style.display = 'block';
+    function stopFeedMode() {
+        D.feedMode = false;
+        feedBtn.classList.remove('active');
+        worldEl.classList.remove('feed-mode');
+        if (applePreviewEl) { applePreviewEl.remove(); applePreviewEl = null; }
+        worldEl.removeEventListener('mousemove', onFeedMouseMove);
+    }
 
-        // two-frame delay to trigger CSS transition
+    function onFeedMouseMove(e) {
+        if (!applePreviewEl) return;
+        var r = worldEl.getBoundingClientRect();
+        applePreviewEl.style.left = (e.clientX - r.left - 12) + 'px';
+        applePreviewEl.style.top  = (e.clientY - r.top  - 12) + 'px';
+    }
+
+    // ── Apple drop (mirrors PattieApple._dropSnack) ───────────────────
+    function dropApple(clickX, clickY) {
+        stopFeedMode();
+        var ASIZE = 24;
+        var landY = worldEl.offsetHeight - ASIZE - 16;
+        var landX = clamp(Math.round(clickX - ASIZE/2), 4, worldEl.offsetWidth - ASIZE - 4);
+        var startTop = Math.round(clickY - ASIZE/2);
+        var fallDist = Math.max(0, landY - startTop);
+        var fallMs = Math.max(DROP_MIN_MS, fallDist * DROP_PER_PX);
+
+        if (D.appleLandedEl) { D.appleLandedEl.remove(); D.appleLandedEl = null; }
+
+        var el = document.createElement('img');
+        el.src = '/public/assets/apple/apple_idle..png';
+        el.className = 'dm-apple-landed';
+        el.style.transitionDuration = fallMs + 'ms';
+        el.style.left = landX + 'px';
+        el.style.top  = startTop + 'px';
+        worldEl.appendChild(el);
+        D.appleLandedEl = el;
+        D.appleState    = { x: landX, y: landY };
+
         requestAnimationFrame(function() {
             requestAnimationFrame(function() {
-                appleEl.style.top = floorY + 'px';
+                if (D.appleLandedEl) D.appleLandedEl.style.top = landY + 'px';
             });
         });
 
-        // sprite reacts: surprise → run to apple
-        D.appleTargetX = Math.max(8, Math.min(clickX - 32, worldEl.offsetWidth - 64));
+        // sprite: surprise → then run to apple (mirrors _onLanded)
+        D.terrainMotion = null;
         setMode('surprise');
         setTimeout(function() {
-            if (D.feedMode) {
-                D.goEat = true;
-                setMode('run');
-            }
-        }, 350);
+            if (!D.appleState) return;
+            D.goEat = true;
+            setMode('run');
+        }, SURPRISE_MS);
+    }
+
+    function stepToApple(now, dt) {
+        if (!D.appleState) { D.goEat = false; return; }
+        var dx = D.appleState.x - D.x;
+        if (Math.abs(dx) < 3) {
+            D.x = D.appleState.x; D.goEat = false; eatApple();
+        } else {
+            D.dir = dx > 0 ? 1 : -1;
+            D.x += D.dir * 0.088 * dt;
+            applyPosition();
+        }
+    }
+
+    // ── Eat sequence (mirrors PattieApple._beginEating + _playApplePop) ──
+    function eatApple() {
+        D.locked = true;
+        setMode('idle');
+        var el = D.appleLandedEl;
+        D.appleLandedEl = null;
+        var leftVal = el ? el.style.left : '0px';
+        var topVal  = el ? el.style.top  : '0px';
+        if (el) el.remove();
+        D.appleState = null;
+        addHappiness(10);
+        playApplePop(leftVal, topVal, function() {
+            setMode('happy');
+            setTimeout(function() {
+                D.locked = false;
+                setMode('idle');
+                D.idleMs = 800;
+                startChartTerrainMove();
+            }, HAPPY_MS);
+        });
+    }
+
+    // Exact port of PattieApple._playApplePop
+    function playApplePop(left, top, onDone) {
+        var FC=7, FW=64, FH=64, PX=1, PY=1, IW=450, IH=66, FMS=300, ASIZE=24;
+        var scale = ASIZE / FW; // 0.375
+        var outer = document.createElement('div');
+        outer.style.cssText = 'position:absolute;pointer-events:none;z-index:4;left:'+left+';top:'+top+';width:'+ASIZE+'px;height:'+ASIZE+'px;';
+        var inner = document.createElement('div');
+        inner.style.cssText = 'width:'+FW+'px;height:'+FH+'px;transform-origin:0 0;transform:scale('+scale+');'
+            +'background-image:url("/public/assets/apple/apple_pop.png");'
+            +'background-size:'+IW+'px '+IH+'px;background-repeat:no-repeat;image-rendering:pixelated;';
+        outer.appendChild(inner);
+        worldEl.appendChild(outer);
+        var frame = 0;
+        function apf() { inner.style.backgroundPosition = '-'+(PX+frame*FW)+'px -'+PY+'px'; }
+        apf();
+        function adv() {
+            if (!outer.parentNode) return;
+            frame++;
+            if (frame < FC) { apf(); setTimeout(adv, FMS); }
+            else { outer.remove(); onDone && onDone(); }
+        }
+        setTimeout(adv, FMS);
     }
 
     function demoTalk(emotion) {
         if (D.locked) return;
-        D.locked = true;
-        setMode('surprise');
+        D.locked = true; D.terrainMotion = null;
+        setMode('happy');  // matches MP handleSpeech → happy() when manual
         showSpeech(TALK[emotion] || '...');
-        setTimeout(function() {
-            setMode('idle');
-            D.locked = false;
-            D.idleMs = 400;
-        }, 2500);
+        setTimeout(function() { D.locked = false; setMode('idle'); D.idleMs = 600; }, 2600);
     }
 
     function demoSetChar(charName) {
         D.char = charName;
         document.getElementById('btnCorgi').classList.toggle('active', charName === 'mong');
         document.getElementById('btnKitty').classList.toggle('active', charName === 'cabul');
-        sprite.className = 'pattie-frame ' + D.char + '-' + D.mode + ' ' + D.mode;
+        var css = ANIM[D.mode] || D.mode;
+        spriteEl.className = 'pattie-frame ' + D.char + '-' + css + ' ' + css;
     }
 
-    // ── Speech bubble ────────────────────────────────────────────────
+    // ── Speech bubble ─────────────────────────────────────────────────
     function showSpeech(text) {
         speechEl.innerText = text;
-        // position above sprite center
-        speechEl.style.left = (D.x + 32) + 'px';
-        speechEl.style.top  = D.y + 'px';
         speechEl.classList.add('visible');
         clearTimeout(D.speechTimer);
-        D.speechTimer = setTimeout(function() {
-            speechEl.classList.remove('visible');
-        }, 2600);
+        D.speechTimer = setTimeout(function() { speechEl.classList.remove('visible'); }, 2600);
     }
 
-    // ── Happiness bar ────────────────────────────────────────────────
+    // ── Happiness bar ─────────────────────────────────────────────────
     function addHappiness(delta) {
         D.happiness = Math.min(100, D.happiness + delta);
-        happyTextEl.innerText  = D.happiness + '점';
-        happyBarEl.style.width = D.happiness + '%';
+        happyTextEl.innerText    = D.happiness + '점';
+        happyBarEl.style.width   = D.happiness + '%';
         happyMarkerEl.style.left = D.happiness + '%';
     }
     </script>
