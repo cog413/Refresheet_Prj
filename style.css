@@ -3219,14 +3219,23 @@ body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
     .game-mobile-bar { display: flex; }
     .mobile-numpad   { display: grid; }
 
-    /* ── Top ribbon: horizontal scroll, no text wrap ── */
-    .ribbon {
+    /* ── .ribbon-top is now a standalone #excel-app flex child (HTML restructured).
+       It is never inside header.ribbon, so it has no scroll-context coupling.   ── */
+
+    /* ── Ribbon wrapper (menu-tabs + toolbar only).
+       No container-level overflow: each child owns its horizontal scroll.       ── */
+    .ribbon { overflow: visible; }
+
+    /* ── Toolbar: restored, scrolls horizontally within its own context ── */
+    .toolbar {
         overflow-x: auto;
-        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
     }
-    /* Toolbar is decorative chrome — hide on mobile to free space and
-       eliminate the separate overflow context it would otherwise create */
-    .toolbar { display: none; }
+    .toolbar::-webkit-scrollbar { height: 0; display: none; }
+    .tool-group { flex-shrink: 0; }
+
     .menu-tabs {
         white-space: nowrap;
         flex-wrap: nowrap;
