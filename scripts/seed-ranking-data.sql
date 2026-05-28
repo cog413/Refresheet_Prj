@@ -30,19 +30,19 @@ DELETE FROM users         WHERE is_virtual = 1;
 -- All accounts: is_virtual=1, google_sub=NULL, onboarding_done=1
 -- Emails: @seed.refresheet.local — non-routable, never sent
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_kim_daeri', 'seed_kim_daeri@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '09:00', '18:00', 1, '김대리', 1, 'seed', 1);
+VALUES ('seed_usr_kim_daeri', 'seed_kim_daeri@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '현대자동차', '09:00', '18:00', 1, '그대이제회사라고말해요', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_park_staff', 'seed_park_staff@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '09:00', '18:00', 1, '박사원', 1, 'seed', 1);
+VALUES ('seed_usr_park_staff', 'seed_park_staff@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '삼성전자', '09:00', '18:00', 1, '내일은루팡', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_lee_manager', 'seed_lee_manager@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '08:30', '18:00', 1, '이과장', 1, 'seed', 1);
+VALUES ('seed_usr_lee_manager', 'seed_lee_manager@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '애플코리아', '08:30', '18:00', 1, '나이롱머스크', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_choi_junior', 'seed_choi_junior@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '09:00', '18:30', 1, '최주임', 1, 'seed', 1);
+VALUES ('seed_usr_choi_junior', 'seed_choi_junior@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '네이버웹툰', '09:00', '18:30', 1, 'KW5219', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_jung_intern', 'seed_jung_intern@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '09:00', '18:00', 1, '정인턴', 1, 'seed', 1);
+VALUES ('seed_usr_jung_intern', 'seed_jung_intern@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '한화오션', '09:00', '18:00', 1, '확인하러왔어요', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_yoon_mgr', 'seed_yoon_mgr@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '08:00', '18:00', 1, '윤매니저', 1, 'seed', 1);
+VALUES ('seed_usr_yoon_mgr', 'seed_yoon_mgr@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '라인', '08:00', '18:00', 1, '제미나이에요', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
-VALUES ('seed_usr_oh_lead', 'seed_oh_lead@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Office', '08:00', '17:30', 1, '오팀장', 1, 'seed', 1);
+VALUES ('seed_usr_oh_lead', 'seed_oh_lead@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', '카카오', '08:00', '17:30', 1, 'HSUK0425', 1, 'seed', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
 VALUES ('npc_usr_qa_bot', 'npc_qa_bot@seed.refresheet.local', NULL, '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z', 'Refresheet Lab', '00:00', '23:59', 1, 'QA_BOT', 1, 'npc', 1);
 INSERT OR IGNORE INTO users (user_id, email, google_sub, created_at, updated_at, company, commute_start, commute_end, onboarding_done, employee_name, is_active, source, is_virtual)
@@ -52,19 +52,19 @@ VALUES ('npc_usr_todaki', 'npc_todaki@seed.refresheet.local', NULL, '2026-05-27T
 
 -- Step 3: Avatar rows (minimal, required for /api/me parity)
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_kim_daeri', '김대리', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_kim_daeri', '그대이제회사라고말해요', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_park_staff', '박사원', 'type_a', 'rabbit', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_park_staff', '내일은루팡', 'type_a', 'rabbit', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_lee_manager', '이과장', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_lee_manager', '나이롱머스크', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_choi_junior', '최주임', 'type_a', 'rabbit', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_choi_junior', 'KW5219', 'type_a', 'rabbit', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_jung_intern', '정인턴', 'type_a', 'rabbit', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_jung_intern', '확인하러왔어요', 'type_a', 'rabbit', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_yoon_mgr', '윤매니저', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_yoon_mgr', '제미나이에요', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
-VALUES ('seed_usr_oh_lead', '오팀장', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
+VALUES ('seed_usr_oh_lead', 'HSUK0425', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
 VALUES ('npc_usr_qa_bot', 'QA_BOT', 'type_a', 'mong', '2026-05-27T18:20:30.628Z', '2026-05-27T18:20:30.628Z');
 INSERT OR IGNORE INTO avatars (user_id, nickname, character_type, character_key, created_at, updated_at)
