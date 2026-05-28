@@ -3224,6 +3224,9 @@ body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
         overflow-x: auto;
         white-space: nowrap;
     }
+    /* Toolbar is decorative chrome — hide on mobile to free space and
+       eliminate the separate overflow context it would otherwise create */
+    .toolbar { display: none; }
     .menu-tabs {
         white-space: nowrap;
         flex-wrap: nowrap;
