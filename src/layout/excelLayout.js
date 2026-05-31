@@ -109,7 +109,7 @@ export function initExcelLayout() {
             fileMenuTab.classList.add('active');
             sheetViews.forEach(sheet => {
                 const isFile = sheet.id === 'file-sheet';
-                sheet.style.display = isFile ? 'flex' : 'none';
+                sheet.style.display = isFile ? 'block' : 'none';
                 sheet.classList.toggle('active', isFile);
             });
             updateFormulaBarForSheet('file');
