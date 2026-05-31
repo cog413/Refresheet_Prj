@@ -37,6 +37,8 @@ export function initExcelLayout() {
         });
     }
 
+    initMobileSpreadsheetZoom();
+
     // 3. View tab toggles dark mode.
     const fileMenuTab = document.getElementById('file-menu-tab');
     const homeMenuTab = document.getElementById('home-menu-tab');
@@ -205,5 +207,146 @@ export function initExcelLayout() {
         showSheetLockToast.timer = setTimeout(() => {
             toast.classList.remove('visible');
         }, 2200);
+    }
+
+    function initMobileSpreadsheetZoom() {
+        const container = document.querySelector('.spreadsheet-container');
+        const gridContent = document.getElementById('grid-content');
+        if (!container || !gridContent) return;
+
+        const mobileQuery = window.matchMedia('(max-width: 768px)');
+        const MIN_FALLBACK_SCALE = 0.72;
+        const MAX_SCALE = 1.6;
+        const STEP = 0.1;
+        let scale = 1;
+        let pinchStartDistance = 0;
+        let pinchStartScale = 1;
+
+        const controls = document.createElement('div');
+        controls.className = 'mobile-zoom-controls';
+        controls.innerHTML = `
+            <button type="button" class="mobile-zoom-btn" data-zoom="out" aria-label="Zoom out">-</button>
+            <span class="mobile-zoom-value">100%</span>
+            <button type="button" class="mobile-zoom-btn" data-zoom="in" aria-label="Zoom in">+</button>
+        `;
+        container.appendChild(controls);
+
+        controls.addEventListener('click', (event) => {
+            const action = event.target?.dataset?.zoom;
+            if (!action || !mobileQuery.matches) return;
+            setScale(scale + (action === 'in' ? STEP : -STEP), true);
+        });
+
+        gridContent.addEventListener('touchstart', (event) => {
+            if (!mobileQuery.matches || event.touches.length !== 2) return;
+            pinchStartDistance = getTouchDistance(event.touches);
+            pinchStartScale = scale;
+        }, { passive: true });
+
+        gridContent.addEventListener('touchmove', (event) => {
+            if (!mobileQuery.matches || event.touches.length !== 2 || !pinchStartDistance) return;
+            event.preventDefault();
+            const nextDistance = getTouchDistance(event.touches);
+            setScale(pinchStartScale * (nextDistance / pinchStartDistance), false);
+        }, { passive: false });
+
+        gridContent.addEventListener('touchend', (event) => {
+            if (event.touches.length < 2) pinchStartDistance = 0;
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+            if (mobileQuery.matches) setScale(scale, false);
+            else resetMobileZoom();
+        });
+
+        document.addEventListener('click', (event) => {
+            const tab = event.target?.closest?.('.tab[data-sheet]');
+            if (tab) setTimeout(() => setScale(scale, false), 0);
+        });
+
+        resetMobileZoom();
+
+        function setScale(nextScale, centerViewport) {
+            if (!mobileQuery.matches) {
+                resetMobileZoom();
+                return;
+            }
+
+            const previous = scale;
+            scale = clamp(nextScale, getMinScale(), MAX_SCALE);
+            applyScale();
+            updateControls();
+
+            if (centerViewport && previous !== scale) {
+                const ratio = scale / previous;
+                gridContent.scrollLeft = (gridContent.scrollLeft + gridContent.clientWidth / 2) * ratio - gridContent.clientWidth / 2;
+                gridContent.scrollTop = (gridContent.scrollTop + gridContent.clientHeight / 2) * ratio - gridContent.clientHeight / 2;
+            }
+        }
+
+        function resetMobileZoom() {
+            if (mobileQuery.matches) {
+                setScale(scale, false);
+                return;
+            }
+            scale = 1;
+            applyScale();
+            updateControls();
+        }
+
+        function applyScale() {
+            document.querySelectorAll('.mobile-zoom-content').forEach(el => {
+                el.classList.remove('mobile-zoom-content');
+                el.style.zoom = '';
+            });
+
+            if (!mobileQuery.matches || scale === 1) return;
+
+            getZoomTargets().forEach(el => {
+                el.classList.add('mobile-zoom-content');
+                el.style.zoom = String(scale);
+            });
+        }
+
+        function getZoomTargets() {
+            const activeSheet = gridContent.querySelector('.sheet-view.active');
+            if (!activeSheet) return [];
+            return activeSheet.querySelectorAll([
+                ':scope > .rm-sheet',
+                ':scope > .review-sheet-wrap',
+                ':scope > .mp-scene',
+                ':scope > .fg-hero',
+                ':scope > .fg-link-grid',
+                ':scope .fake-dashboard',
+                ':scope .game-grid'
+            ].join(','));
+        }
+
+        function getMinScale() {
+            const activeSheet = gridContent.querySelector('.sheet-view.active');
+            if (!activeSheet) return MIN_FALLBACK_SCALE;
+
+            const targets = Array.from(getZoomTargets());
+            const contentWidth = Math.max(...targets.map(el => el.offsetLeft + el.scrollWidth), activeSheet.scrollWidth, 1);
+            const contentHeight = Math.max(...targets.map(el => el.offsetTop + el.scrollHeight), activeSheet.scrollHeight, 1);
+            const widthLimit = gridContent.clientWidth / contentWidth;
+            const heightLimit = gridContent.clientHeight / contentHeight;
+            return clamp(Math.max(MIN_FALLBACK_SCALE, Math.min(widthLimit, heightLimit, 1)), MIN_FALLBACK_SCALE, 1);
+        }
+
+        function updateControls() {
+            controls.hidden = !mobileQuery.matches;
+            controls.querySelector('.mobile-zoom-value').textContent = `${Math.round(scale * 100)}%`;
+        }
+
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
     }
 }

@@ -345,33 +345,12 @@ export async function initSudoku() {
         if (roundFinalized) return;
         if (!selectedCell) return;
 
-        // Start timer on first keystroke
-        if (!startTime) startTime = Date.now();
-
         if (/^[1-9]$/.test(e.key)) {
-            if (!selectedCell.classList.contains('fixed')) {
-                const r = parseInt(selectedCell.dataset.row);
-                const c = parseInt(selectedCell.dataset.col);
-                if (isValidMove(r, c, e.key)) {
-                    selectedCell.textContent = e.key;
-                    selectedCell.classList.add('user-input');
-                    // Re-highlight same numbers after entry
-                    selectCell(selectedCell);
-                    checkProgress();
-                } else {
-                    mistakeCount++;
-                    if (modal) modal.style.display = 'flex';
-                }
-            }
+            enterSelectedValue(e.key);
         }
 
         if (e.key === 'Backspace' || e.key === 'Delete') {
-            if (!selectedCell.classList.contains('fixed')) {
-                selectedCell.textContent = '';
-                selectedCell.classList.remove('user-input', 'same-number');
-                container.querySelectorAll('.same-number').forEach(c => c.classList.remove('same-number'));
-                if (formulaInput) formulaInput.value = '';
-            }
+            clearSelectedValue();
         }
 
         let r = parseInt(selectedCell.dataset.row);
@@ -384,6 +363,34 @@ export async function initSudoku() {
             const next = container.querySelector(`.excel-cell[data-row="${r}"][data-col="${c}"]`);
             if (next) selectCell(next);
         }
+    }
+
+    function enterSelectedValue(value) {
+        if (roundFinalized || !selectedCell || selectedCell.classList.contains('fixed')) return;
+        if (!startTime) startTime = Date.now();
+
+        const r = parseInt(selectedCell.dataset.row);
+        const c = parseInt(selectedCell.dataset.col);
+        if (isValidMove(r, c, value)) {
+            selectedCell.textContent = value;
+            selectedCell.classList.add('user-input');
+            // Re-highlight same numbers after entry
+            selectCell(selectedCell);
+            checkProgress();
+        } else {
+            mistakeCount++;
+            if (modal) modal.style.display = 'flex';
+        }
+    }
+
+    function clearSelectedValue() {
+        if (roundFinalized || !selectedCell || selectedCell.classList.contains('fixed')) return;
+        if (!startTime) startTime = Date.now();
+
+        selectedCell.textContent = '';
+        selectedCell.classList.remove('user-input', 'same-number');
+        container.querySelectorAll('.same-number').forEach(c => c.classList.remove('same-number'));
+        if (formulaInput) formulaInput.value = '';
     }
 
     function checkProgress() {
@@ -584,25 +591,25 @@ export async function initSudoku() {
 
     function buildMobileNumpad() {
         const pad = document.createElement('div');
-        pad.className = 'mobile-numpad';
+        pad.className = 'mobile-numpad sudoku-mobile-numpad';
 
-        for (let n = 1; n <= 9; n++) {
+        [7, 8, 9, 4, 5, 6, 1, 2, 3].forEach(n => {
             const btn = document.createElement('button');
             btn.className = 'mobile-numpad-btn';
             btn.textContent = String(n);
             btn.type = 'button';
             btn.addEventListener('click', () => {
-                document.dispatchEvent(new KeyboardEvent('keydown', { key: String(n), bubbles: true }));
+                enterSelectedValue(String(n));
             });
             pad.appendChild(btn);
-        }
+        });
 
         const del = document.createElement('button');
         del.className = 'mobile-numpad-btn del-btn';
-        del.textContent = '⌫ 지우기';
         del.type = 'button';
+        del.textContent = '지우기';
         del.addEventListener('click', () => {
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+            clearSelectedValue();
         });
         pad.appendChild(del);
 
