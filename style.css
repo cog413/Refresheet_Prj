@@ -131,7 +131,7 @@ body {
     border-radius: 12px;
     padding: 40px 48px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.03);
-    overflow: visible;
+    overflow: hidden;
     box-sizing: border-box;
 }
 
@@ -170,10 +170,10 @@ body {
 
 .fg-hero img {
     display: block;
-    max-width: 100%;
-    height: auto;
+    width: 100%;
+    aspect-ratio: 960 / 620;
+    max-height: 360px;
     object-fit: contain;
-    justify-self: center;
     border: 1px solid #d8e2da;
     border-radius: 6px;
     background: #fff;
@@ -3305,7 +3305,7 @@ body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
     }
     .fg-hero img {
         width: min(100%, 320px);
-        height: auto;
+        max-height: none;
         justify-self: center;
     }
     .fg-hero h1 {
