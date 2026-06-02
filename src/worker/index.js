@@ -113,6 +113,9 @@ export default {
             if (url.pathname === '/api/games/typing/ranking' && request.method === 'GET') {
                 return handleTypingRanking(request, env);
             }
+            if (url.pathname === '/api/games/sudoku/next' && request.method === 'GET') {
+                return handleSudokuNext(request, env);
+            }
             if (url.pathname === '/api/dev-login' && request.method === 'POST') {
                 return handleDevLogin(request, env);
             }
@@ -1991,6 +1994,54 @@ async function handleHappinessDailyClose(request, env) {
         achieved_daily_goal: achieved,
         message: achieved ? '토닥이 아껴주기 달성!' : '내일도 토닥이와 함께해요',
     }));
+}
+
+// ── Sudoku game handler ──────────────────────────────────────────────────────
+
+async function handleSudokuNext(request, env) {
+    const url = new URL(request.url);
+    const difficulty = url.searchParams.get('difficulty') || '3';
+    const validDifficulties = new Set(['1', '2', '3', '4', '5']);
+    const safeLevel = validDifficulties.has(difficulty) ? difficulty : '3';
+
+    const rawExclude = url.searchParams.get('exclude') || '';
+    const excludeIds = rawExclude
+        ? rawExclude.split(',').map(s => s.trim()).filter(Boolean).slice(0, 200)
+        : [];
+
+    const db = getDb(env);
+
+    let row = null;
+
+    if (excludeIds.length > 0) {
+        const placeholders = excludeIds.map(() => '?').join(',');
+        const result = await db.prepare(
+            `SELECT puzzle_id, difficulty, puzzle, solution
+               FROM sudoku_puzzles
+              WHERE difficulty = ? AND is_active = 1
+                AND puzzle_id NOT IN (${placeholders})
+              ORDER BY RANDOM()
+              LIMIT 1`
+        ).bind(safeLevel, ...excludeIds).first();
+        row = result;
+    }
+
+    // Fallback: ignore exclude list if no unseen puzzles remain
+    if (!row) {
+        row = await db.prepare(
+            `SELECT puzzle_id, difficulty, puzzle, solution
+               FROM sudoku_puzzles
+              WHERE difficulty = ? AND is_active = 1
+              ORDER BY RANDOM()
+              LIMIT 1`
+        ).bind(safeLevel).first();
+    }
+
+    if (!row) {
+        return withCors(json({ error: 'no_puzzle_available', difficulty: safeLevel }, 404));
+    }
+
+    return withCors(json({ ...row, is_active: 1 }));
 }
 
 // ── Typing game handlers ────────────────────────────────────────────────────

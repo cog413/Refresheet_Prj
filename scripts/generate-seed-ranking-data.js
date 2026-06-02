@@ -451,7 +451,6 @@ function generateSQL() {
     lines.push('-- Step 1: Remove previous seed data (safe re-run)');
     lines.push("DELETE FROM game_scores WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1);");
     lines.push("DELETE FROM user_points   WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1);");
-    lines.push("DELETE FROM point_wallets WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1);");
     lines.push("DELETE FROM avatars       WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1);");
     lines.push("DELETE FROM users         WHERE is_virtual = 1;");
     lines.push('');
@@ -536,15 +535,10 @@ function generateSQL() {
     lines.push(...scoreInserts);
     lines.push('');
 
-    // ── 5. Point wallets (approximate, from score sum) ────────────────────
-    lines.push('-- Step 5: Point wallets (approximated from total scores / 10)');
-    lines.push('-- Does not create real point_transactions — admin adjust only');
+    // ── 5. User points (from score sum) ──────────────────────────────────
+    lines.push('-- Step 5: User points (approximated from total scores / 10)');
     for (const u of SEED_USERS) {
-        // Estimate: average score 3000, 3 games/week, 4 weeks → ~3600 pts
         const approxBalance = randInt(800, 5000);
-        lines.push(`INSERT OR IGNORE INTO point_wallets (user_id, point_balance, updated_at)`);
-        lines.push(`VALUES (${[sq(u.user_id), approxBalance, sq(now)].join(', ')});`);
-
         lines.push(`INSERT OR IGNORE INTO user_points (user_id, current_points, total_earned_points, total_spent_points, created_at, updated_at)`);
         lines.push(`VALUES (${[sq(u.user_id), approxBalance, approxBalance, 0, sq(now), sq(now)].join(', ')});`);
     }

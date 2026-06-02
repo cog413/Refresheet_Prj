@@ -258,12 +258,6 @@ async function runSeedCron(env) {
                      WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1)
                 `).bind(nowIso),
                 db.prepare(`
-                    UPDATE point_wallets
-                       SET point_balance = MAX(0, point_balance / 2),
-                           updated_at    = ?
-                     WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1)
-                `).bind(nowIso),
-                db.prepare(`
                     INSERT INTO seed_config (key, value, updated_at)
                     VALUES ('seed.decay_applied', ?, ?)
                 `).bind(todayKst, nowIso),
