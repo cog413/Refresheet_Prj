@@ -214,8 +214,11 @@ export function initExcelLayout() {
         const gridContent = document.getElementById('grid-content');
         if (!container || !gridContent) return;
 
+        const zoomLayer = ensureSpreadsheetZoomLayer(container);
         const mobileQuery = window.matchMedia('(max-width: 768px)');
-        const MIN_FALLBACK_SCALE = 0.72;
+        // Absolute mobile floor: preserve tap/readability even when a wide sheet cannot fully fit.
+        // 0.62 keeps an 80px Excel cell at ~50px and a 22px row at ~14px, which is still usable on phones.
+        const ABSOLUTE_MIN_SCALE = 0.62;
         const MAX_SCALE = 1.6;
         const STEP = 0.1;
         let scale = 1;
@@ -300,38 +303,32 @@ export function initExcelLayout() {
                 el.style.zoom = '';
             });
 
-            if (!mobileQuery.matches || scale === 1) return;
+            if (!mobileQuery.matches) {
+                zoomLayer.style.transform = '';
+                zoomLayer.style.width = '';
+                zoomLayer.style.height = '';
+                return;
+            }
 
-            getZoomTargets().forEach(el => {
-                el.classList.add('mobile-zoom-content');
-                el.style.zoom = String(scale);
-            });
-        }
-
-        function getZoomTargets() {
-            const activeSheet = gridContent.querySelector('.sheet-view.active');
-            if (!activeSheet) return [];
-            return activeSheet.querySelectorAll([
-                ':scope > .rm-sheet',
-                ':scope > .review-sheet-wrap',
-                ':scope > .mp-scene',
-                ':scope > .fg-hero',
-                ':scope > .fg-link-grid',
-                ':scope .fake-dashboard',
-                ':scope .game-grid'
-            ].join(','));
+            zoomLayer.style.transform = `scale(${scale})`;
+            zoomLayer.style.width = `${100 / scale}%`;
+            zoomLayer.style.height = `${100 / scale}%`;
         }
 
         function getMinScale() {
             const activeSheet = gridContent.querySelector('.sheet-view.active');
-            if (!activeSheet) return MIN_FALLBACK_SCALE;
+            if (!activeSheet) return ABSOLUTE_MIN_SCALE;
 
-            const targets = Array.from(getZoomTargets());
-            const contentWidth = Math.max(...targets.map(el => el.offsetLeft + el.scrollWidth), activeSheet.scrollWidth, 1);
-            const contentHeight = Math.max(...targets.map(el => el.offsetTop + el.scrollHeight), activeSheet.scrollHeight, 1);
-            const widthLimit = gridContent.clientWidth / contentWidth;
-            const heightLimit = gridContent.clientHeight / contentHeight;
-            return clamp(Math.max(MIN_FALLBACK_SCALE, Math.min(widthLimit, heightLimit, 1)), MIN_FALLBACK_SCALE, 1);
+            const rowHeaderWidth = document.getElementById('row-headers')?.offsetWidth || 0;
+            const columnHeaderHeight = document.getElementById('col-headers')?.offsetHeight || 0;
+            const contentWidth = Math.max(activeSheet.scrollWidth, activeSheet.offsetLeft + activeSheet.scrollWidth, 1);
+            const contentHeight = Math.max(activeSheet.scrollHeight, activeSheet.offsetTop + activeSheet.scrollHeight, 1);
+            const fitScale = Math.min(
+                container.clientWidth / (rowHeaderWidth + contentWidth),
+                container.clientHeight / (columnHeaderHeight + contentHeight),
+                1
+            );
+            return clamp(Math.max(ABSOLUTE_MIN_SCALE, fitScale), ABSOLUTE_MIN_SCALE, 1);
         }
 
         function updateControls() {
@@ -348,5 +345,23 @@ export function initExcelLayout() {
         function clamp(value, min, max) {
             return Math.min(max, Math.max(min, value));
         }
+    }
+
+    function ensureSpreadsheetZoomLayer(container) {
+        let layer = container.querySelector('.spreadsheet-zoom-layer');
+        if (layer) return layer;
+
+        layer = document.createElement('div');
+        layer.className = 'spreadsheet-zoom-layer';
+        const cornerHeader = container.querySelector('.corner-header');
+        const columnHeaders = container.querySelector('.column-headers');
+        const spreadsheetBody = container.querySelector('.spreadsheet-body');
+        const first = cornerHeader || columnHeaders || spreadsheetBody;
+
+        if (first) container.insertBefore(layer, first);
+        [cornerHeader, columnHeaders, spreadsheetBody].forEach(el => {
+            if (el) layer.appendChild(el);
+        });
+        return layer;
     }
 }
