@@ -210,21 +210,19 @@ export function initExcelLayout() {
     }
 
     function initMobileSpreadsheetZoom() {
-        const container = document.querySelector('.spreadsheet-container');
+        const appEl = document.getElementById('excel-app');
         const gridContent = document.getElementById('grid-content');
-        if (!container || !gridContent) return;
+        if (!appEl || !gridContent) return;
 
-        const zoomLayer = ensureSpreadsheetZoomLayer(container);
         const mobileQuery = window.matchMedia('(max-width: 768px)');
-        // Absolute mobile floor: preserve tap/readability even when a wide sheet cannot fully fit.
-        // 0.62 keeps an 80px Excel cell at ~50px and a 22px row at ~14px, which is still usable on phones.
-        const ABSOLUTE_MIN_SCALE = 0.62;
+        const MIN_SCALE = 0.5;
         const MAX_SCALE = 1.6;
         const STEP = 0.1;
         let scale = 1;
         let pinchStartDistance = 0;
         let pinchStartScale = 1;
 
+        // Controls appended to body so they're NOT inside the scaled #excel-app
         const controls = document.createElement('div');
         controls.className = 'mobile-zoom-controls';
         controls.innerHTML = `
@@ -232,7 +230,7 @@ export function initExcelLayout() {
             <span class="mobile-zoom-value">100%</span>
             <button type="button" class="mobile-zoom-btn" data-zoom="in" aria-label="Zoom in">+</button>
         `;
-        container.appendChild(controls);
+        document.body.appendChild(controls);
 
         controls.addEventListener('click', (event) => {
             const action = event.target?.dataset?.zoom;
@@ -240,26 +238,27 @@ export function initExcelLayout() {
             setScale(scale + (action === 'in' ? STEP : -STEP), true);
         });
 
-        gridContent.addEventListener('touchstart', (event) => {
+        // Pinch listener on the whole app to capture gestures anywhere on screen
+        appEl.addEventListener('touchstart', (event) => {
             if (!mobileQuery.matches || event.touches.length !== 2) return;
             pinchStartDistance = getTouchDistance(event.touches);
             pinchStartScale = scale;
         }, { passive: true });
 
-        gridContent.addEventListener('touchmove', (event) => {
+        appEl.addEventListener('touchmove', (event) => {
             if (!mobileQuery.matches || event.touches.length !== 2 || !pinchStartDistance) return;
             event.preventDefault();
             const nextDistance = getTouchDistance(event.touches);
             setScale(pinchStartScale * (nextDistance / pinchStartDistance), false);
         }, { passive: false });
 
-        gridContent.addEventListener('touchend', (event) => {
+        appEl.addEventListener('touchend', (event) => {
             if (event.touches.length < 2) pinchStartDistance = 0;
         }, { passive: true });
 
         window.addEventListener('resize', () => {
             if (mobileQuery.matches) setScale(scale, false);
-            else resetMobileZoom();
+            else resetZoom();
         });
 
         document.addEventListener('click', (event) => {
@@ -267,68 +266,44 @@ export function initExcelLayout() {
             if (tab) setTimeout(() => setScale(scale, false), 0);
         });
 
-        resetMobileZoom();
+        resetZoom();
 
         function setScale(nextScale, centerViewport) {
             if (!mobileQuery.matches) {
-                resetMobileZoom();
+                resetZoom();
                 return;
             }
-
             const previous = scale;
-            scale = clamp(nextScale, getMinScale(), MAX_SCALE);
+            scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
             applyScale();
             updateControls();
 
             if (centerViewport && previous !== scale) {
                 const ratio = scale / previous;
                 gridContent.scrollLeft = (gridContent.scrollLeft + gridContent.clientWidth / 2) * ratio - gridContent.clientWidth / 2;
-                gridContent.scrollTop = (gridContent.scrollTop + gridContent.clientHeight / 2) * ratio - gridContent.clientHeight / 2;
+                gridContent.scrollTop  = (gridContent.scrollTop  + gridContent.clientHeight / 2) * ratio - gridContent.clientHeight / 2;
             }
         }
 
-        function resetMobileZoom() {
-            if (mobileQuery.matches) {
-                setScale(scale, false);
-                return;
-            }
+        function resetZoom() {
             scale = 1;
             applyScale();
             updateControls();
         }
 
         function applyScale() {
-            document.querySelectorAll('.mobile-zoom-content').forEach(el => {
-                el.classList.remove('mobile-zoom-content');
-                el.style.zoom = '';
-            });
-
-            if (!mobileQuery.matches) {
-                zoomLayer.style.transform = '';
-                zoomLayer.style.width = '';
-                zoomLayer.style.height = '';
+            if (!mobileQuery.matches || scale === 1) {
+                appEl.style.transform      = '';
+                appEl.style.transformOrigin = '';
+                appEl.style.width          = '';
+                appEl.style.height         = '';
                 return;
             }
-
-            zoomLayer.style.transform = `scale(${scale})`;
-            zoomLayer.style.width = `${100 / scale}%`;
-            zoomLayer.style.height = `${100 / scale}%`;
-        }
-
-        function getMinScale() {
-            const activeSheet = gridContent.querySelector('.sheet-view.active');
-            if (!activeSheet) return ABSOLUTE_MIN_SCALE;
-
-            const rowHeaderWidth = document.getElementById('row-headers')?.offsetWidth || 0;
-            const columnHeaderHeight = document.getElementById('col-headers')?.offsetHeight || 0;
-            const contentWidth = Math.max(activeSheet.scrollWidth, activeSheet.offsetLeft + activeSheet.scrollWidth, 1);
-            const contentHeight = Math.max(activeSheet.scrollHeight, activeSheet.offsetTop + activeSheet.scrollHeight, 1);
-            const fitScale = Math.min(
-                container.clientWidth / (rowHeaderWidth + contentWidth),
-                container.clientHeight / (columnHeaderHeight + contentHeight),
-                1
-            );
-            return clamp(Math.max(ABSOLUTE_MIN_SCALE, fitScale), ABSOLUTE_MIN_SCALE, 1);
+            // Scale the entire app from top-left; compensate dimensions so it still fills the viewport
+            appEl.style.transformOrigin = '0 0';
+            appEl.style.transform       = `scale(${scale})`;
+            appEl.style.width           = `${100 / scale}vw`;
+            appEl.style.height          = `${100 / scale}dvh`;
         }
 
         function updateControls() {
@@ -341,27 +316,5 @@ export function initExcelLayout() {
             const dy = touches[0].clientY - touches[1].clientY;
             return Math.hypot(dx, dy);
         }
-
-        function clamp(value, min, max) {
-            return Math.min(max, Math.max(min, value));
-        }
-    }
-
-    function ensureSpreadsheetZoomLayer(container) {
-        let layer = container.querySelector('.spreadsheet-zoom-layer');
-        if (layer) return layer;
-
-        layer = document.createElement('div');
-        layer.className = 'spreadsheet-zoom-layer';
-        const cornerHeader = container.querySelector('.corner-header');
-        const columnHeaders = container.querySelector('.column-headers');
-        const spreadsheetBody = container.querySelector('.spreadsheet-body');
-        const first = cornerHeader || columnHeaders || spreadsheetBody;
-
-        if (first) container.insertBefore(layer, first);
-        [cornerHeader, columnHeaders, spreadsheetBody].forEach(el => {
-            if (el) layer.appendChild(el);
-        });
-        return layer;
     }
 }
