@@ -1959,12 +1959,12 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 }
 
 /* Row coordinates (row-h = 22px; top = (row-1)*22, height = span*22) */
-.rm-block-kpi      { top:  22px; height: 154px; } /* rows  2– 8 */
-.rm-block-rank     { top: 198px; height: 220px; } /* rows 10–19 */
-.rm-block-notes    { top: 440px; height: 132px; } /* rows 21–26 */
+.rm-block-kpi      { top:  22px; height: 176px; } /* rows  2-9 */
+.rm-block-rank     { top: 220px; height: 220px; } /* rows 11-20 */
+.rm-block-notes    { top: 462px; height: 132px; } /* rows 22-27 */
 .rm-block-sop      { top:  22px; height: 242px; } /* rows  2–12 */
 .rm-block-guide    { top: 286px; height: 132px; } /* rows 14–19 */
-.rm-block-tabguide { top: 440px; height: 132px; } /* rows 21–26 */
+.rm-block-tabguide { top: 440px; height: 154px; } /* rows 21-27 */
 
 /* Section headers */
 .rm-section-hd {
@@ -1996,7 +1996,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     flex: 1;
     display: flex;
     flex-direction: column;
-    padding: 10px 14px 8px;
+    padding: 12px 14px 10px;
     border-right: 1px solid #c6e0b4;
     background: #fff;
 }
@@ -2206,8 +2206,8 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     overflow: hidden;
     text-overflow: ellipsis;
 }
-/* 탭 안내: 5항목을 132px 내에 수용 */
-.rm-block-tabguide .rm-guide-item { height: 20px; }
+/* Tab guide: five rows inside a 154px block */
+.rm-block-tabguide .rm-guide-item { height: 24px; }
 
 /* ── 참고사항 ─────────────────────────────────────── */
 .rm-notes {

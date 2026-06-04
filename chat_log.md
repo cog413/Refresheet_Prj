@@ -79,3 +79,17 @@
 - The ReadMe grid disappeared because `.rm-block` became opaque and `.rm-sheet` had zero width due to absolute-positioned children.
 - Broad wrapper backgrounds hide spreadsheet grid lines. Content panels can be opaque; positioning containers should usually stay transparent.
 - Pattie pet/snack coordinate fixes must stay centralized. Independent magic-number patches reintroduce 1-4px drift.
+
+---
+
+### [2026-06-05] (CLI: codex)
+
+**1. Goal**
+- Adjust ReadMe sheet vertical block placement without touching X-axis, widths, or restored Excel grid rules.
+
+**2. Changes**
+- Updated only ReadMe block Y coordinates in `style.css`: KPI rows 2-9, rank rows 11-20, notes rows 22-27, tab/button guide rows 21-27.
+- Slightly adjusted KPI card padding and tab-guide item height to fit the taller blocks.
+
+**3. Verification**
+- Browser computed style confirmed `.rm-sheet` still has `1600x640` paintable area, grid background gradients remain active, and `.rm-block` remains transparent.
