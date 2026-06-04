@@ -63,3 +63,19 @@
 **6. 반영 필요 사항 (중요)**
 - 이제 모든 에이전트 호출은 `python scripts/orchestrator.py`를 경유함.
 - API 방식은 `config.json` 수정 또는 `--backend api` 옵션을 통해 선택적으로 사용 가능.
+---
+
+### [2026-06-04] (CLI: codex)
+
+**1. Goal**
+- Prevent repeat regressions from the ReadMe grid and Pattie terrain/snack coordinate fixes.
+
+**2. Changes**
+- Updated `HANDOFF.md` with ReadMe grid rules: `.rm-sheet` owns the grid, needs explicit paintable dimensions, and `.rm-block` must stay transparent.
+- Updated `HANDOFF.md` with Pattie terrain cautions: use `chartSurfaceModel.js`, group bars by `mp-bar-pair`, keep `apple_idle..png`, and tune snack speed only through snack-specific constants.
+- Updated `AGENT_GUIDELINES.md` with CSS visual regression checks: compare recent git history and verify computed styles before patching backgrounds/grids.
+
+**3. Lessons**
+- The ReadMe grid disappeared because `.rm-block` became opaque and `.rm-sheet` had zero width due to absolute-positioned children.
+- Broad wrapper backgrounds hide spreadsheet grid lines. Content panels can be opaque; positioning containers should usually stay transparent.
+- Pattie pet/snack coordinate fixes must stay centralized. Independent magic-number patches reintroduce 1-4px drift.

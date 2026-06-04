@@ -49,6 +49,14 @@ Make the smallest change that solves the problem.
 - Commit messages explain **why**, not what — the diff shows what
 - Restructuring goes in a separate commit from a bug fix
 
+### CSS / Visual Regression Checks
+
+- Before fixing a disappeared grid, border, or background, compare the last known good commit with `git diff <good>..HEAD -- style.css index.html`.
+- Verify computed style in the browser. For grid issues, check nonzero `clientWidth/clientHeight`, expected `backgroundImage`, and whether parent wrappers are covering the target.
+- Do not add opaque backgrounds to broad positioning wrappers unless the design explicitly requires it. Put backgrounds on real content panels, not on layout containers.
+- For ReadMe specifically: `.rm-sheet` owns the grid and must have explicit paintable dimensions; `.rm-block` must remain transparent.
+- For Pattie terrain specifically: use the shared chart surface model; do not patch pet and snack coordinates independently.
+
 ---
 
 ## 5. Goal-Driven Execution
