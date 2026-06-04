@@ -75,6 +75,83 @@
             <h3>Q. 모바일에서도 가능한가요?</h3>
             <p>네, Refresheet는 반응형으로 설계되어 모바일 브라우저에서도 즐기실 수 있습니다. 다만 정밀한 조작(스도쿠 등)은 PC 환경을 권장합니다.</p>
         </section>
+        
+        <section class="note referral-card">
+            <div class="note-content">
+                <h3>Q. 친구 추천 기능은 어떻게 이용하나요?</h3>
+                <p>친구가 회원가입 후, 우측 상단 프로필의 <strong>[내 설정]</strong> 메뉴에서 내 이메일 주소를 <strong>[추천계정]</strong>에 입력하고 저장하면 추천인으로 등록됩니다.</p>
+                <p>추천 친구가 2명 이상 등록되면, 새로운 미니게임 시트인 <strong>'NewGame'</strong> 탭과 귀여운 고양이 캐릭터 <strong>'토닥이(Cabul)'</strong>의 잠금이 해제되어 자유롭게 이용하실 수 있습니다.</p>
+            </div>
+            <div class="mockup-container">
+                <div class="mockup-window">
+                    <!-- Step 1: Click Profile Dropdown -->
+                    <div class="mock-header-ribbon">
+                        <div class="mock-title">
+                            <span class="mock-icon">📗</span> Refresheet
+                        </div>
+                        <div class="mock-profile-area">
+                            <div class="mock-profile-badge" id="mock-profile-btn">
+                                <span class="avatar-text">JC</span>
+                                <span class="pulse-dot"></span>
+                            </div>
+                            <!-- Dropdown Menu -->
+                            <div class="mock-dropdown" id="mock-dropdown-menu">
+                                <div class="mock-dropdown-item" id="mock-menu-settings">
+                                    내 설정
+                                    <span class="pulse-dot"></span>
+                                </div>
+                                <div class="mock-dropdown-item">로그아웃</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Settings Modal -->
+                    <div class="mock-modal-overlay" id="mock-settings-modal">
+                        <div class="mock-excel-modal">
+                            <div class="mock-modal-header">
+                                <span>내 설정</span>
+                                <span class="mock-modal-close" id="mock-modal-close">✕</span>
+                            </div>
+                            <div class="mock-modal-body">
+                                <div class="mock-blurred-fields">
+                                    <div class="mock-field-dummy"></div>
+                                    <div class="mock-field-dummy" style="width: 70%;"></div>
+                                </div>
+                                
+                                <div class="mock-referral-field">
+                                    <label class="mock-label">추천계정</label>
+                                    <div class="mock-input-wrap">
+                                        <input type="text" class="mock-input" id="mock-referral-input" placeholder="추천인 이메일" readonly>
+                                    </div>
+                                    <div class="mock-help">추천계정 입력 후에는 수정할 수 없습니다.</div>
+                                    <div class="mock-help">추천계정은 기존에 가입된 계정이어야 합니다.</div>
+                                    <div class="mock-message" id="mock-referral-message"></div>
+                                    <button type="button" class="mock-btn-save" id="mock-btn-referral-save">
+                                        추천계정 저장
+                                        <span class="pulse-dot"></span>
+                                    </button>
+                                </div>
+
+                                <div class="mock-modal-buttons">
+                                    <button class="mock-btn-footer retry" id="mock-btn-save-all">저장(S)</button>
+                                    <button class="mock-btn-footer" id="mock-btn-cancel">취소</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Success overlay -->
+                    <div class="mock-success-overlay" id="mock-success-screen">
+                        <div class="mock-success-card">
+                            <div class="mock-success-icon">🎉</div>
+                            <h4>추천 완료!</h4>
+                            <p>NewGame 및 Kitty 잠금이 해제되었습니다.</p>
+                            <button class="mock-btn-reset" id="mock-btn-reset">다시 보기</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
     <div class="callout">
@@ -111,5 +188,118 @@
         </div>
     </div>
   </footer>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const profileBtn = document.getElementById('mock-profile-btn');
+        const dropdownMenu = document.getElementById('mock-dropdown-menu');
+        const menuSettings = document.getElementById('mock-menu-settings');
+        const settingsModal = document.getElementById('mock-settings-modal');
+        const modalClose = document.getElementById('mock-modal-close');
+        const referralInput = document.getElementById('mock-referral-input');
+        const btnReferralSave = document.getElementById('mock-btn-referral-save');
+        const referralMessage = document.getElementById('mock-referral-message');
+        const successScreen = document.getElementById('mock-success-screen');
+        const btnReset = document.getElementById('mock-btn-reset');
+        const btnCancel = document.getElementById('mock-btn-cancel');
+        const btnSaveAll = document.getElementById('mock-btn-save-all');
+        
+        let typingTimer = null;
+        
+        function resetMockup() {
+            if (typingTimer) clearTimeout(typingTimer);
+            dropdownMenu.classList.remove('show');
+            settingsModal.classList.remove('show');
+            successScreen.classList.remove('show');
+            
+            referralInput.value = '';
+            referralInput.disabled = false;
+            
+            btnReferralSave.disabled = false;
+            btnReferralSave.style.display = 'inline-flex';
+            btnReferralSave.textContent = '추천계정 저장';
+            btnReferralSave.classList.remove('pulse-active');
+            
+            btnSaveAll.classList.remove('pulse-active');
+            
+            referralMessage.textContent = '';
+            referralMessage.style.color = '#c00000';
+            
+            profileBtn.classList.add('pulse-active');
+        }
+        
+        profileBtn.addEventListener('click', () => {
+            if (dropdownMenu.classList.contains('show')) {
+                dropdownMenu.classList.remove('show');
+                profileBtn.classList.add('pulse-active');
+                menuSettings.classList.remove('pulse-active');
+            } else {
+                dropdownMenu.classList.add('show');
+                profileBtn.classList.remove('pulse-active');
+                menuSettings.classList.add('pulse-active');
+            }
+        });
+        
+        menuSettings.addEventListener('click', () => {
+            dropdownMenu.classList.remove('show');
+            menuSettings.classList.remove('pulse-active');
+            settingsModal.classList.add('show');
+            
+            typingTimer = setTimeout(startTypingSimulation, 600);
+        });
+        
+        function startTypingSimulation() {
+            const text = 'colleague@company.com';
+            let index = 0;
+            referralInput.value = '';
+            
+            function type() {
+                if (index < text.length) {
+                    referralInput.value += text[index];
+                    index++;
+                    typingTimer = setTimeout(type, 80);
+                } else {
+                    btnReferralSave.classList.add('pulse-active');
+                }
+            }
+            type();
+        }
+        
+        btnReferralSave.addEventListener('click', () => {
+            btnReferralSave.classList.remove('pulse-active');
+            btnReferralSave.disabled = true;
+            btnReferralSave.textContent = '저장 중...';
+            
+            setTimeout(() => {
+                btnReferralSave.style.display = 'none';
+                referralInput.disabled = true;
+                referralMessage.style.color = '#217346';
+                referralMessage.textContent = '추천계정이 저장되어 수정할 수 없습니다.';
+                
+                btnSaveAll.classList.add('pulse-active');
+            }, 800);
+        });
+        
+        btnSaveAll.addEventListener('click', () => {
+            btnSaveAll.classList.remove('pulse-active');
+            settingsModal.classList.remove('show');
+            successScreen.classList.add('show');
+        });
+        
+        modalClose.addEventListener('click', () => {
+            settingsModal.classList.remove('show');
+            resetMockup();
+        });
+        
+        btnCancel.addEventListener('click', () => {
+            settingsModal.classList.remove('show');
+            resetMockup();
+        });
+        
+        btnReset.addEventListener('click', resetMockup);
+        
+        resetMockup();
+    });
+  </script>
 </body>
 </html>
