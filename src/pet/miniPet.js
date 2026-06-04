@@ -71,7 +71,7 @@ async function startScene() {
         setTimeout(() => {
             bar.style.transition = 'height .7s ease-out';
             bar.style.height = bar.classList.contains('mp-bar-offline')
-                ? `${parseFloat(bar.dataset.h) * 0.34}%`
+                ? `${parseFloat(bar.dataset.h) * 0.68}%`
                 : `${bar.dataset.h}%`;
         }, i * 70);
     });

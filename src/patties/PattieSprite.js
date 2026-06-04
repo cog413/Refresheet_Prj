@@ -9,6 +9,7 @@ export class PattieSprite {
         this.frameTimer = null;
         this.el = document.createElement('div');
         this.el.className = 'pattie-sprite';
+        this.el.style.visibility = 'hidden';
         this.el.tabIndex = 0;
         this.el.setAttribute('role', 'button');
         this.el.setAttribute('aria-label', 'Pattie');
@@ -108,6 +109,7 @@ export class PattieSprite {
 
     setPosition(x, y, direction = 1) {
         this.el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scaleX(${direction < 0 ? -1 : 1})`;
+        this.el.style.visibility = 'visible';
         // counter-flip bubble so text always reads left-to-right
         this.bubbleEl.style.transform = direction < 0 ? 'scaleX(-1)' : '';
     }

@@ -1,3 +1,5 @@
+import { buildChartSurfaceModel } from './chartSurfaceModel.js';
+
 export function getMapLocalPointFromMouse(event, mapEl) {
     const rect = mapEl.getBoundingClientRect();
     return {
@@ -19,50 +21,15 @@ export function clampPointToMap(point, mapEl, size) {
 }
 
 export function getSolidSurfaces({ controller, mapEl, appleSize }) {
-    const petSize = controller?.config?.movement?.spriteSize || 32;
-    const bounds = controller?.getLocalChartBounds?.() || {
-        left: 0,
-        top: 0,
-        right: mapEl.clientWidth,
-        bottom: mapEl.clientHeight,
-    };
-    const floorPetSurface = controller?.getChartSurfaces?.().find(s => s.kind === 'floor');
-    const floorPetY = floorPetSurface?.y ?? Math.max(0, bounds.bottom - petSize - 16);
-    const floorY = floorPetY + petSize;
-
-    const surfaces = [{
-        id: 'base_floor',
-        kind: 'floor',
-        minX: bounds.left + appleSize / 2,
-        maxX: bounds.right - appleSize / 2,
-        surfaceY: floorY,
-        petY: floorPetY,
-    }];
-
-    const bars = controller?.getSortedBars?.() || [];
-    bars.forEach((bar, index) => {
-        if (bar.width <= 0 || bar.height <= 2) return;
-        const petY = bar.top - petSize + 6;
-        const heightFromFloor = Math.abs(petY - floorPetY);
-        if (heightFromFloor > (controller.config?.movement?.maxBarHeightFromFloorPx || 132)) return;
-        // 개별 bar가 아닌 pair 범위를 사용 (개별 bar가 너무 좁으면 appleSize/2 패딩으로 minX>maxX가 됨)
-        const halfApple = appleSize / 2;
-        const pairLeft = bar.pairLeft ?? bar.left;
-        const pairWidth = bar.pairWidth ?? bar.width;
-        const pairMinX = pairLeft + halfApple;
-        const pairMaxX = pairLeft + pairWidth - halfApple;
-        if (pairMaxX <= pairMinX) return;
-        surfaces.push({
-            id: `bar-${index}`,
-            kind: 'bar',
-            minX: pairMinX,
-            maxX: pairMaxX,
-            surfaceY: bar.top,
-            petY,
-        });
-    });
-
-    return surfaces;
+    return buildChartSurfaceModel({ controller, mapEl, appleSize }).map(surface => ({
+        id: surface.snackId,
+        kind: surface.kind,
+        minX: surface.snackMinX,
+        maxX: surface.snackMaxX,
+        surfaceY: surface.surfaceY,
+        petY: surface.petY,
+        appleY: surface.appleY,
+    }));
 }
 
 export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appleSize }) {
@@ -72,8 +39,9 @@ export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appl
         id: 'base_floor',
         minX: appleSize / 2,
         maxX: (mapEl.clientWidth || 0) - appleSize / 2,
-        surfaceY: (mapEl.clientHeight || appleSize) - 16,
-        petY: (mapEl.clientHeight || appleSize) - appleSize - 16,
+        surfaceY: (mapEl.clientHeight || appleSize) - 15,
+        petY: (mapEl.clientHeight || appleSize) - appleSize - 15,
+        appleY: (mapEl.clientHeight || appleSize) - appleSize - 13,
     };
     const candidates = surfaces
         .filter(surface => dropX >= surface.minX && dropX <= surface.maxX)
@@ -84,7 +52,7 @@ export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appl
     const centerX = clamp(dropX, surface.minX, surface.maxX);
     const point = {
         x: centerX - appleSize / 2,
-        y: surface.surfaceY - appleSize + 2,
+        y: surface.appleY ?? surface.surfaceY - appleSize + 2,
         centerX,
         centerY: surface.surfaceY - appleSize / 2,
         surface,

@@ -5,6 +5,7 @@ import { SnackAction } from './snackInteractionState.js';
 import { planPathToSnack } from './snackPathPlanner.js';
 import { isPetFaceTouchingApple } from './snackCollision.js';
 import { waitMs } from './snackAnimations.js';
+import { buildChartSurfaceModel } from './chartSurfaceModel.js';
 
 let controller = null;
 
@@ -95,6 +96,8 @@ export class PattieRoamingController {
     }
 
     attach(root) {
+        const rootChanged = this.root !== root;
+        if (rootChanged) this.hasPlaced = false;
         this.root = root;
         this.root.classList.add('pattie-world');
         if (this.sprite && !this.root.contains(this.sprite.el)) this.root.appendChild(this.sprite.el);
@@ -751,10 +754,11 @@ export class PattieRoamingController {
         const size = this.config.movement.spriteSize;
         const width = this.root.clientWidth || this.root.getBoundingClientRect().width;
         const height = this.root.clientHeight || this.root.getBoundingClientRect().height;
+        const floor = this.getChartSurfaces().find((surface) => surface.kind === 'floor');
         const minX = 34;
         const maxX = Math.max(minX, width - size - 34);
         this.x = randomBetween(minX, maxX);
-        this.y = Math.max(0, height - size - 16);
+        this.y = floor?.y ?? Math.max(0, height - size - 15);
         this.direction = Math.random() < 0.5 ? -1 : 1;
         this.terrainMotion = null;
         this.jumpMotion = null;
@@ -793,7 +797,7 @@ export class PattieRoamingController {
     }
 
     findNearestBar() {
-        const bars = this.getSortedBars();
+        const bars = this.getGroupedChartBars();
         if (!bars.length) return null;
         const size = this.config.movement.spriteSize;
         const centerX = this.x + size / 2;
@@ -802,29 +806,14 @@ export class PattieRoamingController {
 
     getChartSurfaces() {
         if (!this.getZones().find((zone) => zone.id === 'chart-zone')) return [];
-        const size = this.config.movement.spriteSize;
-        const bounds = this.getLocalChartBounds();
-
-        // Terrain calculation uses chart-local coordinates so page/excel scrolling cannot shift the pet.
-        const floor = {
-            id: 'chart-floor',
-            kind: 'floor',
-            minX: bounds.left + 14,
-            maxX: bounds.right - size - 14,
-            y: bounds.bottom - size - 16,
-        };
-        const floorY = floor.y;
-        const bars = this.getSortedBars().map((bar, index) => ({
-            id: `bar-${index}`,
-            kind: 'bar',
-            minX: bar.pairLeft + 1,
-            maxX: bar.pairLeft + bar.pairWidth - size - 1,
-            y: bar.top - size + 6, // Sprite has transparent foot padding; bar surfaces only.
-        })).filter((surface) => {
-            const heightFromFloor = Math.abs(surface.y - floorY);
-            return surface.maxX >= surface.minX && heightFromFloor <= this.config.movement.maxBarHeightFromFloorPx;
-        });
-        return [floor, ...bars];
+        return buildChartSurfaceModel({ controller: this, mapEl: this.root }).map(surface => ({
+            id: surface.id,
+            kind: surface.kind,
+            minX: surface.minX,
+            maxX: surface.maxX,
+            y: surface.petY,
+            surfaceY: surface.surfaceY,
+        }));
     }
 
     findNearestSurface(surfaces) {
@@ -854,8 +843,29 @@ export class PattieRoamingController {
             .sort((a, b) => a.left - b.left);
     }
 
+    getGroupedChartBars() {
+        const groups = new Map();
+        Array.from(this.root.querySelectorAll(this.config.terrainRules.chartBar.selector)).forEach((bar) => {
+            const pair = bar.parentElement || bar;
+            if (!groups.has(pair)) groups.set(pair, []);
+            groups.get(pair).push(bar);
+        });
+
+        return Array.from(groups.entries()).map(([pair, bars]) => {
+            const pairRect = this.getLocalRect(pair);
+            const barRects = bars.map(bar => this.getLocalRect(bar)).filter(rect => rect.width > 0 && rect.height > 0);
+            if (!barRects.length) return null;
+            return {
+                left: pairRect.left,
+                width: pairRect.width,
+                top: Math.min(...barRects.map(rect => rect.top)),
+                height: Math.max(...barRects.map(rect => rect.bottom)) - Math.min(...barRects.map(rect => rect.top)),
+            };
+        }).filter(Boolean).sort((a, b) => a.left - b.left);
+    }
+
     findNextBarPlatform() {
-        const bars = this.getSortedBars();
+        const bars = this.getGroupedChartBars();
         if (!bars.length) return null;
         const size = this.config.movement.spriteSize;
         this.chartBarIndex += this.direction;
@@ -870,7 +880,7 @@ export class PattieRoamingController {
         const target = bars[this.chartBarIndex];
         return {
             x: target.left + target.width / 2 - size / 2,
-            y: target.top - size + 6,
+            y: target.top - size + 4,
         };
     }
 

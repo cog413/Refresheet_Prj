@@ -49,6 +49,6 @@ export const pattieWorldConfig = {
         walkFrameDurationMs: 350,
         runFrameDurationMs: 220,
         maxTerrainDeltaPx: 96,
-        maxBarHeightFromFloorPx: 132,
+        maxBarHeightFromFloorPx: 160,
     },
 };

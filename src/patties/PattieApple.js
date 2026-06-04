@@ -35,6 +35,7 @@ export class PattieApple {
         if (this.state !== SnackState.IDLE || this.processing) return false;
         this.transition(SnackState.AIMING_SNACK);
         this.feedMode = true;
+        this._preloadPop();
         this._createPreview();
         document.addEventListener('mousemove', this._boundMouseMove);
         this.mapEl.addEventListener('click', this._boundClick);
@@ -227,10 +228,11 @@ export class PattieApple {
 
         const landedLeft = this.landedEl.style.left;
         const landedTop = this.landedEl.style.top;
-        this.landedEl.remove();
+        const popPromise = this._playApplePop(landedLeft, landedTop);
+        await nextFrame();
+        this.landedEl?.remove();
         this.landedEl = null;
-
-        await this._playApplePop(landedLeft, landedTop);
+        await popPromise;
 
         this.transition(SnackState.PET_HAPPY_AFTER_SNACK);
         const happyDuration = this._happyDurationMs();
@@ -306,6 +308,11 @@ export class PattieApple {
         });
     }
 
+    _preloadPop() {
+        const img = new Image();
+        img.src = '/public/assets/apple/apple_pop.png';
+    }
+
     _happyDurationMs() {
         const anim = this.ctrl?.sprite?.animation;
         if (anim?.frameCount && anim?.frameDurationMs && this.ctrl?.mode === 'happy') {
@@ -370,4 +377,8 @@ export class PattieApple {
         this.state = SnackState.IDLE;
         this.processing = false;
     }
+}
+
+function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
 }
