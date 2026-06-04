@@ -1951,9 +1951,9 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 }
 
 /* Row coordinates (row-h = 22px; top = (row-1)*22, height = span*22) */
-.rm-block-kpi      { top:  22px; height: 176px; } /* rows  2– 9 */
-.rm-block-rank     { top: 220px; height: 220px; } /* rows 11–20 */
-.rm-block-notes    { top: 462px; height: 132px; } /* rows 22–27 */
+.rm-block-kpi      { top:  22px; height: 154px; } /* rows  2– 8 */
+.rm-block-rank     { top: 198px; height: 220px; } /* rows 10–19 */
+.rm-block-notes    { top: 440px; height: 132px; } /* rows 21–26 */
 .rm-block-sop      { top:  22px; height: 242px; } /* rows  2–12 */
 .rm-block-guide    { top: 286px; height: 132px; } /* rows 14–19 */
 .rm-block-tabguide { top: 440px; height: 132px; } /* rows 21–26 */
