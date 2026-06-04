@@ -1926,8 +1926,8 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     min-height: 640px;
     background-color: #fff;
     background-image:
-        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+        linear-gradient(to right, var(--rs-hd-border) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-hd-border) 1px, transparent 1px);
     background-size: var(--rs-col-w) var(--rs-row-h);
 }
 
@@ -1996,7 +1996,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     flex-direction: column;
     padding: 10px 14px 8px;
     border-right: 1px solid #c6e0b4;
-    background: #fff;
+    background: transparent;
 }
 .rm-kpi-card:last-child { border-right: none; }
 .rm-kpi-name {
@@ -2076,7 +2076,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     flex: 1;
     padding: 10px 12px;
     border-right: 1px solid #c6e0b4;
-    background: #fff;
+    background: transparent;
     min-height: 110px;
 }
 .rm-rank-card:last-child { border-right: none; }
@@ -2138,7 +2138,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 /* ── SOP ─────────────────────────────────────────── */
 .rm-sop {
     flex: 1;
-    background: #fff;
+    background: transparent;
     border: 1px solid #c6e0b4;
     border-top: none;
     display: flex;
@@ -2165,7 +2165,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 /* ── 시트 안내 / 탭 안내 ──────────────────────────── */
 .rm-guide {
     flex: 1;
-    background: #fff;
+    background: transparent;
     border: 1px solid #c6e0b4;
     border-top: none;
     display: flex;
@@ -2230,11 +2230,17 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 .rm-note-item:last-child { border-bottom: none; }
 
 /* ── Dark mode ────────────────────────────────────── */
-body.dark-mode .rm-sheet { color: #d4d4d4; background-color: #1e1e1e; }
+body.dark-mode .rm-sheet {
+    color: #d4d4d4;
+    background-color: #1e1e1e;
+    background-image:
+        linear-gradient(to right, #3e3e3e 1px, transparent 1px),
+        linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
+}
 body.dark-mode .rm-hd-green { background: #1f4e2f; color: #b7e1c0; border-color: #2f6f44; }
 body.dark-mode .rm-hd-caution { background: #4d3b13; color: #f98080; border-color: #b8860b; }
 body.dark-mode .rm-kpi-row { border-color: #2f6f44; }
-body.dark-mode .rm-kpi-card { background: #2d2d2d; border-color: #2f6f44; }
+body.dark-mode .rm-kpi-card { background: transparent; border-color: #2f6f44; }
 body.dark-mode .rm-kpi-name { color: #4CAF50; border-color: #2f6f44; }
 body.dark-mode .rm-need-login { color: #666; }
 body.dark-mode .rm-kpi-zero { color: #666; }
@@ -2245,7 +2251,7 @@ body.dark-mode .rm-kpi-sub  { color: #888; }
 body.dark-mode .rm-rank-tab { border-color: #2f6f44; color: #4CAF50; }
 body.dark-mode .rm-rank-tab.active { background: #2f6f44; color: #fff; border-color: #2f6f44; }
 body.dark-mode .rm-rank-row { border-color: #2f6f44; }
-body.dark-mode .rm-rank-card { background: #2d2d2d; border-color: #2f6f44; }
+body.dark-mode .rm-rank-card { background: transparent; border-color: #2f6f44; }
 body.dark-mode .rm-rank-label { color: #4CAF50; border-color: #2f6f44; }
 body.dark-mode .rm-rank-badge { background: #1f4e2f; border-color: #2f6f44; color: #b7e1c0; }
 body.dark-mode .rm-rank-badge strong { color: #b7e1c0; }
@@ -2253,10 +2259,10 @@ body.dark-mode .rm-rank-item { color: #d4d4d4; }
 body.dark-mode .rm-rank-item.rm-rank-me { background: #1f4e2f; color: #b7e1c0; }
 body.dark-mode .rm-rank-item.rm-rank-me .rm-rank-score { color: #b7e1c0; }
 body.dark-mode .rm-rank-score { color: #666; }
-body.dark-mode .rm-sop { background: #2d2d2d; border-color: #2f6f44; }
+body.dark-mode .rm-sop { background: transparent; border-color: #2f6f44; }
 body.dark-mode .rm-sop-title { color: #90cdf4; }
 body.dark-mode .rm-sop-body { color: #bbb; }
-body.dark-mode .rm-guide { background: #2d2d2d; border-color: #2f6f44; }
+body.dark-mode .rm-guide { background: transparent; border-color: #2f6f44; }
 body.dark-mode .rm-guide-label { color: #90cdf4; }
 body.dark-mode .rm-guide-sep { color: #666; }
 body.dark-mode .rm-guide-text { color: #ccc; }
