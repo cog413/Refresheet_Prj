@@ -1937,6 +1937,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background-color: #fff;
 }
 
 /* Left-side: B ~ J column (left=80px, width=720px) */
@@ -2237,6 +2238,7 @@ body.dark-mode .rm-sheet {
         linear-gradient(to right, #3e3e3e 1px, transparent 1px),
         linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
 }
+body.dark-mode .rm-block { background-color: #1e1e1e; }
 body.dark-mode .rm-hd-green { background: #1f4e2f; color: #b7e1c0; border-color: #2f6f44; }
 body.dark-mode .rm-hd-caution { background: #4d3b13; color: #f98080; border-color: #b8860b; }
 body.dark-mode .rm-kpi-row { border-color: #2f6f44; }
