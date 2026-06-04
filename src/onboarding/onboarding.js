@@ -72,7 +72,6 @@ function buildModalDOM() {
                 <div id="ob-terms-error" class="ob-consent-error" style="display:none;">이용약관 동의는 필수입니다.</div>
                 <div class="modal-buttons">
                     <button class="modal-btn retry" id="ob-next">다음(N)</button>
-                    <button class="modal-btn cancel" id="ob-skip1">건너뛰기(S)</button>
                 </div>
             </div>
 
@@ -93,8 +92,8 @@ function buildModalDOM() {
                 </div>
                 <div class="ob-hint">불규칙하다면 일반적인 시간을 적어주세요</div>
                 <div class="modal-buttons">
-                    <button class="modal-btn retry" id="ob-next2">다음(N)</button>
                     <button class="modal-btn" id="ob-back">이전(P)</button>
+                    <button class="modal-btn retry" id="ob-next2">다음(N)</button>
                 </div>
             </div>
 
@@ -111,8 +110,8 @@ function buildModalDOM() {
                 <div class="ob-hint">설정하지 않으면 게임 실적이 반영되지 않습니다.</div>
                 <div id="ob-employee-error" class="ob-consent-error" style="display:none;"></div>
                 <div class="modal-buttons">
-                    <button class="modal-btn retry" id="ob-save">저장(S)</button>
                     <button class="modal-btn" id="ob-back2">이전(P)</button>
+                    <button class="modal-btn retry" id="ob-save">저장(S)</button>
                 </div>
             </div>
         </div>`;
@@ -125,14 +124,6 @@ function bindEvents() {
     });
 
     modalEl.querySelector('#ob-next').addEventListener('click', () => {
-        if (!modalEl.querySelector('#ob-terms-check').checked) {
-            modalEl.querySelector('#ob-terms-error').style.display = 'block';
-            return;
-        }
-        modalEl.querySelector('#ob-terms-error').style.display = 'none';
-        showStep(2);
-    });
-    modalEl.querySelector('#ob-skip1').addEventListener('click', () => {
         if (!modalEl.querySelector('#ob-terms-check').checked) {
             modalEl.querySelector('#ob-terms-error').style.display = 'block';
             return;

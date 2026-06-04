@@ -85,6 +85,21 @@
 ### [2026-06-05] (CLI: codex)
 
 **1. Goal**
+- Adjust login onboarding button layout without changing the surrounding scene or sheet/grid styling.
+
+**2. Changes**
+- Removed the Step 1 company-info `Skip` button and its click binding; the remaining `Next` button stays right-aligned through the existing `.modal-buttons` flex-end rule.
+- Swapped Step 2 commute buttons to `Previous` then `Next`.
+- Swapped Step 3 employee-name buttons to `Previous` then `Save`.
+
+**3. Verification**
+- Ran `node --check src/onboarding/onboarding.js`.
+
+---
+
+### [2026-06-05] (CLI: codex)
+
+**1. Goal**
 - Adjust ReadMe sheet vertical block placement without touching X-axis, widths, or restored Excel grid rules.
 
 **2. Changes**
