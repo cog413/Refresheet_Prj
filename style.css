@@ -1937,6 +1937,11 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     display: flex;
     flex-direction: column;
     overflow: hidden;
+    background-color: #fff;
+    background-image:
+        linear-gradient(to right, var(--rs-hd-border) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-hd-border) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
 }
 
 /* Left-side: B ~ J column (left=80px, width=720px) */
@@ -2232,6 +2237,12 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 /* ── Dark mode ────────────────────────────────────── */
 body.dark-mode .rm-sheet {
     color: #d4d4d4;
+    background-color: #1e1e1e;
+    background-image:
+        linear-gradient(to right, #3e3e3e 1px, transparent 1px),
+        linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
+}
+body.dark-mode .rm-block {
     background-color: #1e1e1e;
     background-image:
         linear-gradient(to right, #3e3e3e 1px, transparent 1px),
