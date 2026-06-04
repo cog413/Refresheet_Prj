@@ -82,8 +82,68 @@
                 <p>친구가 Refresheet를 가입하고 추천계정을 입력하면 추천인으로 등록됩니다.</p>
                 <p>추천인이 되어 특정 기능들을 잠금 해제해 보세요.</p>
             </div>
-            <div class="referral-media">
-                <img src="/public/assets/static-site/referral_mockup.png" alt="친구 추천 설정 화면 예시">
+            <div class="mockup-container">
+                <div class="mockup-window" id="mock-window">
+                    <div class="mock-mouse" id="mock-mouse"></div>
+                    
+                    <!-- Step 1: Click Profile Dropdown -->
+                    <div class="mock-header-ribbon">
+                        <div class="mock-title">
+                            <span class="mock-icon">📗</span> Refresheet
+                        </div>
+                        <div class="mock-profile-area">
+                            <div class="mock-profile-badge" id="mock-profile-btn">
+                                <span class="avatar-text">JC</span>
+                            </div>
+                            <!-- Dropdown Menu -->
+                            <div class="mock-dropdown" id="mock-dropdown-menu">
+                                <div class="mock-dropdown-item" id="mock-menu-settings">내 설정</div>
+                                <div class="mock-dropdown-item">로그아웃</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Settings Modal -->
+                    <div class="mock-modal-overlay" id="mock-settings-modal">
+                        <div class="mock-excel-modal">
+                            <div class="mock-modal-header">
+                                <span>내 설정</span>
+                                <span class="mock-modal-close" id="mock-modal-close">✕</span>
+                            </div>
+                            <div class="mock-modal-body">
+                                <div class="mock-blurred-fields">
+                                    <div class="mock-field-dummy"></div>
+                                    <div class="mock-field-dummy" style="width: 70%;"></div>
+                                </div>
+                                
+                                <div class="mock-referral-field">
+                                    <label class="mock-label">추천계정</label>
+                                    <div class="mock-input-wrap">
+                                        <input type="text" class="mock-input" id="mock-referral-input" placeholder="추천인 이메일" readonly>
+                                    </div>
+                                    <div class="mock-help">추천계정 입력 후에는 수정할 수 없습니다.</div>
+                                    <div class="mock-help">추천계정은 기존에 가입된 계정이어야 합니다.</div>
+                                    <div class="mock-message" id="mock-referral-message"></div>
+                                    <button type="button" class="mock-btn-save" id="mock-btn-referral-save">추천계정 저장</button>
+                                </div>
+
+                                <div class="mock-modal-buttons">
+                                    <button class="mock-btn-footer retry" id="mock-btn-save-all">저장(S)</button>
+                                    <button class="mock-btn-footer" id="mock-btn-cancel">취소</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Success overlay -->
+                    <div class="mock-success-overlay" id="mock-success-screen">
+                        <div class="mock-success-card">
+                            <div class="mock-success-icon">🎉</div>
+                            <h4>추천 완료!</h4>
+                            <p>NewGame 및 Kitty 잠금이 해제되었습니다.</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
     </div>
@@ -123,5 +183,158 @@
     </div>
   </footer>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mockupWindow = document.getElementById('mock-window');
+        const mockMouse = document.getElementById('mock-mouse');
+        const profileBtn = document.getElementById('mock-profile-btn');
+        const dropdownMenu = document.getElementById('mock-dropdown-menu');
+        const menuSettings = document.getElementById('mock-menu-settings');
+        const settingsModal = document.getElementById('mock-settings-modal');
+        const referralInput = document.getElementById('mock-referral-input');
+        const btnReferralSave = document.getElementById('mock-btn-referral-save');
+        const referralMessage = document.getElementById('mock-referral-message');
+        const successScreen = document.getElementById('mock-success-screen');
+        const btnSaveAll = document.getElementById('mock-btn-save-all');
+        
+        let typingTimer = null;
+        let animationActive = true;
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+        
+        function getRelativeRect(element, parent) {
+            const elRect = element.getBoundingClientRect();
+            const parentRect = parent.getBoundingClientRect();
+            return {
+                x: elRect.left - parentRect.left,
+                y: elRect.top - parentRect.top,
+                width: elRect.width,
+                height: elRect.height
+            };
+        }
+        
+        function moveMouse(x, y) {
+            mockMouse.style.opacity = '1';
+            mockMouse.style.left = `${x}px`;
+            mockMouse.style.top = `${y}px`;
+            return delay(700); // Transition duration matches css transition
+        }
+        
+        function hideMouse() {
+            mockMouse.style.opacity = '0';
+        }
+        
+        function resetMockup() {
+            if (typingTimer) clearTimeout(typingTimer);
+            dropdownMenu.classList.remove('show');
+            settingsModal.classList.remove('show');
+            successScreen.classList.remove('show');
+            
+            referralInput.value = '';
+            referralInput.disabled = false;
+            
+            btnReferralSave.disabled = false;
+            btnReferralSave.style.display = 'inline-flex';
+            btnReferralSave.textContent = '추천계정 저장';
+            
+            referralMessage.textContent = '';
+            referralMessage.style.color = '#c00000';
+            
+            // Set initial mouse position (bottom right)
+            mockMouse.style.left = '90%';
+            mockMouse.style.top = '90%';
+            hideMouse();
+        }
+        
+        function startTypingSimulation() {
+            return new Promise(resolve => {
+                const text = 'colleague@company.com';
+                let index = 0;
+                referralInput.value = '';
+                
+                function type() {
+                    if (index < text.length) {
+                        referralInput.value += text[index];
+                        index++;
+                        typingTimer = setTimeout(type, 60);
+                    } else {
+                        resolve();
+                    }
+                }
+                type();
+            });
+        }
+        
+        async function runAnimationLoop() {
+            if (!animationActive) return;
+            
+            // 1. Reset state
+            resetMockup();
+            await delay(1200);
+            
+            // 2. Move to profile button
+            const profileRect = getRelativeRect(profileBtn, mockupWindow);
+            await moveMouse(profileRect.x + profileRect.width / 2, profileRect.y + profileRect.height / 2);
+            await delay(300);
+            
+            // Click profile button -> show dropdown
+            dropdownMenu.classList.add('show');
+            await delay(800);
+            
+            // 3. Move to "내 설정" menu item
+            const settingsRect = getRelativeRect(menuSettings, mockupWindow);
+            await moveMouse(settingsRect.x + settingsRect.width / 2 - 10, settingsRect.y + settingsRect.height / 2);
+            await delay(300);
+            
+            // Click "내 설정" -> show modal and hide dropdown
+            dropdownMenu.classList.remove('show');
+            settingsModal.classList.add('show');
+            await delay(800);
+            
+            // Move mouse out of the way during typing
+            await moveMouse(profileRect.x - 20, profileRect.y + 40);
+            
+            // 4. Simulate typing
+            await startTypingSimulation();
+            await delay(600);
+            
+            // 5. Move to "추천계정 저장" button
+            const saveBtnRect = getRelativeRect(btnReferralSave, mockupWindow);
+            await moveMouse(saveBtnRect.x + saveBtnRect.width / 2, saveBtnRect.y + saveBtnRect.height / 2);
+            await delay(300);
+            
+            // Click save button -> saving simulation
+            btnReferralSave.disabled = true;
+            btnReferralSave.textContent = '저장 중...';
+            await delay(800);
+            
+            btnReferralSave.style.display = 'none';
+            referralInput.disabled = true;
+            referralMessage.style.color = '#217346';
+            referralMessage.textContent = '추천계정이 저장되어 수정할 수 없습니다.';
+            await delay(1000);
+            
+            // 6. Move to footer "저장(S)" button
+            const saveAllRect = getRelativeRect(btnSaveAll, mockupWindow);
+            await moveMouse(saveAllRect.x + saveAllRect.width / 2, saveAllRect.y + saveAllRect.height / 2);
+            await delay(300);
+            
+            // Click save all -> show success screen
+            settingsModal.classList.remove('show');
+            successScreen.classList.add('show');
+            hideMouse();
+            
+            // 7. Pause on success screen and loop
+            await delay(3500);
+            
+            runAnimationLoop();
+        }
+        
+        // Start loop
+        runAnimationLoop();
+    });
+  </script>
 </body>
 </html>
