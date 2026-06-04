@@ -1302,7 +1302,11 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     padding: 0;
     min-width: 1360px; /* extends to column Q right (17 × 80px) */
     min-height: 680px;
-    background: transparent;
+    background-color: transparent;
+    background-image:
+        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
     overflow: visible;
 }
 .pattie-world {
@@ -1832,7 +1836,7 @@ body.dark-mode .mps-foot {
 }
 
 /* ?? ?ㅽ겕紐⑤뱶 ??????????????????????????????????????? */
-body.dark-mode .mp-scene { background: transparent; }
+body.dark-mode .mp-scene { background-color: transparent; }
 body.dark-mode .mp-table { border-color: #444; }
 body.dark-mode .mht-cell { border-color: #444; color: #d4d4d4; }
 body.dark-mode .mht-even .mht-cell { background: #2a2a2a; }
