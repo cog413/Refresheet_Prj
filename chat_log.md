@@ -85,6 +85,22 @@
 ### [2026-06-05] (CLI: codex)
 
 **1. Goal**
+- Update only the locked Kitty click popup while preserving Kitty unlock conditions, card hints, and tooltips.
+
+**2. Changes**
+- Kept `KITTY_LOCK_MESSAGE` unchanged for the character card lock hint/title.
+- Replaced the locked Kitty click `alert` with a small modal saying `다른 친구를 통해 추천인 2회 이상 등록되어야 합니다`.
+- Added `자세히 알아보기` and `확인` buttons; `자세히 알아보기` opens `/faq#friend-referral`, while `확인` dismisses the modal.
+- Added `id="friend-referral"` to the FAQ friend-referral card for direct linking.
+
+**3. Verification**
+- Ran `node --check src/minime/minimeSetup.js`.
+
+---
+
+### [2026-06-05] (CLI: codex)
+
+**1. Goal**
 - Update FAQ and File tab copy for company ranking and feedback guidance.
 
 **2. Changes**

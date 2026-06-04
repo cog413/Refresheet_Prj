@@ -6,6 +6,8 @@ let settingsButton = null;
 export let currentAvatar = null;
 let currentCharacters = [];
 const KITTY_LOCK_MESSAGE = '친구 추천 2회 이상 필요';
+const KITTY_LOCK_POPUP_MESSAGE = '다른 친구를 통해 추천인 2회 이상 등록되어야 합니다';
+const KITTY_LOCK_FAQ_URL = '/faq#friend-referral';
 
 const CHARACTER_LABELS = {
     mong: 'Corgi',
@@ -232,7 +234,7 @@ function bindCharacterChoiceEvents() {
         card.dataset.bound = 'true';
         card.addEventListener('click', () => {
             if (card.dataset.locked === 'true') {
-                window.alert?.(card.dataset.lockMessage || KITTY_LOCK_MESSAGE);
+                showKittyLockModal();
                 return;
             }
             setupEl.querySelectorAll('.ms-char-card').forEach(c => c.classList.remove('selected'));
@@ -246,6 +248,39 @@ function bindCharacterChoiceEvents() {
         card.addEventListener('mouseenter', () => showCharTooltip(card));
         card.addEventListener('mouseleave', hideCharTooltip);
     });
+}
+
+function showKittyLockModal() {
+    let lockModal = document.getElementById('kitty-lock-modal');
+    if (!lockModal) {
+        lockModal = document.createElement('div');
+        lockModal.id = 'kitty-lock-modal';
+        lockModal.className = 'modal-overlay';
+        lockModal.style.display = 'none';
+        lockModal.innerHTML = `
+            <div class="excel-modal ms-modal">
+                <div class="modal-header">
+                    <span>Kitty 잠금 해제</span>
+                    <span class="modal-close" id="kitty-lock-close">×</span>
+                </div>
+                <div class="ob-step">
+                    <div class="ob-step-title">${KITTY_LOCK_POPUP_MESSAGE}</div>
+                    <div class="modal-buttons">
+                        <button class="modal-btn retry" id="kitty-lock-faq">자세히 알아보기</button>
+                        <button class="modal-btn" id="kitty-lock-ok">확인</button>
+                    </div>
+                </div>
+            </div>`;
+        document.body.appendChild(lockModal);
+
+        const close = () => { lockModal.style.display = 'none'; };
+        lockModal.querySelector('#kitty-lock-close').addEventListener('click', close);
+        lockModal.querySelector('#kitty-lock-ok').addEventListener('click', close);
+        lockModal.querySelector('#kitty-lock-faq').addEventListener('click', () => {
+            window.open(KITTY_LOCK_FAQ_URL, '_blank', 'noopener,noreferrer');
+        });
+    }
+    lockModal.style.display = 'flex';
 }
 
 function showCharTooltip(card) {
