@@ -1919,6 +1919,10 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     font-family: 'Segoe UI', Calibri, sans-serif;
     color: #333;
     min-height: 640px;
+    background-image:
+        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
 }
 
 /* ── Absolute positioned blocks ───────────────────── */
