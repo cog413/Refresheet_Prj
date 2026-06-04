@@ -111,7 +111,11 @@ body {
     width: 100%;
     height: 100%;
     overflow-y: auto;
-    background: #f8fbf8;
+    background-color: #f8fbf8;
+    background-image:
+        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
     padding: 32px;
     flex-direction: column;
 }
@@ -416,6 +420,8 @@ body {
     top: 0;
     left: 0;
     z-index: 1;
+    min-width: 1840px; /* A-W */
+    min-height: 704px; /* rows 1-32 */
     background-image:
         linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
         linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
@@ -1923,8 +1929,8 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     font-size: 12px;
     font-family: 'Segoe UI', Calibri, sans-serif;
     color: #333;
-    min-width: 1600px;
-    min-height: 640px;
+    min-width: 1840px;
+    min-height: 704px;
     background-color: #fff;
     background-image:
         linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),

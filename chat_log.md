@@ -93,3 +93,18 @@
 
 **3. Verification**
 - Browser computed style confirmed `.rm-sheet` still has `1600x640` paintable area, grid background gradients remain active, and `.rm-block` remains transparent.
+
+---
+
+### [2026-06-05] (CLI: codex)
+
+**1. Goal**
+- Make the shared Excel grid cover at least through column W and row 32 on every sheet.
+
+**2. Changes**
+- Added common `.sheet-view` minimum dimensions of `1840px x 704px` (`A-W`, rows `1-32`).
+- Expanded `.rm-sheet` to the same `1840px x 704px` while preserving ReadMe grid ownership and `.rm-block` transparency.
+- Restored grid background on `#file-sheet`, which had previously overridden the common sheet grid with a background shorthand.
+
+**3. Verification**
+- Browser audit confirmed all measured sheets (`readme`, `mini-pet`, `sudoku`, `newgame`, `game2048`, `typing`, `review`, `file`) have a `.sheet-view` grid area of at least `A-W` and row `32`.
