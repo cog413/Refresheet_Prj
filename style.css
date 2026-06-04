@@ -1341,6 +1341,9 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     image-rendering: pixelated;
 }
 .pattie-sprite:hover {
+    outline: none;
+}
+.pattie-sprite:focus-visible {
     outline: 1px dotted #217346;
     outline-offset: 2px;
 }

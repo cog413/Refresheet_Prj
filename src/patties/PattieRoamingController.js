@@ -14,6 +14,8 @@ const DEFAULT_PROFILE = {
     character_key: 'mong',
     equipped_item_keys: [],
 };
+const SNACK_SPEED_DURATION_SCALE = 0.5;
+const SNACK_WALK_IN_DISTANCE_PX = 21;
 
 export async function initPattieWorld(root) {
     if (!root) return null;
@@ -548,12 +550,16 @@ export class PattieRoamingController {
 
         if (m.mode === 'run' && !m.walkedIn) {
             const remaining = Math.hypot(m.endX - this.x, m.endY - this.y);
-            if (remaining <= 30) {
+            if (remaining <= SNACK_WALK_IN_DISTANCE_PX) {
                 m.mode = 'walk';
                 m.walkedIn = true;
                 m.startX = this.x;
                 m.startY = this.y;
-                m.duration = clamp(remaining * this.config.movement.walkDurationPerPx, 600, 7000);
+                m.duration = clamp(
+                    remaining * this.config.movement.walkDurationPerPx * SNACK_SPEED_DURATION_SCALE,
+                    400,
+                    4667,
+                );
                 m.startedAt = performance.now();
                 this.mode = 'walk';
                 this.sprite.play('walk', { restart: true, frameDurationMs: this.config.movement.walkFrameDurationMs });
@@ -612,8 +618,8 @@ export class PattieRoamingController {
         const duration = isJump
             ? clamp(distance * 34, 900, 1800)
             : mode === 'run'
-                ? clamp(Math.abs(dx) * this.config.movement.runDurationPerPx * 0.75, 1050, 4500)
-                : clamp(Math.abs(dx) * this.config.movement.walkDurationPerPx * 0.75, 1350, 5250);
+                ? clamp(Math.abs(dx) * this.config.movement.runDurationPerPx * SNACK_SPEED_DURATION_SCALE, 700, 3000)
+                : clamp(Math.abs(dx) * this.config.movement.walkDurationPerPx * SNACK_SPEED_DURATION_SCALE, 900, 3500);
 
         this.direction = dx >= 0 ? 1 : -1;
         this.mode = mode;
