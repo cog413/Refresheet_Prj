@@ -85,6 +85,21 @@
 ### [2026-06-05] (CLI: codex)
 
 **1. Goal**
+- Update FAQ and File tab copy for company ranking and feedback guidance.
+
+**2. Changes**
+- Updated FAQ company ranking wording from email-domain aggregation to registered company-name aggregation.
+- Updated FAQ feedback wording to refer to Refresheet and mention the main Excel `보기` tab.
+- Updated the File tab main intro copy to explain Refresheet's purpose and content guide.
+
+**3. Verification**
+- Text-only change; verified target strings with `rg`.
+
+---
+
+### [2026-06-05] (CLI: codex)
+
+**1. Goal**
 - Adjust login onboarding button layout without changing the surrounding scene or sheet/grid styling.
 
 **2. Changes**
