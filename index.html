@@ -82,10 +82,8 @@
                     <div id="readme-sheet" class="sheet-view active">
                         <div class="rm-sheet" aria-label="Refresheet 안내 시트">
 
-                            <!-- 좌측 컬럼: KPI + 실적장표 -->
-                            <div class="rm-col-main">
-
-                                <!-- 1. KPI 현황 -->
+                            <!-- KPI 영역 (rows 2-9) -->
+                            <div class="rm-block rm-block-kpi">
                                 <div class="rm-section-hd rm-hd-green">KPI(Key Performance Index) 현황</div>
                                 <div class="rm-kpi-row">
                                     <div class="rm-kpi-card">
@@ -113,8 +111,10 @@
                                         <div class="rm-kpi-sub">(토닥이기, 간식주기, 말걸기로 토닥이 케어)</div>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-kpi -->
 
-                                <!-- 2. 실적 장표 -->
+                            <!-- 실적장표 영역 (rows 11-20) -->
+                            <div class="rm-block rm-block-rank">
                                 <div class="rm-section-hd rm-hd-green rm-hd-flex">
                                     <span>실적 장표</span>
                                     <span class="rm-rank-tabs">
@@ -139,13 +139,21 @@
                                         <div class="rm-rank-list" id="rank-company-list"></div>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-rank -->
 
-                            </div><!-- /.rm-col-main -->
+                            <!-- 참고사항 영역 (rows 22-27, 좌 하단) -->
+                            <div class="rm-block rm-block-notes">
+                                <div class="rm-section-hd rm-hd-caution">참고사항</div>
+                                <div class="rm-notes">
+                                    <div class="rm-note-item">※ 게임은 시간당 3티켓이 제공되며 매 정시에 갱신됩니다.</div>
+                                    <div class="rm-note-item">※ 일부 기능은 로그인 후 이용 가능합니다.</div>
+                                    <div class="rm-note-item">※ 마우스를 올렸을 때 활성화 되는 버튼만 진짜입니다 (예 : 홈/검토/보기 탭, 로그인버튼 등)</div>
+                                    <div class="rm-note-item">※ 위기의 순간이 온다면 Esc를 눌러보세요 (공백화면으로 긴급전환)</div>
+                                </div>
+                            </div><!-- /.rm-block-notes -->
 
-                            <!-- 우측 컬럼: SOP + 시트안내 + 참고사항 -->
-                            <div class="rm-col-side">
-
-                                <!-- 3. SOP -->
+                            <!-- SOP 영역 (rows 2-12) -->
+                            <div class="rm-block rm-block-sop">
                                 <div class="rm-section-hd rm-hd-green">SOP(Statement of Purpose)</div>
                                 <div class="rm-sop">
                                     <div class="rm-sop-item">
@@ -165,8 +173,10 @@
                                         <div class="rm-sop-body">같은 하루를 버티는 사람들이 있습니다. 회사별 점수 랭킹에서 확인해보세요.</div>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-sop -->
 
-                                <!-- 4. 시트 안내 -->
+                            <!-- 시트 안내 영역 (rows 14-19) -->
+                            <div class="rm-block rm-block-guide">
                                 <div class="rm-section-hd rm-hd-green">시트 안내</div>
                                 <div class="rm-guide">
                                     <div class="rm-guide-item">
@@ -190,17 +200,39 @@
                                         <span class="rm-guide-text">1분 안에 문장을 빠르고 정확하게 입력해보세요</span>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-guide -->
 
-                                <!-- 5. 참고사항 -->
-                                <div class="rm-section-hd rm-hd-caution">참고사항</div>
-                                <div class="rm-notes">
-                                    <div class="rm-note-item">※ 게임은 시간당 3티켓이 제공되며 매 정시에 갱신됩니다.</div>
-                                    <div class="rm-note-item">※ 일부 기능은 로그인 후 이용 가능합니다.</div>
-                                    <div class="rm-note-item">※ 마우스를 올렸을 때 활성화 되는 버튼만 진짜입니다 (예 : 홈/검토/보기 탭, 로그인버튼 등)</div>
-                                    <div class="rm-note-item">※ 위기의 순간이 온다면 Esc를 눌러보세요 (공백화면으로 긴급전환)</div>
+                            <!-- 탭 안내 영역 (rows 21-26) -->
+                            <div class="rm-block rm-block-tabguide">
+                                <div class="rm-section-hd rm-hd-green">탭 및 주요 버튼 안내</div>
+                                <div class="rm-guide">
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">파일</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">Refresheet에 대한 설명 블로그입니다. 자세한 설명이 나와있어요</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">홈</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">Refresheet의 기본화면입니다. 다양한 게임을 즐겨보세요</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">검토</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">사용자들의 의견을 자유롭게 나누는 공간입니다. 운영자에게도 의견을 보낼 수 있어요.</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">보기</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">화이트모드와 다크모드를 전환할 수 있습니다. 운영자는 화이트모드를 추천해요.</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">ESC</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">위기는 언제나 찾아옵니다. 키보드 esc는 사용자의 긴급탈출을 돕습니다.</span>
+                                    </div>
                                 </div>
-
-                            </div><!-- /.rm-col-side -->
+                            </div><!-- /.rm-block-tabguide -->
 
                         </div>
                     </div>

@@ -1914,63 +1914,77 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
    ReadMe Sheet v2 (rm-* prefix)
    ===================================================== */
 .rm-sheet {
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-    padding: 22px 40px 60px 80px;
+    position: relative;
     font-size: 12px;
     font-family: 'Segoe UI', Calibri, sans-serif;
     color: #333;
+    min-height: 640px;
 }
-.rm-col-main {
-    width: 720px;
-    flex-shrink: 0;
+
+/* ── Absolute positioned blocks ───────────────────── */
+.rm-block {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
-.rm-col-side {
+
+/* Left-side: B ~ J column (left=80px, width=720px) */
+.rm-block-kpi,
+.rm-block-rank,
+.rm-block-notes {
+    left: 80px;
     width: 720px;
-    flex-shrink: 0;
+}
+
+/* Right-side: keep current x/width (left=800px, width=720px, padding-left=24px) */
+.rm-block-sop,
+.rm-block-guide,
+.rm-block-tabguide {
+    left: 800px;
+    width: 720px;
     padding-left: 24px;
 }
-.rm-col-side .rm-sop-title,
-.rm-col-side .rm-sop-body,
-.rm-col-side .rm-guide-item,
-.rm-col-side .rm-note-item {
-    white-space: nowrap;
-}
+
+/* Row coordinates (row-h = 22px; top = (row-1)*22, height = span*22) */
+.rm-block-kpi      { top:  22px; height: 176px; } /* rows  2– 9 */
+.rm-block-rank     { top: 220px; height: 220px; } /* rows 11–20 */
+.rm-block-notes    { top: 462px; height: 132px; } /* rows 22–27 */
+.rm-block-sop      { top:  22px; height: 242px; } /* rows  2–12 */
+.rm-block-guide    { top: 286px; height: 132px; } /* rows 14–19 */
+.rm-block-tabguide { top: 440px; height: 132px; } /* rows 21–26 */
 
 /* Section headers */
 .rm-section-hd {
     padding: 5px 10px;
     font-weight: 700;
     font-size: 13px;
-    border: 1px solid #a9d18e;
-    margin-top: 20px;
-    first-of-type { margin-top: 0; }
+    flex-shrink: 0;
 }
-.rm-sheet .rm-section-hd:first-child,
-.rm-col-main .rm-section-hd:first-child,
-.rm-col-side .rm-section-hd:first-child { margin-top: 0; }
 .rm-hd-green {
     background: #d9ead3;
     color: #217346;
-    border-color: #a9d18e;
+    border: 1px solid #a9d18e;
 }
 .rm-hd-caution {
     background: #fff2cc;
     color: #c00000;
-    border-color: #ffd966;
+    border: 1px solid #ffd966;
     font-weight: 700;
 }
 
 /* ── KPI cards ───────────────────────────────────── */
 .rm-kpi-row {
     display: flex;
+    flex: 1;
     border: 1px solid #c6e0b4;
     border-top: none;
 }
 .rm-kpi-card {
     flex: 1;
-    padding: 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 14px 8px;
     border-right: 1px solid #c6e0b4;
     background: #fff;
 }
@@ -1979,18 +1993,19 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     font-size: 11px;
     font-weight: 700;
     color: #217346;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
     border-bottom: 1px solid #d9ead3;
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
 .rm-kpi-val {
-    min-height: 44px;
+    flex: 1;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 6px 0;
+    margin: 4px 0;
 }
 .rm-need-login {
     font-size: 12px;
@@ -2008,17 +2023,17 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 .rm-kpi-desc {
     font-size: 11px;
     color: #333;
-    margin-top: 4px;
+    margin-top: 3px;
     line-height: 1.35;
 }
 .rm-kpi-sub {
     font-size: 10px;
     color: #888;
-    margin-top: 3px;
+    margin-top: 2px;
     line-height: 1.3;
 }
 
-/* ── 랭킹 현황 ───────────────────────────────────── */
+/* ── 실적장표 ────────────────────────────────────── */
 .rm-hd-flex {
     display: flex;
     align-items: center;
@@ -2043,6 +2058,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 .rm-rank-tab.active { background: #217346; color: #fff; border-color: #217346; }
 .rm-rank-row {
     display: flex;
+    flex: 1;
     border: 1px solid #c6e0b4;
     border-top: none;
 }
@@ -2111,33 +2127,40 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 
 /* ── SOP ─────────────────────────────────────────── */
 .rm-sop {
+    flex: 1;
     background: #fff;
     border: 1px solid #c6e0b4;
     border-top: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 .rm-sop-item {
-    padding: 7px 10px;
+    padding: 6px 10px;
 }
-.rm-sop-item:last-child { border-bottom: none; }
 .rm-sop-title {
     font-weight: 700;
     color: #1f3864;
     font-size: 12px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 .rm-sop-body {
     font-style: italic;
     color: #444;
     font-size: 11px;
-    line-height: 1.5;
+    line-height: 1.4;
     padding-left: 8px;
 }
 
-/* ── 시트 안내 ────────────────────────────────────── */
+/* ── 시트 안내 / 탭 안내 ──────────────────────────── */
 .rm-guide {
+    flex: 1;
     background: #fff;
     border: 1px solid #c6e0b4;
     border-top: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 .rm-guide-item {
     display: grid;
@@ -2145,7 +2168,6 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     height: 25px;
     align-items: center;
 }
-.rm-guide-item:last-child { border-bottom: none; }
 .rm-guide-label {
     font-weight: 600;
     color: #1f3864;
@@ -2168,21 +2190,29 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     padding-left: 8px;
     font-size: 12px;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+/* 탭 안내: 5항목을 132px 내에 수용 */
+.rm-block-tabguide .rm-guide-item { height: 20px; }
 
 /* ── 참고사항 ─────────────────────────────────────── */
 .rm-notes {
+    flex: 1;
     border: 1px solid #ffd966;
     border-top: none;
     background: #fffef2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 .rm-note-item {
-    padding: 5px 10px;
+    padding: 4px 10px;
     font-size: 11px;
     color: #7f6000;
     font-weight: 600;
     border-bottom: 1px solid #ffd966;
-    min-height: 25px;
     display: flex;
     align-items: center;
     line-height: 1.4;
