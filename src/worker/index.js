@@ -1455,7 +1455,7 @@ async function ensureUnlockSchema(db) {
         db.prepare(`INSERT INTO unlockable_items (
             item_key, item_type, display_name, lock_type, lock_value, lock_reason, is_active
         ) VALUES (
-            'new_game', 'sheet', 'NewGame', 'referral', '2', '친구추천 2명 달성 시 이용할 수 있습니다', 1
+            'new_game', 'sheet', 'NewGame', 'manual', NULL, '새로운 게임을 준비중입니다', 1
         )
         ON CONFLICT(item_key) DO UPDATE SET
             item_type=excluded.item_type,
