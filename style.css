@@ -1518,7 +1518,7 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     white-space: nowrap;
 }
 .mht-num { justify-content: flex-end; }
-.mht-even .mht-cell { background: #ffffff; } /* white: covers grid verticals */
+.mht-even .mht-cell { background: transparent; }
 
 /* ?? 李⑦듃 ??????????????????????????????????????????? */
 .mp-chart {
