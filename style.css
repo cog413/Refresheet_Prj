@@ -454,9 +454,15 @@ body {
 .sudoku .excel-cell:nth-child(9n) { border-right: 2px solid #a19f9d; }          /* last column */
 
 #game2048-grid {
-    border: 1px solid #d6dee7;
+    /* border applied to cells instead to prevent layout drift */
     touch-action: none;
 }
+
+/* Outer edge borders for 2048 grid to match box-sizing */
+.g2048 .excel-cell:nth-child(-n+4) { border-top: 1px solid #d6dee7; }
+.g2048 .excel-cell:nth-child(n+13) { border-bottom: 1px solid #d6dee7; }
+.g2048 .excel-cell:nth-child(4n+1) { border-left: 1px solid #d6dee7; }
+.g2048 .excel-cell:nth-child(4n)   { border-right: 1px solid #d6dee7; }
 
 /* Base cell styling to look like Excel */
 .excel-cell {

@@ -187,6 +187,7 @@
 - Cleaned up obsolete/redundant `.sudoku` border rules.
 - Removed `border-top` and `border-left` from `.fake-table` container.
 - Applied `border: 1px solid` directly to `.fake-table-header` and `border-left` to `.label` and `.note` cells. This keeps 1px grid lines but prevents the container from growing in height/width and breaking layout gaps.
+- Removed `#game2048-grid` container border and applied outer borders directly to `.g2048` outer edge cells (`:nth-child(-n+4)`, `:nth-child(n+13)`, `:nth-child(4n+1)`, `:nth-child(4n)`) to fix the same layout drift issue present in the 2048 sheet.
 
 **3. Verification**
-- Verified border placement is inside `box-sizing: border-box` cells, keeping container sizes uniform.
+- Verified border placement is inside `box-sizing: border-box` cells, keeping container sizes uniform across Sudoku, Fake Tables, and 2048 grids.
