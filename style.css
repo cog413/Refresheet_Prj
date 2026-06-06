@@ -436,6 +436,11 @@ body {
     border-left: 1px solid #e1dfdd;
 }
 
+/* Sudoku/NewGame outer border: match the 3×3 block separator weight */
+.game-grid.sudoku {
+    border: 2px solid #a19f9d;
+}
+
 #game2048-grid {
     border: 1px solid #d6dee7;
     touch-action: none;
@@ -494,11 +499,15 @@ body {
 
 /* Thicker borders for 3x3 blocks */
 .sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
-.sudoku .excel-cell:nth-child(9n) { border-right: 1px solid #e1dfdd; } /* reset last col */
+.sudoku .excel-cell:nth-child(9n) { border-right: none; } /* outer right provided by .game-grid.sudoku border */
 .sudoku .excel-cell:nth-child(n+19):nth-child(-n+27),
 .sudoku .excel-cell:nth-child(n+46):nth-child(-n+54),
 .sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
     border-bottom: 2px solid #a19f9d;
+}
+/* Last row: outer bottom provided by .game-grid.sudoku border */
+.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
+    border-bottom: none;
 }
 
 /* -------------------
@@ -920,8 +929,8 @@ body.dark-mode .newgame-locked-notice {
     grid-template-columns: 240px 80px; /* 3 cols (label) + 1 col (value) = 4 cols × 80px */
     background-color: transparent;
     font-size: 12px;
-    /* no border-top — top frame lives on header cells to avoid 1px offset above row 1 */
-    border-left: 1px solid var(--rs-tbl-outer);
+    border-top: 1px solid #e1e1e1;
+    border-left: 1px solid #e1e1e1;
 }
 /* Reference(typing) 우측 패널: label 2열(160px) + value 1열(80px) = 240px = M~O */
 #typing-sheet .side-right .fake-table {
@@ -935,7 +944,8 @@ body.dark-mode .newgame-locked-notice {
     height: 22px; /* exactly 1 grid row */
     display: flex;
     align-items: center;
-    box-shadow: inset 0 0 0 1px #e1e1e1;
+    border-right: 1px solid #e1e1e1;
+    border-bottom: 1px solid #e1e1e1;
     color: #1f3864;
     font-size: 11px;
     white-space: nowrap;
@@ -948,7 +958,8 @@ body.dark-mode .newgame-locked-notice {
     align-items: center;
     padding: 0 6px;
     background-color: #fff;
-    box-shadow: inset 0 0 0 1px #e1e1e1;
+    border-right: 1px solid #e1e1e1;
+    border-bottom: 1px solid #e1e1e1;
     color: #333;
     white-space: nowrap;
     overflow: hidden;
@@ -1174,6 +1185,7 @@ body.dark-mode .fake-table-cell.note { background-color: #2f2a16; color: #ffe699
 body.dark-mode .sudoku-diff-btn.active,
 body.dark-mode .newgame-diff-btn.active { background-color: #1a365d !important; color: #90cdf4; }
 body.dark-mode .fake-table-cell.total { background-color: #1a365d; border-top: 1px solid #2b6cb0; }
+body.dark-mode .game-grid.sudoku { border-color: #666; }
 body.dark-mode .excel-modal { background-color: #2d2d2d; border-color: #555; }
 body.dark-mode .modal-header { background-color: #2d2d2d; color: #d4d4d4; }
 body.dark-mode .modal-text { color: #d4d4d4; }
