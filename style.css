@@ -1005,7 +1005,9 @@ body.dark-mode .newgame-locked-notice {
     border-radius: var(--rs-obj-radius);
     box-shadow: var(--rs-obj-shadow);
     padding: 15px;
-    /* Chart doesn't need to be cell-aligned, floating is fine */
+    height: 198px; /* Exactly 9 grid rows (9 * 22px) -> aligns row 12 top to row 20 bottom */
+    display: flex;
+    flex-direction: column;
 }
 .chart-title {
     font-size: 13px;
@@ -1015,7 +1017,7 @@ body.dark-mode .newgame-locked-notice {
 .chart-bars {
     display: flex;
     justify-content: space-around;
-    height: 120px;
+    flex-grow: 1; /* Fill the remaining space of the 198px container */
     align-items: flex-end;
 }
 .bar-container {

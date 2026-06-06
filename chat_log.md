@@ -189,7 +189,10 @@
 - Applied `border: 1px solid` directly to `.fake-table-header` and `border-left` to `.label` and `.note` cells. This keeps 1px grid lines but prevents the container from growing in height/width and breaking layout gaps.
 - Removed `#game2048-grid` container border and applied outer borders directly to `.g2048` outer edge cells (`:nth-child(-n+4)`, `:nth-child(n+13)`, `:nth-child(4n+1)`, `:nth-child(4n)`) to fix the same layout drift issue present in the 2048 sheet.
 - Fixed `.fake-table-cell.note` vertical drift when text wraps to multiple lines. Replaced `border-bottom: 1px` with `box-shadow: inset 0 -1px` so the `1px` border doesn't add to the `height: auto` calculation, keeping exactly `N * 22px` height multiples and preserving perfect background grid alignment.
+- Explicitly locked `.fake-chart` height to `198px` (exactly 9 grid rows) and converted to flexbox. This perfectly aligns the chart box from the top of row 12 to the bottom of row 20 on the 2048 sheet.
+- Consequently, due to the `22px` dashboard gap, the "이번 달 팀 KPI 현황" table naturally begins precisely at the top of row 22 and ends at the bottom of row 27 (6 rows height), fulfilling exact user specifications.
 
 **3. Verification**
 - Verified border placement is inside `box-sizing: border-box` cells, keeping container sizes uniform across Sudoku, Fake Tables, and 2048 grids.
 - Multi-line wrapping cells accurately scale to `44px` height perfectly locking into the `22px` grid step instead of `45px`.
+- Confirmed `.fake-chart` layout flow aligns remaining right-side dashboard elements to grid rows without fractional pixel drift.
