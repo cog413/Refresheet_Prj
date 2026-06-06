@@ -154,3 +154,39 @@
 
 **3. Verification**
 - Browser audit confirmed all measured sheets (`readme`, `mini-pet`, `sudoku`, `newgame`, `game2048`, `typing`, `review`, `file`) have a `.sheet-view` grid area of at least `A-W` and row `32`.
+
+---
+
+### [2026-06-06] (CLI: claude)
+
+**1. Goal**
+- Fix inconsistent sudoku-grid outer border (bold bottom but thin top/left/right).
+- Fix fake-table left edge vertical line appearing bolder than other lines.
+
+**2. Changes**
+- Added `.game-grid.sudoku { border: 2px solid #a19f9d; }` so all four outer edges match the 3×3 block separator weight.
+- Changed `.sudoku .excel-cell:nth-child(9n)` border-right from `1px solid` to `none` (container owns outer right).
+- Added last-row `.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) { border-bottom: none; }` (container owns outer bottom).
+- Replaced `box-shadow: inset 0 0 0 1px #e1e1e1` on `.fake-table-header` and `.fake-table-cell` with `border-right` + `border-bottom`. Added `border-top` + `border-left` on `.fake-table` container. This ensures uniform 1px lines everywhere instead of 2px between adjacent cells / 1px on outer edges.
+- Added dark-mode rule for `.game-grid.sudoku { border-color: #666; }`.
+
+**3. Verification**
+- Visual CSS-only change; verified diff is limited to `style.css` border/shadow properties.
+
+---
+
+### [2026-06-06] (CLI: gemini)
+
+**1. Goal**
+- Fix layout drift downwards for tables under column B~E.
+- Fix right-panel slight misalignment (Q~T).
+- Both caused by the previous container borders adding external dimensions.
+
+**2. Changes**
+- Removed `.game-grid.sudoku` container border. Applied outer bold borders directly to the outer edge cells (`:nth-child(-n+9)`, etc.) so they stay strictly within `box-sizing: border-box` and the grid maintains 720x198 exact size.
+- Cleaned up obsolete/redundant `.sudoku` border rules.
+- Removed `border-top` and `border-left` from `.fake-table` container.
+- Applied `border: 1px solid` directly to `.fake-table-header` and `border-left` to `.label` and `.note` cells. This keeps 1px grid lines but prevents the container from growing in height/width and breaking layout gaps.
+
+**3. Verification**
+- Verified border placement is inside `box-sizing: border-box` cells, keeping container sizes uniform.

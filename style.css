@@ -437,9 +437,21 @@ body {
 }
 
 /* Sudoku/NewGame outer border: match the 3×3 block separator weight */
-.game-grid.sudoku {
-    border: 2px solid #a19f9d;
+/* Applied on edge cells (not container) to stay within box-sizing: border-box */
+
+/* Thicker borders for 3x3 blocks */
+.sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
+.sudoku .excel-cell:nth-child(n+19):nth-child(-n+27),
+.sudoku .excel-cell:nth-child(n+46):nth-child(-n+54),
+.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
+    border-bottom: 2px solid #a19f9d;
 }
+
+/* Outer edge bold borders */
+.sudoku .excel-cell:nth-child(-n+9) { border-top: 2px solid #a19f9d; }          /* first row */
+.sudoku .excel-cell:nth-child(n+73) { border-bottom: 2px solid #a19f9d; }       /* last row */
+.sudoku .excel-cell:nth-child(9n+1) { border-left: 2px solid #a19f9d; }         /* first column */
+.sudoku .excel-cell:nth-child(9n) { border-right: 2px solid #a19f9d; }          /* last column */
 
 #game2048-grid {
     border: 1px solid #d6dee7;
@@ -496,19 +508,6 @@ body {
 .newgame-diff-btn.active { background-color: #dbe5f1 !important; font-weight: bold; color: #1a365d; }
 .sudoku-diff-btn:hover,
 .newgame-diff-btn:hover { outline: 2px solid #70ad47; outline-offset: -2px; background-color: #e2f0d9 !important; }
-
-/* Thicker borders for 3x3 blocks */
-.sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
-.sudoku .excel-cell:nth-child(9n) { border-right: none; } /* outer right provided by .game-grid.sudoku border */
-.sudoku .excel-cell:nth-child(n+19):nth-child(-n+27),
-.sudoku .excel-cell:nth-child(n+46):nth-child(-n+54),
-.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
-    border-bottom: 2px solid #a19f9d;
-}
-/* Last row: outer bottom provided by .game-grid.sudoku border */
-.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
-    border-bottom: none;
-}
 
 /* -------------------
    2048 STYLES
@@ -929,8 +928,6 @@ body.dark-mode .newgame-locked-notice {
     grid-template-columns: 240px 80px; /* 3 cols (label) + 1 col (value) = 4 cols × 80px */
     background-color: transparent;
     font-size: 12px;
-    border-top: 1px solid #e1e1e1;
-    border-left: 1px solid #e1e1e1;
 }
 /* Reference(typing) 우측 패널: label 2열(160px) + value 1열(80px) = 240px = M~O */
 #typing-sheet .side-right .fake-table {
@@ -944,8 +941,7 @@ body.dark-mode .newgame-locked-notice {
     height: 22px; /* exactly 1 grid row */
     display: flex;
     align-items: center;
-    border-right: 1px solid #e1e1e1;
-    border-bottom: 1px solid #e1e1e1;
+    border: 1px solid #e1e1e1;
     color: #1f3864;
     font-size: 11px;
     white-space: nowrap;
@@ -968,6 +964,7 @@ body.dark-mode .newgame-locked-notice {
 }
 .fake-table-cell.label {
     background-color: #f2f2f2;
+    border-left: 1px solid #e1e1e1;
 }
 .fake-table-cell.value {
     justify-content: flex-end;
@@ -991,6 +988,7 @@ body.dark-mode .newgame-locked-notice {
     font-size: 11px;
     color: #666;
     background-color: #fffef2;
+    border-left: 1px solid #e1e1e1;
 }
 
 .fake-chart {
