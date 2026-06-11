@@ -85,6 +85,7 @@ async function startScene() {
     }
     await waitForVisibleChart(chart);
     updateChartTitle(world.profile.nickname);
+    world.hasPlaced = false;
     world.placeAtFirstZone();
     world.start();
 

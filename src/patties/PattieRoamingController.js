@@ -93,8 +93,6 @@ export class PattieRoamingController {
         this.speechBubble.className = 'pattie-speech';
         this.root.appendChild(this.speechBubble);
         this.bindEvents();
-        this.placeAtFirstZone();
-        this.start();
     }
 
     attach(root) {
