@@ -49,14 +49,15 @@ body {
     font-size: 22px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 6px;
     letter-spacing: -0.02em;
 }
 
 .logo-icon {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border-radius: 6px;
+    object-fit: contain;
 }
 
 nav {
