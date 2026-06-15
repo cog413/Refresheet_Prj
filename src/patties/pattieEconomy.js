@@ -5,14 +5,18 @@
 
 const ECONOMY_EVENT = 'refresheet:economy-updated';
 
-let _state = {
-    loaded: false,
-    authenticated: false,
-    points: { current: 0, total_earned: 0, total_spent: 0 },
-    inventory: { apple: 0 },
-    happiness: { current_score: 40, min: 40, max: 100, last_daily_close_date: null },
-    daily_limits: { pet_count_for_score: 0, talk_count_for_score: 0, feed_count_for_score: 0, score_limit_per_day: 3 },
-};
+function defaultEconomyState() {
+    return {
+        loaded: false,
+        authenticated: false,
+        points: { current: 0, total_earned: 0, total_spent: 0 },
+        inventory: { apple: 0 },
+        happiness: { current_score: 40, min: 40, max: 100, last_daily_close_date: null },
+        daily_limits: { pet_count_for_score: 0, talk_count_for_score: 0, feed_count_for_score: 0, score_limit_per_day: 3 },
+    };
+}
+
+let _state = defaultEconomyState();
 
 export function getEconomyState() {
     return { ..._state };
@@ -21,9 +25,19 @@ export function getEconomyState() {
 export async function loadEconomy() {
     try {
         const res = await fetch('/api/pet/economy', { credentials: 'include' });
-        if (!res.ok) return;
+        if (!res.ok) {
+            if (res.status === 401 || res.status === 403) {
+                _state = defaultEconomyState();
+                _emit();
+            }
+            return;
+        }
         const data = await res.json();
-        if (!data.authenticated) return;
+        if (!data.authenticated) {
+            _state = defaultEconomyState();
+            _emit();
+            return;
+        }
 
         _state = {
             loaded: true,

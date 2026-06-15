@@ -126,12 +126,25 @@ export function initGame2048UI() {
         ticketSpan.className = 'g2048-ticket-cell';
         footer.appendChild(ticketSpan);
 
+        const btnGroup = document.createElement('div');
+        btnGroup.style.display = 'flex';
+        btnGroup.style.gap = '5px';
+
+        const restartBtn = document.createElement('button');
+        restartBtn.type = 'button';
+        restartBtn.className = 'game-restart-btn';
+        restartBtn.textContent = '새 게임';
+        restartBtn.addEventListener('click', confirmRestartGame);
+        btnGroup.appendChild(restartBtn);
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'game-finish-btn';
         btn.textContent = '작업 종료';
         btn.addEventListener('click', confirmFinishRound);
-        footer.appendChild(btn);
+        btnGroup.appendChild(btn);
+
+        footer.appendChild(btnGroup);
 
         table.appendChild(footer);
         return table;
@@ -145,12 +158,25 @@ export function initGame2048UI() {
         ticketSpan.className = 'g2048-ticket-cell';
         bar.appendChild(ticketSpan);
 
+        const btnGroup = document.createElement('div');
+        btnGroup.style.display = 'flex';
+        btnGroup.style.gap = '5px';
+
+        const restartBtn = document.createElement('button');
+        restartBtn.type = 'button';
+        restartBtn.className = 'game-restart-btn';
+        restartBtn.textContent = '새 게임';
+        restartBtn.addEventListener('click', confirmRestartGame);
+        btnGroup.appendChild(restartBtn);
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'game-finish-btn';
         btn.textContent = '작업 종료';
         btn.addEventListener('click', confirmFinishRound);
-        bar.appendChild(btn);
+        btnGroup.appendChild(btn);
+
+        bar.appendChild(btnGroup);
 
         return bar;
     }
@@ -293,6 +319,46 @@ export function initGame2048UI() {
                 finalizeRound('game_over');
             }
         }
+    }
+
+    async function confirmRestartGame() {
+        if (!gameOver && !roundFinalized && score > 0) {
+            const confirmed = await showRestartConfirm();
+            if (!confirmed) return;
+        }
+        initBoard();
+    }
+
+    function showRestartConfirm() {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay game-restart-modal';
+            overlay.innerHTML = `
+                <div class="excel-modal">
+                    <div class="modal-header">
+                        <span>Refresheet</span>
+                        <span class="modal-close" data-action="cancel">✕</span>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-icon">⚠️</div>
+                        <div class="modal-text">진행 중인 게임을 포기하고 새 게임을 시작하시겠습니까?<br>(현재 점수는 기록되지 않습니다)</div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="modal-btn retry" data-action="restart">새 게임 시작(N)</button>
+                        <button class="modal-btn cancel" data-action="cancel">취소(C)</button>
+                    </div>
+                </div>`;
+            const close = (value) => {
+                overlay.remove();
+                resolve(value);
+            };
+            overlay.addEventListener('click', (event) => {
+                const action = event.target?.dataset?.action;
+                if (action === 'restart') close(true);
+                if (action === 'cancel') close(false);
+            });
+            document.body.appendChild(overlay);
+        });
     }
 
     async function confirmFinishRound() {

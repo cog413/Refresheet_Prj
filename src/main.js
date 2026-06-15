@@ -21,8 +21,6 @@ import { initGameRankingTables } from './games/gameRankingTable.js';
 window.loginPopupModule = { showLoginPopup, goToLogin, showAlertPopup, showUserSettings };
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Refresheet Project v1.4.0 Initializing...');
-
     // 0. Loading Screen Logic
     setTimeout(() => {
         const loadingScreen = document.getElementById('loading-screen');

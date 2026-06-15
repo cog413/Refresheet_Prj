@@ -5,7 +5,7 @@ export default defineConfig({
     testDir: './tests',
     timeout: 45_000,
     reporter: [['list'], ['html', { open: 'never', outputFolder: 'test-results/report' }]],
-    outputDir: 'test-results',
+    outputDir: 'test-results/artifacts',
     use: {
         baseURL: 'https://sub.refresheet-prj.pages.dev',
         screenshot: 'on',

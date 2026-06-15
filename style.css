@@ -1043,7 +1043,8 @@ body.dark-mode .newgame-locked-notice {
 .game-desc-footer {
     justify-content: space-between;
 }
-.game-finish-btn {
+.game-finish-btn,
+.game-restart-btn {
     border: 1px solid #70ad47;
     background: #e2f0d9;
     color: #1f5f38;
@@ -1052,11 +1053,13 @@ body.dark-mode .newgame-locked-notice {
     font-size: 11px;
     cursor: pointer;
 }
-.game-finish-btn:hover:not(:disabled) {
+.game-finish-btn:hover:not(:disabled),
+.game-restart-btn:hover:not(:disabled) {
     background: #d8ead1;
     border-color: #217346;
 }
-.game-finish-btn:disabled {
+.game-finish-btn:disabled,
+.game-restart-btn:disabled {
     cursor: default;
     opacity: 0.65;
 }

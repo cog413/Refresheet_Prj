@@ -1,1 +1,6 @@
 .wrangler/
+node_modules/
+debug.log
+chat_log.md
+test-results/
+.agent/tasks/
