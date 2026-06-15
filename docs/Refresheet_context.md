@@ -50,7 +50,7 @@ Pattie update:
 - The management sheet now has a Pattie world layer over the fake Excel habitat.
 - `src/patties/PattieAssetLoader.js` loads `public/assets/patties/manifest.json`.
 - Mong/Corgi production sprite sheets load `/public/assets/corgi/manifest.json`.
-- Production sprite sheet originals live in `manually_command/export`; they are Aseprite exports with 1px padding and must not be modified.
+- Production sprite sheet originals live in `public/assets/corgi/`; they are Aseprite exports with 1px padding and must not be modified.
 - `src/patties/PattieSprite.js` renders transparent PNG sprite sheets with `image-rendering: pixelated`, inferred frame counts, and padding-aware frame slicing.
 - `src/patties/PattieRoamingController.js` manages walk/idle/sleep/happy/jump/climb behavior and chart-bar climbing.
 - `src/patties/pattieWorldConfig.js` defines `sheet`, `chart`, `card`, and `blocked` terrain rules.
