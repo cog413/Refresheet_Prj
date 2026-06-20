@@ -223,6 +223,27 @@ AdSense 심사에서 요구하는 핵심 조건:
 - JS에서 `display: flex`로 열고, 일반 시트 탭 클릭 시 `display: none`으로 자동 닫힘
 - `updateFormulaBarForSheet('file')` → `=GUIDE.INDEX("서비스_안내")`
 
+### Desktop / Mobile Contract
+
+The file tab has a deliberate split contract:
+
+- Desktop file tab may live inside the Excel sheet canvas and coexist with the global `.sheet-view` desktop model.
+- Mobile file tab must render as a viewport-width guide page, not as a scaled 1840px spreadsheet canvas.
+- The global `.sheet-view { min-width: 1840px; }` is for desktop/game/readme sheet geometry. It must not leak into mobile `#file-sheet`.
+
+Mobile `#file-sheet` invariants:
+
+- `#file-sheet` inside `@media (max-width: 768px)` must keep `min-width: 0`, `max-width: 100vw`, and `overflow-x: hidden`.
+- `.fg-hero` must keep `grid-template-columns: 1fr`.
+- `.fg-link-grid` must keep `grid-template-columns: 1fr`.
+- File guide cards must stack vertically and fit inside the mobile viewport. In a 390px viewport, card width should be viewport-sized, not desktop-canvas-sized.
+
+Verification requirement:
+
+- After editing `style.css`, `index.html`, `src/layout/excelLayout.js`, `.sheet-view`, `.grid-content`, `.spreadsheet-*`, or `.fg-*`, verify the file tab at mobile width before saying it is fixed.
+- Use measured browser/computed-style facts. Example: viewport `390px`, `#file-sheet` around viewport width, `.fg-link-grid` one column, card width inside viewport, no horizontal overflow.
+- Run `npm run test:static` after touching protected layout or policy files; this guards the file-tab mobile contract and NewGame lock contract.
+
 ---
 
 ## Review Tab / Comments

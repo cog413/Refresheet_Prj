@@ -57,12 +57,26 @@ Make the smallest change that solves the problem.
 - For ReadMe specifically: `.rm-sheet` owns the grid and must have explicit paintable dimensions; `.rm-block` must remain transparent.
 - For Pattie terrain specifically: use the shared chart surface model; do not patch pet and snack coordinates independently.
 
+### Desktop / Mobile Layout Contract
+
+Before any UI change, classify the change as one of:
+- **Shared**: copy, data, image source, color token, or behavior that must apply to both desktop and mobile.
+- **Desktop-only**: Excel canvas, wide grid, desktop spacing, or horizontal layout that must not force mobile into desktop dimensions.
+- **Mobile-only**: `@media (max-width: 768px)`, touch targets, fixed bottom tabs, mobile file-tab cards, or viewport overflow handling.
+
+Rules:
+- If you edit `style.css`, `index.html`, `src/layout/excelLayout.js`, `.sheet-view`, `.grid-content`, `.spreadsheet-*`, `.fg-*`, ribbon tabs, or bottom sheet tabs, you must check whether the change affects both desktop and mobile.
+- Do not remove mobile overrides unless you replace them with an equivalent verified rule in the same change.
+- Global `min-width`, `height: 100%`, `overflow`, and `position: absolute` changes are high-risk. Verify their mobile effect before committing.
+- Desktop fixes must not be declared done until mobile has either been verified or explicitly shown to be unaffected.
+- Answer mobile layout questions with measured browser facts, not CSS inference. Prefer values like viewport width, computed grid columns, card width, and overflow status.
+
 ### Static Page Regression Guards
 
 - Do not wholesale rewrite `public/*.html` pages for copy, logo, or SEO edits. Preserve existing anchors, mockups, scripts, and feature-specific sections unless the user explicitly asks to remove them.
 - Before editing `public/faq.html`, compare recent history with `git log --oneline -- public/faq.html` and inspect the existing file. The FAQ must keep the friend referral section at `#friend-referral`.
 - The referral FAQ card is linked from Kitty lock help (`/faq#friend-referral`) and must keep its dynamic mockup DOM and CSS hooks: `referral-card`, `mock-window`, `mock-mouse`, `mock-settings-modal`, `mock-referral-input`, `mock-btn-referral-save`, and `mock-success-screen`.
-- After touching `public/faq.html`, `public/refresheet-static.css`, or `src/minime/minimeSetup.js`, run `npm run test:static`. This catches accidental removal of the referral FAQ scene and text encoding regressions.
+- After touching `public/faq.html`, `public/refresheet-static.css`, `src/minime/minimeSetup.js`, `style.css`, `src/worker/index.js`, `src/layout/excelLayout.js`, `docs/migrations/008_unlockables_referrals.sql`, or `HANDOFF.md`, run `npm run test:static`. This catches accidental removal of protected static content, NewGame lock policy regressions, file-tab mobile regressions, and text encoding regressions.
 
 ---
 
