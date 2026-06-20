@@ -246,7 +246,7 @@ AdSense 심사에서 요구하는 핵심 조건:
 - NewGame is a temporary copied Sudoku placeholder at `src/games/newgame/newGame.js`.
 - NewGame sheet DOM uses `#newgame-sheet` and `#newgame-grid`; tab key is `data-sheet="newgame"` and unlockable key is `new_game`.
 - NewGame tab must remain directly after SDK in the bottom sheet tabs.
-- NewGame is locked by backend unlock state until the signed-in user has at least 2 valid referrals.
+- NewGame is always locked for every user while it is a placeholder, regardless of referrals, manual unlock rows, or admin status.
 - Lock state APIs:
   - `GET /api/unlockables`
   - `GET /api/unlockables/check?item_key=new_game`
@@ -256,7 +256,7 @@ AdSense 심사에서 요구하는 핵심 조건:
 - D1 schema source: `docs/migrations/008_unlockables_referrals.sql`.
 - This project uses `users.user_id TEXT`; do not copy schemas that reference `users(id)`.
 - Referral email is immutable after insert, normalized lowercase, must match an existing user, and cannot be the current user's email.
-- NewGame score saves use `game_type='new_game'`; Worker rejects the score if the item is still locked.
+- NewGame score saves use `game_type='new_game'`; Worker rejects the score because `new_game` is in the always-locked set.
 
 ---
 

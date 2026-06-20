@@ -5,6 +5,7 @@ const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
 const MASTER_ADMIN_EMAILS = new Set(['jhchae9080@gmail.com', 'hyeyoon525@gmail.com']);
 const GLOBAL_HOURLY_PLAY_LIMIT = 3;
+const ALWAYS_LOCKED_UNLOCKABLES = new Set(['new_game']);
 let reviewSchemaReady = false;
 
 export default {
@@ -1455,7 +1456,7 @@ async function ensureUnlockSchema(db) {
         db.prepare(`INSERT INTO unlockable_items (
             item_key, item_type, display_name, lock_type, lock_value, lock_reason, is_active
         ) VALUES (
-            'new_game', 'sheet', 'NewGame', 'manual', NULL, '새로운 게임을 준비중입니다', 1
+            'new_game', 'sheet', 'NewGame', 'disabled', NULL, '새로운 게임을 준비중입니다', 1
         )
         ON CONFLICT(item_key) DO UPDATE SET
             item_type=excluded.item_type,
@@ -1489,6 +1490,9 @@ async function getUnlockState(db, session, itemKey, item = null) {
     ).bind(itemKey).first();
     if (!row) {
         return { item_key: itemKey, is_locked: true, lock_reason: '잠금 정보를 찾을 수 없습니다.' };
+    }
+    if (ALWAYS_LOCKED_UNLOCKABLES.has(row.item_key)) {
+        return { ...row, is_locked: true, lock_reason: row.lock_reason || '새로운 게임을 준비중입니다' };
     }
     if (row.lock_type === 'none') return { ...row, is_locked: false, lock_reason: null };
     if (!session) return { ...row, is_locked: true };

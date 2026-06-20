@@ -147,7 +147,7 @@ export function initExcelLayout() {
             formulaInput.value = '=SUDOKU.INIT(A1:I9)';
             currentCell.textContent = 'A1';
         } else if (sheetId === 'newgame') {
-            formulaInput.value = '=NEWGAME.LOCKED("친구추천 2명")';
+            formulaInput.value = '=NEWGAME.LOCKED("준비중")';
             currentCell.textContent = 'A1';
         } else if (sheetId === 'game2048') {
             formulaInput.value = '=SUM(A1:D4)*2048';

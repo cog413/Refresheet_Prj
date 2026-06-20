@@ -65,9 +65,9 @@ VALUES (
   'new_game',
   'sheet',
   'NewGame',
-  'referral',
-  '2',
-  '친구추천 2명 달성 시 이용할 수 있습니다',
+  'disabled',
+  NULL,
+  '새로운 게임을 준비중입니다',
   1
 )
 ON CONFLICT(item_key) DO UPDATE SET
