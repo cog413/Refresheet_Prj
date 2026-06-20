@@ -94,6 +94,14 @@ Currently tracked exclusions: `.wrangler/`, `node_modules/`, `debug.log`, `chat_
 
 ---
 
+### Static content regression guard
+- Do not wholesale rewrite `public/*.html` pages for copy, logo, or SEO edits. Preserve existing anchors, mockups, scripts, and feature-specific sections unless removal is explicitly requested.
+- `public/faq.html` must keep the friend referral FAQ section at `#friend-referral`. It is linked by Kitty lock help via `/faq#friend-referral`.
+- Keep the referral FAQ mockup hooks intact: `referral-card`, `mock-window`, `mock-mouse`, `mock-settings-modal`, `mock-referral-input`, `mock-btn-referral-save`, and `mock-success-screen`.
+- After touching `public/faq.html`, `public/refresheet-static.css`, or `src/minime/minimeSetup.js`, run `npm run test:static`.
+
+---
+
 ## English Version (Future)
 
 The EN version will be a separate domain/repo forked from this codebase.

@@ -57,6 +57,13 @@ Make the smallest change that solves the problem.
 - For ReadMe specifically: `.rm-sheet` owns the grid and must have explicit paintable dimensions; `.rm-block` must remain transparent.
 - For Pattie terrain specifically: use the shared chart surface model; do not patch pet and snack coordinates independently.
 
+### Static Page Regression Guards
+
+- Do not wholesale rewrite `public/*.html` pages for copy, logo, or SEO edits. Preserve existing anchors, mockups, scripts, and feature-specific sections unless the user explicitly asks to remove them.
+- Before editing `public/faq.html`, compare recent history with `git log --oneline -- public/faq.html` and inspect the existing file. The FAQ must keep the friend referral section at `#friend-referral`.
+- The referral FAQ card is linked from Kitty lock help (`/faq#friend-referral`) and must keep its dynamic mockup DOM and CSS hooks: `referral-card`, `mock-window`, `mock-mouse`, `mock-settings-modal`, `mock-referral-input`, `mock-btn-referral-save`, and `mock-success-screen`.
+- After touching `public/faq.html`, `public/refresheet-static.css`, or `src/minime/minimeSetup.js`, run `npm run test:static`. This catches accidental removal of the referral FAQ scene and text encoding regressions.
+
 ---
 
 ## 5. Goal-Driven Execution
