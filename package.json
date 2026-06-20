@@ -11,6 +11,7 @@
     "pattie:generate-test-assets": "node scripts/generate-pattie-test-assets.js",
     "pattie:clean-assets": "node scripts/clean-pattie-assets.js",
     "pattie:replace-assets": "node scripts/replace-pattie-assets.js",
+    "test:static": "node tests/static-content-guard.cjs",
     "test:qa": "playwright test --config playwright.config.js",
     "test:qa:headed": "playwright test --config playwright.config.js --headed",
     "test:qa:report": "playwright show-report test-results/report",
