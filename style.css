@@ -206,12 +206,12 @@ body {
 }
 
 .fg-hero img.fg-hero-logo {
-    width: min(100%, 300px);
-    max-height: 300px;
+    width: min(100%, 375px);
+    max-height: 375px;
     aspect-ratio: 1 / 1;
     border: 0;
     border-radius: 16px;
-    padding: 10px;
+    padding: 2px;
 }
 
 .fg-link-grid {
@@ -3633,9 +3633,9 @@ body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
         justify-self: center;
     }
     .fg-hero img.fg-hero-logo {
-        max-width: 240px;
-        max-height: 240px;
-        padding: 8px;
+        max-width: 300px;
+        max-height: 300px;
+        padding: 2px;
     }
     .fg-hero h1 {
         font-size: 28px;
