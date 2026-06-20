@@ -1,6 +1,7 @@
 import { operate, addRandomTile, isGameOver } from './logic.js';
 
-const SCORE_MULTIPLIER = 1.15;
+const SCORE_MULTIPLIER = 2.3;
+const SCORE_BAR_MAX = 36000;
 
 export function initGame2048UI() {
     const grid = document.getElementById('game2048-grid');
@@ -256,8 +257,7 @@ export function initGame2048UI() {
         const scoreBar     = document.getElementById('fake-score-bar');
         if (scoreDisplay) scoreDisplay.textContent = adjustedScore.toLocaleString();
         if (scoreBar) {
-            const maxRef = 18000;
-            scoreBar.style.height = `${Math.min(100, Math.max(5, (adjustedScore / maxRef) * 100))}%`;
+            scoreBar.style.height = `${Math.min(100, Math.max(5, (adjustedScore / SCORE_BAR_MAX) * 100))}%`;
         }
     }
 

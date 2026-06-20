@@ -116,12 +116,12 @@ const SEED_PROFILES = [
 
 // Base score ranges (full skill = 1.0).
 // Effective max = min + (max - min) * skillFactor × weekFactor
-// NPC (skill=0.60): e.g. 2048 effectiveMax ≈ 600 + 7400×0.60 = 5040  → avg ≈ 2820
-// Seed high (1.00): e.g. 2048 effectiveMax = 8000                     → avg ≈ 4300
+// NPC (skill=0.60): e.g. 2048 effectiveMax ≈ 1200 + 14800×0.60 = 10080 → avg ≈ 5640
+// Seed high (1.00): e.g. 2048 effectiveMax = 16000                    → avg ≈ 8600
 const SCORE_BASE = {
-    '2048':        { min: 600,  max: 8000  },
-    'sudoku':      { min: 400,  max: 5500  },
-    'typing_game': { min: 400,  max: 6000  },
+    '2048':        { min: 1200, max: 16000 },
+    'sudoku':      { min: 100,  max: 1375  },
+    'typing_game': { min: 800,  max: 12000 },
 };
 
 // ─── helpers ──────────────────────────────────────────────────────────────────

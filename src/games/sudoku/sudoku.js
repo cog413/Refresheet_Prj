@@ -12,6 +12,8 @@ const DIFFICULTY_LABEL = { '1': '쉬움', '2': '쉬움+', '3': '보통', '4': '�
 
 const DIFFICULTY_MULT = { '1': 0.85, '2': 1.0, '3': 1.15, '4': 1.32, '5': 1.55 };
 const EXPECTED_SECONDS = { '1': 240, '2': 360, '3': 480, '4': 660, '5': 840 };
+const SCORE_MULTIPLIER = 0.25;
+const SCORE_BAR_MAX = 4500;
 
 // Offline fallback — same shape as a sudoku_puzzles row
 const FALLBACK = {
@@ -543,7 +545,7 @@ export async function initSudoku() {
 
     function calculateIntermediateScore() {
         const mult = DIFFICULTY_MULT[currentDifficulty] || 1;
-        return Math.round(countCorrectUserCells() * mult);
+        return Math.round(countCorrectUserCells() * mult * SCORE_MULTIPLIER);
     }
 
     function countCorrectUserCells() {
@@ -597,7 +599,7 @@ export async function initSudoku() {
         const timeAdjustment = Math.round(base * timeRatio);
         const mistakePenalty = mistakeCount * 80;
         const mult = DIFFICULTY_MULT[currentDifficulty] || 1.0;
-        return Math.max(1000, Math.round((base + timeAdjustment - mistakePenalty) * mult));
+        return Math.max(250, Math.round((base + timeAdjustment - mistakePenalty) * mult * SCORE_MULTIPLIER));
     }
 
     function resetScoreUI() {
@@ -612,12 +614,11 @@ export async function initSudoku() {
     }
 
     function updateScoreUI(finalScore) {
-        const MAX_SCORE = 18000;
         const scoreDisplay = document.getElementById('sudoku-score-display');
         if (scoreDisplay) scoreDisplay.textContent = finalScore.toLocaleString();
 
         const scoreBar = document.getElementById('sudoku-score-bar');
-        if (scoreBar) scoreBar.style.height = `${Math.min(100, Math.max(5, (finalScore / MAX_SCORE) * 100))}%`;
+        if (scoreBar) scoreBar.style.height = `${Math.min(100, Math.max(5, (finalScore / SCORE_BAR_MAX) * 100))}%`;
 
         // Sub bars: difficulty, speed, accuracy
         const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 600;

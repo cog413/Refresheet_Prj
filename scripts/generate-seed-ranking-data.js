@@ -270,36 +270,36 @@ const SEED_USERS = [
 
 const SCORE_RANGES = {
     '2048': {
-        low:      [300,  2500],
-        low_mid:  [800,  4000],
-        mid:      [1500, 6000],
-        mid_high: [2000, 10000],
-        high:     [3500, 14000],
+        low:      [600,  5000],
+        low_mid:  [1600, 8000],
+        mid:      [3000, 12000],
+        mid_high: [4000, 20000],
+        high:     [7000, 28000],
     },
     sudoku: {
-        low:      [200,  1200],
-        low_mid:  [600,  2200],
-        mid:      [1000, 3500],
-        mid_high: [1800, 5000],
-        high:     [2800, 6500],
+        low:      [50,  300],
+        low_mid:  [150, 550],
+        mid:      [250, 875],
+        mid_high: [450, 1250],
+        high:     [700, 1625],
     },
     typing_game: {
-        low:      [300,  1500],
-        low_mid:  [700,  2500],
-        mid:      [1500, 4500],
-        mid_high: [2000, 5500],
-        high:     [3000, 7000],
+        low:      [600,  3000],
+        low_mid:  [1400, 5000],
+        mid:      [3000, 9000],
+        mid_high: [4000, 11000],
+        high:     [6000, 14000],
     },
 };
 
 // NPC score ranges derived from cron Worker skill=0.60 cap:
 // effectiveMax = base.min + (base.max - base.min) * 0.60
-// 2048: 600 + (8000-600)*0.60 = 5040  | sudoku: 400 + (5500-400)*0.60 = 3460
-// typing_game: 400 + (6000-400)*0.60 = 3760
+// 2048: 1200 + (16000-1200)*0.60 = 10080 | sudoku: 100 + (1375-100)*0.60 = 865
+// typing_game: 800 + (12000-800)*0.60 = 7520
 const NPC_RANGES = {
-    '2048':       [600,  5040],
-    sudoku:       [400,  3460],
-    typing_game:  [400,  3760],
+    '2048':       [1200, 10080],
+    sudoku:       [100,  865],
+    typing_game:  [800,  7520],
 };
 
 function rollScore(userId, gameType) {
