@@ -1186,12 +1186,14 @@ body.dark-mode .newgame-locked-notice {
     right: 20px;
     bottom: 50px;
     width: 240px;
+    height: 150px;
     border: 1px solid #2b6cb0;
     background: #fff;
     font-size: 11px;
     z-index: 100;
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .ad-header {
@@ -1223,11 +1225,14 @@ body.dark-mode .newgame-locked-notice {
 .ad-content {
     display: block;
     width: 100%;
+    height: 122px;
     padding: 0;
+    overflow: hidden;
 }
 
 .ad-content .adsbygoogle {
     width: 100%;
+    height: 122px;
 }
 
 /* Dark Mode Overrides */
