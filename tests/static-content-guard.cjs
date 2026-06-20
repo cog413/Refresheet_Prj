@@ -85,6 +85,7 @@ assert(mobileMediaStart >= 0, 'App CSS must keep the mobile media query');
 const mobileCss = appCss.slice(mobileMediaStart);
 for (const fragment of [
   '#file-sheet',
+  'min-width: 0',
   'max-width: 100vw',
   'overflow-x: hidden',
   '.fg-hero',
