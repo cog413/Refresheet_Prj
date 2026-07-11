@@ -1,3 +1,11 @@
+> **ARCHIVED — superseded, do not treat as current.**
+> This describes the original "MiniGgotchi" baseline (company-tag ranking, `scenario_nodes`
+> dialogue engine, `point_wallets`/`point_ledger`, `user_pets`). All of those tables were
+> dropped in `docs/migrations/014_drop_legacy_tables.sql` and `015_drop_point_wallets.sql`.
+> The product pivoted to the Pattie/토닥이 pet-economy system — see `HANDOFF.md` and
+> `docs/migrations/012_pet_economy.sql` for the current design. Kept here for historical
+> product-vision reference only.
+
 # MiniGgotchi Product Requirements Document
 
 Version: v0.4  
@@ -377,7 +385,7 @@ The current MiniGgotchi database has been created on Cloudflare.
 | --- | --- |
 | Provider | Cloudflare database |
 | Database ID | `5c560a75-93a5-4414-88fc-0bd8e9ff4e26` |
-| Applied schema file | `docs/MiniGgotchi_schema.sql` |
+| Applied schema file | `docs/archive/MiniGgotchi_schema.sql` |
 | Status | Baseline tables created by user-provided SQL |
 
 The baseline schema covers users, profiles, pets, game results, point wallets, point ledger, Sudoku puzzles, typing prompts, scenario nodes/buttons, company tags, user-company tag mapping, and event logs.
@@ -398,7 +406,7 @@ Gameplay content should be loaded from the database through an API layer, not ha
 
 The frontend may cache the current response for rendering, but it must not be the source of truth for scenario branching, puzzle selection, prompt selection, rewards, or point balance.
 
-Detailed runtime and query policy is documented in `docs/MiniGgotchi_data_access_policy.md`.
+Detailed runtime and query policy is documented in `docs/archive/MiniGgotchi_data_access_policy.md`.
 
 ### 8.3 Puzzle/Prompt Reuse Priority
 

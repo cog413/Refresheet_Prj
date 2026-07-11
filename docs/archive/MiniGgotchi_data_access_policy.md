@@ -1,3 +1,10 @@
+> **ARCHIVED — superseded, do not treat as current.**
+> Describes the original "MiniGgotchi" baseline (`scenario_nodes`/`scenario_buttons`,
+> `game_results`, `point_ledger`/`point_wallets`, `user_content_history`). All of these
+> tables were dropped in `docs/migrations/014_drop_legacy_tables.sql` and
+> `015_drop_point_wallets.sql`. Current DB-access patterns live in `src/worker/index.js`
+> and `HANDOFF.md`. Kept here for historical reference only.
+
 # MiniGgotchi Data Access Policy
 
 Updated: 2026-05-04
@@ -238,7 +245,7 @@ Even after adding `user_content_history`, keep `puzzle_id` in metadata for audit
 
 ## 8. Migration Policy
 
-The baseline Cloudflare schema is documented in `docs/MiniGgotchi_schema.sql`.
+The baseline Cloudflare schema is documented in `docs/archive/MiniGgotchi_schema.sql`.
 
 Do not edit that file as if a migration has already been applied. For DB changes:
 

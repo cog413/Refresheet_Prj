@@ -318,7 +318,7 @@ After setting secrets: redeploy the Pages project.
 ### Apply QA Seed Migration
 
 ```powershell
-npx.cmd wrangler d1 execute DB --remote --file=./docs/migrations/006_qa_seed.sql
+npx.cmd wrangler d1 execute DB --remote --file=./docs/preview/006_qa_seed.sql
 ```
 
 Apply to the **preview** D1 database only. Verify:

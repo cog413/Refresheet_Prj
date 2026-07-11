@@ -1,3 +1,9 @@
+-- ARCHIVED — superseded, do not treat as current.
+-- Documents the original baseline schema. user_pets, game_results, point_wallets, and
+-- point_ledger were all dropped in migrations 014/015 and replaced by the Pattie
+-- pet-economy tables (see docs/migrations/012_pet_economy.sql). Kept for historical
+-- reference only.
+--
 -- MiniGgotchi Cloudflare DB schema
 -- Cloudflare DB ID: 5c560a75-93a5-4414-88fc-0bd8e9ff4e26
 -- Status: The user confirmed this DB has already been created on Cloudflare and these tables have been created with the SQL below.

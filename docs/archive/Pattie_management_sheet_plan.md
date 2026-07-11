@@ -1,0 +1,113 @@
+> **ARCHIVED — superseded, do not treat as current.**
+> Describes the original rabbit/dog/cat Pattie asset plan under `public/assets/patties/`.
+> That folder and character set no longer exist — the shipped system is the corgi
+> (`mong`) / kitty (`cabul`) sprite pipeline documented in `HANDOFF.md` § Sprite Assets
+> and § Pattie World System. This file also predates UTF-8 normalization, so most Korean
+> text below is corrupted (mojibake); kept for historical reference only.
+
+# Refresheet Pattie 愿由ъ떆??嫄곗＜/?대룞 ?쒖뒪??湲고쉷
+
+## 紐⑺몴
+
+愿由ъ떆?몃뒗 ?⑥닚 諛곌꼍???꾨땲??rabbit, dog, cat Pattie媛 ?щ뒗 ?묒? 怨듦컙?대떎. Pattie???? ? 寃쎄퀎, 洹몃옒?? 留됰?洹몃옒?? 移대뱶 UI瑜?吏?뺤쿂???몄떇?섍퀬 泥쒖쿇???뚯븘?ㅻ땶??
+
+## 罹먮┃??湲곗?
+
+- 湲곗? ?대?吏: `manually_command/character_image.png`
+- 32x32 pixel art 湲곗?
+- transparent background PNG
+- no anti-aliasing, no blur, no gradient
+- bold black outline ?좎?
+- rabbit, dog, cat???ㅻ（?? ?됱긽, ?? ?쒖젙, 寃? ?멸낸???ㅽ????좎?
+- ?뚯뒪??asset? `public/assets/patties/manifest.json`?쇰줈留?李몄“
+
+## Asset 援ъ“
+
+```text
+public/assets/patties/
+  manifest.json
+  _test/README.md
+  rabbit/{idle,walk,sleep,happy,jump,climb}.png
+  dog/{idle,walk,sleep,happy,jump,climb}.png
+  cat/{idle,walk,sleep,happy,jump,climb}.png
+  items/{sunglasses,bee_suit}.png
+```
+
+?꾩옱 ?꾨줈?앺듃??鍮뚮뱶 ?놁씠 猷⑦듃媛 洹몃?濡?諛고룷?섎?濡??고???URL? `/public/assets/patties/...`瑜??ъ슜?쒕떎. `PattieAssetLoader`??public manifest瑜??곗꽑 ?ъ슜?쒕떎. 異뷀썑 D1 API manifest??R2 URL濡?諛붾뚯뼱??loader???명꽣?섏씠?ㅻ뒗 ?좎??쒕떎.
+
+## Mong 64x64 ?뚯뒪??Asset
+
+?꾩옱 mong ?⑥씪 罹먮┃???뚯뒪?몃뒗 理쒖쥌 asset怨??욎? ?딄퀬 ?꾨옒 ?대뜑瑜??ъ슜?쒕떎.
+
+```text
+public/assets/corgi/
+  manifest.json
+  _test/README.md
+  mong/{idle,walk,run,sleep,happy,jump,climb}.png
+```
+
+?먮낯? `manually_command/export/idle`, `run`, `walk`??64x64 PNG?대ŉ `public/assets/corgi/manifest.json`濡??뚯뒪??sprite sheet瑜??ъ깮?깊븳?? frameDurationMs??260~420ms 踰붿쐞濡??먭퀬, 2D ?꾧린?먭린???吏곸엫???꾪빐 ?대룞 ?띾룄????쾶 ?좎??쒕떎.
+
+## 愿由ъ떆??吏??
+
+- `sheetZone`: ?쇱そ ??? ?곸뿭. 湲곕낯 walk, idle, jump.
+- `chartZone`: ?ㅻⅨ履??곷떒 洹몃옒??李⑦듃 ?곸뿭. walk, idle, jump, climb.
+- `cardZone`: ?ㅻⅨ履??섎떒 移대뱶/?곹깭 ?곸뿭. walk, idle, jump.
+- `blockedZone`: ?대┃ UI 諛⑺빐 ?곸뿭. ?대룞 湲덉?.
+
+HTML?먮뒗 `data-pattie-zone="sheet|chart|card|blocked"`瑜?遺숈씤?? 留됰?洹몃옒?꾨뒗 `data-pattie-terrain="chart-bar"`濡?climb ?꾨낫媛 ?쒕떎.
+
+## 湲곕낯 ?됰룞
+
+- frameDurationMs: 500
+- sheetZone: walk 65%, idle 25%, jump 5%, sleep 5%
+- chartZone: walk 45%, idle 20%, jump 15%, climb 15%, sleep 5%
+- cardZone: walk 50%, idle 30%, jump 10%, sleep 10%
+- ?대┃/耳???≪뀡: happy ?곗꽑 諛쒕룞
+- chart bar 洹쇱쿂: climb 以?y 醫뚰몴瑜?JS?먯꽌 ?쒖꽌???곸듅
+- jump: chartZone?먯꽌??`data-pattie-terrain="chart-bar"` 留됰??ㅼ쓣 x異??쒖꽌濡??쎄퀬 ?ㅼ쓬 留됰? ?곷떒?쇰줈 ?щЪ???대룞
+
+## ?꾩씠??
+
+珥덇린 ?덉떆 ?꾩씠??
+
+- `sunglasses`: face cosmetic
+- `bee_suit`: outfit cosmetic
+
+?꾩씠?쒖? ?먯닔/??궧???곹뼢??二쇱? ?딅뒗 袁몃?湲??꾩슜?대떎. ?ъ슜?먭? 罹먮┃?곗뿉 ?μ갑?섎㈃ `avatars.equipped_item_keys`??JSON 諛곗뿴濡???ν븯怨? ?띾뱷 ?대젰? `user_pattie_items`濡??뺤옣?쒕떎.
+
+## ?ъ슜???ㅼ젙
+
+愿由ъ떆??吏꾩엯 ??
+
+- 濡쒓렇?명븯吏 ?딆븯?쇰㈃ 濡쒓렇???덈궡
+- 湲곗〈 ?ъ슜?먮씪??Pattie ?ㅼ젙 媛믪씠 ?놁쑝硫?珥덇린 ?ㅼ젙 紐⑤떖 ?쒖떆
+- ?ㅼ젙 踰꾪듉?쇰줈 ?몄젣???대쫫, 罹먮┃?? ?꾩씠?쒖쓣 蹂寃?
+- character_key??`rabbit`, `dog`, `cat`
+
+## DB / R2 ?뺤옣
+
+- D1?먮뒗 ?대?吏 諛붿씠?덈━瑜???ν븯吏 ?딆쓬
+- D1?먮뒗 asset src? metadata留???ν븳??
+- ?ㅼ젣 PNG/sprite sheet???꾩옱 public asset, 異뷀썑 R2濡??대룞 媛??
+- 愿??migration: `docs/migrations/005_pattie_assets_items.sql`
+---
+
+## Production Corgi Sprite Sheet Asset Rule
+
+```text
+public/assets/corgi/
+  manifest.json
+  mong_idle.png
+  mong_walk..png
+  mong_run.png
+  mong_sleep.png
+  mong_happy.png
+  mong_jump.png
+```
+
+- Actual sprite sheet originals live in `manually_command/export`.
+- Sprite sheets are Aseprite exports with 1px padding.
+- Original files must not be edited, resized, regenerated, or renamed.
+- Runtime code must adapt to the asset structure, including different frame counts per animation.
+- Frame counts are inferred from actual image dimensions instead of a shared hardcoded count.

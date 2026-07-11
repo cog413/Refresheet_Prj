@@ -46,10 +46,12 @@ Refresheet_Prj/
 │   │   └── static-site/     # Static page images (SVGs, referral mockup)
 │   └── refresheet-static.css
 ├── docs/
-│   ├── Refresheet_context.md
-│   ├── migrations/          # D1 SQL migrations (001–015) — wrangler migrations_dir
+│   ├── migrations/          # D1 SQL migrations (001–015, skips 006) — wrangler migrations_dir
+│   ├── preview/
+│   │   └── 006_qa_seed.sql  # QA seed — preview D1 only, deliberately outside migrations_dir
 │   ├── imports/
 │   │   └── typing/          # Executed SQL for typing game content import (history only)
+│   ├── archive/             # Superseded docs kept for historical reference — not current
 │   └── *.md                 # PRD, schema, roadmap, etc.
 ├── data/
 │   ├── seeds/
