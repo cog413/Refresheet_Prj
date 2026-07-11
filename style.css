@@ -1,4 +1,23 @@
-﻿* {
+:root {
+    /* ── Sheet coordinate tokens ─────────────────── */
+    --rs-col-w: 80px;
+    --rs-row-h: 22px;
+
+    /* ── Border hierarchy ────────────────────────── */
+    --rs-grid:        #eeece9;   /* background grid lines — lightest */
+    --rs-tbl-inner:   #c8c6c4;   /* table cell dividers */
+    --rs-tbl-outer:   #a9a7a5;   /* table outer frame */
+    --rs-tbl-head-bg: #dbe5f1;
+    --rs-tbl-head-bd: #8aacd4;   /* header bottom accent */
+    --rs-hd-border:   #d0cecc;   /* row/col header separator */
+
+    /* ── Object (floating) tokens ────────────────── */
+    --rs-obj-shadow:  0 1px 4px rgba(0,0,0,0.10);   /* Excel-lite shadow */
+    --rs-obj-radius:  0px;                           /* no rounding */
+    --rs-obj-border:  #c9d7e3;
+}
+
+* {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -17,6 +36,7 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    height: 100dvh;
 }
 
 /* Ribbon Menu */
@@ -32,6 +52,27 @@ body {
     color: white;
     padding: 4px 10px;
     font-size: 12px;
+}
+.title-bar {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    gap: 8px;
+}
+.top-legal-links {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 12px;
+    font-size: 11px;
+}
+.top-legal-links a {
+    color: rgba(255,255,255,0.88);
+    text-decoration: none;
+}
+.top-legal-links a:hover {
+    color: #fff;
+    text-decoration: underline;
 }
 
 .window-controls span {
@@ -91,24 +132,39 @@ body {
     width: 100%;
     height: 100%;
     overflow-y: auto;
-    background: #f8fbf8;
-    padding: 32px;
+    background-color: #f8fbf8;
+    background-image:
+        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
+    padding: var(--rs-row-h) 32px 32px var(--rs-col-w);
     flex-direction: column;
 }
 
 .fg-hero {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(260px, 380px);
-    gap: 36px;
-    align-items: center;
+    grid-template-columns: minmax(0, 1.35fr) minmax(220px, 0.62fr);
+    gap: 32px;
+    align-items: start;
     width: 100%;
     max-width: 1360px;
-    min-height: 34vh;
-    margin: 0 auto 24px;
+    min-height: 220px;
+    height: auto;
+    margin: 0 0 32px;
     background: #fff;
     border: 1px solid #cfe0d3;
-    border-radius: 8px;
-    padding: 48px;
+    border-radius: 12px;
+    padding: 40px 48px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.fg-hero > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-width: 0;
 }
 
 .fg-eyebrow {
@@ -124,6 +180,8 @@ body {
     font-size: 38px;
     line-height: 1.25;
     letter-spacing: 0;
+    overflow-wrap: break-word;
+    word-break: keep-all;
 }
 
 .fg-hero p {
@@ -131,15 +189,29 @@ body {
     color: #4f6156;
     font-size: 18px;
     line-height: 1.7;
+    overflow-wrap: break-word;
+    word-break: keep-all;
 }
 
 .fg-hero img {
-    width: 100%;
-    max-width: 100%;
-    height: auto;
+    display: block;
+    width: min(100%, 360px);
+    aspect-ratio: 960 / 620;
+    max-height: 260px;
+    object-fit: contain;
+    justify-self: center;
     border: 1px solid #d8e2da;
     border-radius: 6px;
     background: #fff;
+}
+
+.fg-hero img.fg-hero-logo {
+    width: min(100%, 375px);
+    max-height: 375px;
+    aspect-ratio: 1 / 1;
+    border: 0;
+    border-radius: 16px;
+    padding: 2px;
 }
 
 .fg-link-grid {
@@ -149,7 +221,7 @@ body {
     gap: 18px;
     width: 100%;
     max-width: 1360px;
-    margin: 0 auto;
+    margin: 32px 0 0;
     align-content: start;
 }
 
@@ -295,11 +367,13 @@ body {
     position: relative;
 }
 
+
 .spreadsheet-body {
     display: flex;
     flex-grow: 1;
     overflow: hidden;
     position: relative;
+    min-height: 0;
 }
 
 .corner-header {
@@ -307,7 +381,7 @@ body {
     top: 0;
     left: 0;
     width: 30px;
-    height: 25px;
+    height: 22px;
     background-color: #f3f2f1;
     border-right: 1px solid #c8c6c4;
     border-bottom: 1px solid #c8c6c4;
@@ -323,17 +397,19 @@ body {
     display: flex;
     margin-left: 30px;
     background-color: #f3f2f1;
-    border-bottom: 1px solid #c8c6c4;
+    border-bottom: 1px solid var(--rs-hd-border);
     overflow: hidden;
+    height: var(--rs-row-h);
+    flex-shrink: 0;
 }
 
 .col-header {
-    width: 80px; /* Default cell width */
-    height: 25px;
+    width: var(--rs-col-w);
+    height: var(--rs-row-h);
     display: flex;
     justify-content: center;
     align-items: center;
-    border-right: 1px solid #c8c6c4;
+    border-right: 1px solid var(--rs-hd-border);
     font-size: 12px;
     color: #333;
     flex-shrink: 0;
@@ -351,29 +427,36 @@ body {
     flex-direction: column;
     width: 30px;
     background-color: #f3f2f1;
-    border-right: 1px solid #c8c6c4;
-    overflow: hidden;
+    border-right: 1px solid var(--rs-hd-border);
+    overflow: scroll;
+    scrollbar-width: none;
     flex-shrink: 0;
 }
+.row-headers::-webkit-scrollbar { display: none; }
 
 .row-header {
-    height: 25px;
-    flex: 0 0 25px;
+    height: var(--rs-row-h);
+    flex: 0 0 var(--rs-row-h);
     display: flex;
     justify-content: center;
     align-items: center;
-    border-bottom: 1px solid #c8c6c4;
+    border-bottom: 1px solid var(--rs-hd-border);
     font-size: 12px;
     color: #333;
 }
 
-/* Game Grids positioned like Excel cells */
+/* Grid background lives on sheet-view — only tiles over actual content, not beyond right edge */
 .sheet-view {
     position: absolute;
     top: 0;
     left: 0;
-    /* We align the games inside the dummy grid by just rendering them as grids */
     z-index: 1;
+    min-width: 1840px; /* A-W */
+    min-height: 704px; /* rows 1-32 */
+    background-image:
+        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
 }
 
 .game-grid {
@@ -384,16 +467,40 @@ body {
     border-left: 1px solid #e1dfdd;
 }
 
-#game2048-grid {
-    border: 1px solid #d6dee7;
+/* Sudoku/NewGame outer border: match the 3×3 block separator weight */
+/* Applied on edge cells (not container) to stay within box-sizing: border-box */
+
+/* Thicker borders for 3x3 blocks */
+.sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
+.sudoku .excel-cell:nth-child(n+19):nth-child(-n+27),
+.sudoku .excel-cell:nth-child(n+46):nth-child(-n+54),
+.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
+    border-bottom: 2px solid #a19f9d;
 }
+
+/* Outer edge bold borders */
+.sudoku .excel-cell:nth-child(-n+9) { border-top: 2px solid #a19f9d; }          /* first row */
+.sudoku .excel-cell:nth-child(n+73) { border-bottom: 2px solid #a19f9d; }       /* last row */
+.sudoku .excel-cell:nth-child(9n+1) { border-left: 2px solid #a19f9d; }         /* first column */
+.sudoku .excel-cell:nth-child(9n) { border-right: 2px solid #a19f9d; }          /* last column */
+
+#game2048-grid {
+    /* border applied to cells instead to prevent layout drift */
+    touch-action: none;
+}
+
+/* Outer edge borders for 2048 grid to match box-sizing */
+.g2048 .excel-cell:nth-child(-n+4) { border-top: 1px solid #d6dee7; }
+.g2048 .excel-cell:nth-child(n+13) { border-bottom: 1px solid #d6dee7; }
+.g2048 .excel-cell:nth-child(4n+1) { border-left: 1px solid #d6dee7; }
+.g2048 .excel-cell:nth-child(4n)   { border-right: 1px solid #d6dee7; }
 
 /* Base cell styling to look like Excel */
 .excel-cell {
     width: 80px;
-    height: 25px;
-    border-right: 1px solid #e1dfdd;
-    border-bottom: 1px solid #e1dfdd;
+    height: 22px;
+    border-right: 1px solid #e9e7e4;
+    border-bottom: 1px solid #e9e7e4;
     display: flex;
     align-items: center;
     justify-content: flex-end; /* Numbers right-aligned */
@@ -413,7 +520,7 @@ body {
    ------------------- */
 .sudoku {
     grid-template-columns: repeat(9, 80px);
-    grid-template-rows: repeat(9, 25px);
+    grid-template-rows: repeat(9, 22px);
 }
 
 .sudoku .excel-cell {
@@ -439,28 +546,25 @@ body {
 .sudoku-diff-btn:hover,
 .newgame-diff-btn:hover { outline: 2px solid #70ad47; outline-offset: -2px; background-color: #e2f0d9 !important; }
 
-/* Thicker borders for 3x3 blocks */
-.sudoku .excel-cell:nth-child(3n) { border-right: 2px solid #a19f9d; }
-.sudoku .excel-cell:nth-child(9n) { border-right: 1px solid #e1dfdd; } /* reset last col */
-.sudoku .excel-cell:nth-child(n+19):nth-child(-n+27),
-.sudoku .excel-cell:nth-child(n+46):nth-child(-n+54),
-.sudoku .excel-cell:nth-child(n+73):nth-child(-n+81) {
-    border-bottom: 2px solid #a19f9d;
-}
-
 /* -------------------
    2048 STYLES
    ------------------- */
 .g2048 {
     grid-template-columns: repeat(4, 80px);
-    grid-template-rows: repeat(4, 25px);
+    grid-template-rows: repeat(4, 22px);
 }
 
 .g2048 .excel-cell {
-    justify-content: right; /* Numbers right-aligned like money */
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+    line-height: var(--rs-row-h);
+    justify-content: flex-end; /* Numbers right-aligned like money */
     font-weight: normal;
     transition: all 0.1s;
 }
+
 
 /* 2048 Colors disguised as financial data */
 .val-2 { color: #333; }
@@ -603,10 +707,14 @@ body.dark-mode .newgame-locked-notice {
 .safe-mode .game-grid {
     display: none !important;
 }
-.safe-mode .dummy-grid {
-    display: block !important;
-}
 .safe-mode .sheet-view { display: none !important; }
+.safe-mode .grid-content {
+    background-image:
+        linear-gradient(to right, #e9e7e4 1px, transparent 1px),
+        linear-gradient(to bottom, #e9e7e4 1px, transparent 1px);
+    background-size: 80px 22px;
+    background-attachment: local;
+}
 
 /* Review sheet: Excel frame with compact comment-panel behavior */
 .review-sheet-wrap {
@@ -726,6 +834,12 @@ body.dark-mode .newgame-locked-notice {
     background: #fff;
     padding: 10px 12px;
 }
+.review-policy-note {
+    margin: 0 0 6px;
+    color: #666;
+    font-size: 11px;
+    line-height: 1.45;
+}
 .review-compose textarea,
 .review-edit-input,
 .review-feedback-input,
@@ -763,6 +877,21 @@ body.dark-mode .newgame-locked-notice {
 .review-modal-message {
     font-size: 11px;
     color: #777;
+}
+.legal-links {
+    display: inline-flex;
+    gap: 10px;
+    align-items: center;
+    margin-right: 18px;
+    font-size: 11px;
+}
+.legal-links a {
+    color: #666;
+    text-decoration: none;
+}
+.legal-links a:hover {
+    color: #217346;
+    text-decoration: underline;
 }
 .review-message,
 .review-modal-message {
@@ -808,19 +937,9 @@ body.dark-mode .newgame-locked-notice {
     line-height: 1.5;
 }
 
-/* In normal mode, dummy grid is a background */
+/* dummy-grid kept for safe-mode markup compat but grid is now on grid-content background */
 .dummy-grid {
-    position: absolute;
-    top: 0;
-    left: 0; /* Offset removed since row-headers are outside */
-    z-index: 0;
-    width: 2000px;
-    height: 1000px;
-    pointer-events: none;
-    background-image: 
-        linear-gradient(to right, #e1dfdd 1px, transparent 1px),
-        linear-gradient(to bottom, #e1dfdd 1px, transparent 1px);
-    background-size: 80px 25px; /* Matches col/row size */
+    display: none;
 }
 
 /* Fake Dashboard & Account Button */
@@ -852,74 +971,95 @@ body.dark-mode .newgame-locked-notice {
 }
 .sheet-layout {
     display: flex;
-    gap: 80px; /* Aligns to exactly 1 column width */
-    padding: 50px 80px; /* Aligns to exactly 2 rows down, 1 column right */
+    gap: 80px; /* 1 col × 80px */
+    padding: 44px 80px 80px; /* 2 rows top, 1 col sides, 1 col bottom */
 }
 .fake-dashboard {
     display: flex;
     flex-direction: column;
-    gap: 25px; /* Aligns to exactly 1 row height */
-    width: 320px; /* Aligns to exactly 4 columns (80px * 4) */
+    gap: 22px; /* 1 row × 22px — tables stack on exact grid rows */
+    width: 320px; /* 4 cols × 80px */
     font-family: 'Segoe UI', sans-serif;
 }
 .fake-table {
     display: grid;
-    grid-template-columns: 240px 80px; /* 3 cols + 1 col = 4 cols (320px) */
+    grid-template-columns: 240px 80px; /* 3 cols (label) + 1 col (value) = 4 cols × 80px */
     background-color: transparent;
-    font-size: 13px;
-    border-top: 1px solid #e1dfdd;
-    border-left: 1px solid #e1dfdd;
+    font-size: 12px;
+}
+/* Reference(typing) 우측 패널: label 2열(160px) + value 1열(80px) = 240px = M~O */
+#typing-sheet .side-right .fake-table {
+    grid-template-columns: 160px 80px;
 }
 .fake-table-header {
-    background-color: #dbe5f1; /* Pivot table blue */
-    padding: 0 4px;
+    background-color: var(--rs-tbl-head-bg);
+    padding: 0 6px;
     font-weight: bold;
     grid-column: span 2;
-    height: 25px;
+    height: 22px; /* exactly 1 grid row */
     display: flex;
     align-items: center;
-    border-right: 1px solid #e1dfdd;
-    border-bottom: 1px solid #e1dfdd;
-    color: #333;
+    border: 1px solid #e1e1e1;
+    color: #1f3864;
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 .fake-table-cell {
-    height: 25px;
+    height: 22px; /* exactly 1 grid row */
     display: flex;
     align-items: center;
-    padding: 0 4px;
+    padding: 0 6px;
     background-color: #fff;
-    border-right: 1px solid #e1dfdd;
-    border-bottom: 1px solid #e1dfdd;
+    border-right: 1px solid #e1e1e1;
+    border-bottom: 1px solid #e1e1e1;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 12px;
 }
 .fake-table-cell.label {
     background-color: #f2f2f2;
+    border-left: 1px solid #e1e1e1;
 }
 .fake-table-cell.value {
-    justify-content: flex-end; /* Right-aligned numbers/values like Excel */
+    justify-content: flex-end;
+    padding-left: 10px;
 }
 .fake-table-cell.total {
     font-weight: bold;
-    background-color: #dbe5f1;
-    border-top: 1px solid #95b3d7;
+    background-color: var(--rs-tbl-head-bg);
+    border-top: 1px solid var(--rs-tbl-head-bd);
 }
 .fake-table-cell.note {
     grid-column: span 2;
     height: auto;
-    min-height: 25px;
+    min-height: 22px;
+    line-height: 22px; /* each wrapped line = exactly 1 grid row */
+    padding: 0 6px;
     align-items: flex-start;
     white-space: normal;
-    line-height: 1.35;
+    word-break: keep-all;
+    overflow: hidden;
     font-size: 11px;
     color: #666;
     background-color: #fffef2;
+    border-left: 1px solid #e1e1e1;
+    border-bottom: none; /* exclude from height calculation to keep strict 22px multiples */
+    box-shadow: inset 0 -1px 0 0 #e1e1e1;
 }
 
 .fake-chart {
     background-color: #fff;
-    border: 1px solid #e1dfdd;
+    border: 1px solid var(--rs-obj-border);
+    border-radius: var(--rs-obj-radius);
+    box-shadow: var(--rs-obj-shadow);
     padding: 15px;
-    /* Chart doesn't need to be cell-aligned, floating is fine */
+    height: 198px; /* Exactly 9 grid rows (9 * 22px) -> aligns row 12 top to row 20 bottom */
+    display: flex;
+    flex-direction: column;
 }
 .chart-title {
     font-size: 13px;
@@ -929,7 +1069,7 @@ body.dark-mode .newgame-locked-notice {
 .chart-bars {
     display: flex;
     justify-content: space-around;
-    height: 120px;
+    flex-grow: 1; /* Fill the remaining space of the 198px container */
     align-items: flex-end;
 }
 .bar-container {
@@ -955,20 +1095,23 @@ body.dark-mode .newgame-locked-notice {
 .game-desc-footer {
     justify-content: space-between;
 }
-.game-finish-btn {
+.game-finish-btn,
+.game-restart-btn {
     border: 1px solid #70ad47;
     background: #e2f0d9;
     color: #1f5f38;
-    height: 26px;
-    padding: 0 14px;
-    font-size: 12px;
+    height: 22px;
+    padding: 0 10px;
+    font-size: 11px;
     cursor: pointer;
 }
-.game-finish-btn:hover:not(:disabled) {
+.game-finish-btn:hover:not(:disabled),
+.game-restart-btn:hover:not(:disabled) {
     background: #d8ead1;
     border-color: #217346;
 }
-.game-finish-btn:disabled {
+.game-finish-btn:disabled,
+.game-restart-btn:disabled {
     cursor: default;
     opacity: 0.65;
 }
@@ -1037,6 +1180,61 @@ body.dark-mode .newgame-locked-notice {
 }
 .modal-btn:hover { background-color: #e5f1fb; border-color: #0078d7; }
 
+/* Stealth ad widget */
+.stealth-ad {
+    position: fixed;
+    right: 20px;
+    bottom: 50px;
+    width: 240px;
+    height: 150px;
+    border: 1px solid #2b6cb0;
+    background: #fff;
+    font-size: 11px;
+    z-index: 100;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.ad-header {
+    height: 28px;
+    background: #dbe5f1;
+    padding: 5px 10px;
+    font-weight: 700;
+    border-bottom: 1px solid #2b6cb0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+    box-sizing: border-box;
+}
+
+.ad-header::after {
+    content: 'i';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #2b6cb0;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 12px;
+    font-size: 10px;
+    color: #2b6cb0;
+}
+
+.ad-content {
+    display: block;
+    width: 100%;
+    height: 122px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.ad-content .adsbygoogle {
+    width: 100%;
+    height: 122px;
+}
+
 /* Dark Mode Overrides */
 /* File guide sheet — dark mode */
 body.dark-mode #file-sheet { background: #181f1b; }
@@ -1044,6 +1242,9 @@ body.dark-mode .fg-hero { background: #1e2a22; border-color: #2d4035; }
 body.dark-mode .fg-hero h1 { color: #cce6d4; }
 body.dark-mode .fg-hero p { color: #7a9e8a; }
 body.dark-mode .fg-eyebrow { color: #5ac87a; }
+body.dark-mode .stealth-ad { background: #2d2d2d; border-color: #444; }
+body.dark-mode .ad-header { background: #1a365d; border-color: #444; color: #d4d4d4; }
+body.dark-mode .ad-header::after { border-color: #4CAF50; color: #4CAF50; }
 body.dark-mode .fg-link-grid a { background: #1e2a22; border-color: #2d4035; }
 body.dark-mode .fg-link-grid a:hover { background: #243328; box-shadow: 0 5px 16px rgba(0,0,0,0.30); }
 body.dark-mode .fg-card-badge { background: #243828; }
@@ -1092,10 +1293,10 @@ body.dark-mode .tab.active {
     background-color: #1e1e1e;
     color: #4CAF50;
 }
-body.dark-mode .dummy-grid {
-    background-image: 
-        linear-gradient(to right, #444 1px, transparent 1px),
-        linear-gradient(to bottom, #444 1px, transparent 1px);
+body.dark-mode .sheet-view {
+    background-image:
+        linear-gradient(to right, #3e3e3e 1px, transparent 1px),
+        linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
 }
 body.dark-mode .fake-table, body.dark-mode .fake-chart { background-color: transparent; border-color: #444; }
 body.dark-mode .fake-table-header { background-color: #1a365d; border-color: #444; color: #d4d4d4; }
@@ -1105,6 +1306,7 @@ body.dark-mode .fake-table-cell.note { background-color: #2f2a16; color: #ffe699
 body.dark-mode .sudoku-diff-btn.active,
 body.dark-mode .newgame-diff-btn.active { background-color: #1a365d !important; color: #90cdf4; }
 body.dark-mode .fake-table-cell.total { background-color: #1a365d; border-top: 1px solid #2b6cb0; }
+body.dark-mode .game-grid.sudoku { border-color: #666; }
 body.dark-mode .excel-modal { background-color: #2d2d2d; border-color: #555; }
 body.dark-mode .modal-header { background-color: #2d2d2d; color: #d4d4d4; }
 body.dark-mode .modal-text { color: #d4d4d4; }
@@ -1236,15 +1438,15 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 .mp-scene {
     position: relative;
     display: block;
-    padding: 6px 8px 0;
-    min-width: 1040px;
-    min-height: 620px;
-    background: #fff;
-    overflow: auto;
+    padding: 0;
+    min-width: 1360px; /* extends to column Q right (17 × 80px) */
+    min-height: 680px;
+    background: transparent;
+    overflow: visible;
 }
 .pattie-world {
     position: relative;
-    overflow: auto;
+    overflow: visible;
 }
 .pattie-sprite {
     position: absolute;
@@ -1278,8 +1480,29 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     image-rendering: pixelated;
 }
 .pattie-sprite:hover {
+    outline: none;
+}
+.pattie-sprite:focus-visible {
     outline: 1px dotted #217346;
     outline-offset: 2px;
+}
+.pattie-surprise-bubble {
+    position: absolute;
+    top: -14px;
+    right: -4px;
+    background: #fff;
+    border: 1.5px solid #333;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-size: 8px;
+    font-weight: 900;
+    color: #333;
+    line-height: 13px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 5;
+    font-family: sans-serif;
+    transform-origin: center center;
 }
 .pattie-settings-button {
     height: 24px;
@@ -1372,60 +1595,63 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 /* ?? ?ㅼ쟻?ν몴 ??????????????????????????????????????? */
 .mp-table {
     position: absolute;
-    border-left: 1px solid #c8c6c4;
-    border-top:  1px solid #c8c6c4;
+    border-left: 1px solid var(--rs-tbl-outer);
+    /* no border-top here — top border lives on the header row cells so the first row starts exactly on the grid line */
 }
-.mp-table:nth-of-type(1) { left: 6px; top: 6px; }
+.mp-table:nth-of-type(1) { left: 80px; top: 22px; }
 .mp-dashboard-main-section {
     position: absolute;
-    left: 330px;
-    top: 6px;
-    width: 560px;
-    display: grid;
-    gap: 20px;
+    left: 480px;
+    top: 0;
+    width: 640px;
+    display: block;
 }
 .mp-analysis-row {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 20px;
-    align-items: stretch;
+    position: absolute;
+    left: 0;
+    top: 154px; /* proj-table 110px + 44px gap */
+    width: 640px;
+    height: 132px; /* rows 8–13 = 6 × 22px */
 }
 .proj-table {
-    position: relative;
-    left: auto;
-    top: auto;
+    position: absolute;
+    left: 80px; /* H col */
+    top: 0;
     width: max-content;
-    max-width: 100%;
 }
 
 .mht-row {
     display: grid;
-    grid-template-columns: 110px 50px 50px 50px 50px; /* ?⑷퀎 = 310px = JS TABLE_W */
+    grid-template-columns: 80px 80px 80px 80px 80px; /* total 400px = 5 cols × 80px, B–F */
 }
 .proj-table .mht-row {
-    grid-template-columns: minmax(180px, 260px) 58px 58px 96px 76px;
+    grid-template-columns: 160px 80px 80px 80px 80px; /* H-I=name(2×80), J K L M=others */
 }
 .proj-table .mht-cell {
     font-size: 10.5px;
 }
 .proj-table .mht-cell:first-child {
-    min-width: 180px;
-    max-width: 260px;
+    min-width: 160px;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
 }
+.proj-table .mht-row:not(.mht-header) .mht-cell:first-child {
+    background: #f0f0f0;
+}
 
 .mht-header .mht-cell {
-    background: #dbe5f1;
+    background: var(--rs-tbl-head-bg);
     font-weight: bold;
     color: #1f3864;
     justify-content: center;
+    border-top: 1px solid var(--rs-tbl-outer); /* table's top frame — within cell's border-box */
 }
 
 .mht-cell {
-    height: 25px;           /* JS: ROW_H=25 - 諛섎뱶???쇱튂 */
-    border-right:  1px solid #c8c6c4;
-    border-bottom: 1px solid #c8c6c4;
+    height: 22px;           /* = var(--rs-row-h): one sheet grid row, no accumulated drift */
+    border-right:  1px solid var(--rs-tbl-inner);
+    border-bottom: 1px solid var(--rs-tbl-inner);
     display: flex;
     align-items: center;
     padding: 0 4px;
@@ -1434,21 +1660,22 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
     white-space: nowrap;
 }
 .mht-num { justify-content: flex-end; }
-.mht-even .mht-cell { background: #f9f9f9; }
+.mht-even .mht-cell { background: transparent; }
 
 /* ?? 李⑦듃 ??????????????????????????????????????????? */
 .mp-chart {
     position: absolute;
-    left: 400px;
-    top: 360px;
-    width: 430px;
-    height: 230px;
-    border: 1px solid #c9d7e3;
+    left: 560px;
+    top: 308px;    /* row 15 = 14×22px */
+    width: 480px;  /* H~M = 6×80px, 560+480=1040=N left edge */
+    height: 264px; /* rows 16–27 = 12×22px, 330+264=594=27×22 */
+    border: 1px solid var(--rs-obj-border);
+    border-radius: var(--rs-obj-radius);
     background: #ffffff;
     padding: 12px 16px 16px;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 4px 14px rgba(31,78,121,0.12);
+    box-shadow: var(--rs-obj-shadow);
     overflow: visible;
 }
 
@@ -1536,19 +1763,20 @@ body.dark-mode .readme-note { background: #4d3b13; color: #ffe699; }
 
 /* ?? ?쒖떇吏 留??????????????????????????????????????? */
 .mp-minimap {
-    position: relative;
-    left: unset;
-    top: unset;
-    width: auto;
+    position: absolute;
+    left: 280px;   /* J col midpoint */
+    top: 0;
+    width: 280px;  /* J mid → M right: 280+280=560px container */
     min-width: 0;
-    height: 150px;
-    border: 1px solid #c8c6c4;
+    height: 132px; /* fixed = rows 8–13 */
+    border: 1px solid var(--rs-tbl-inner);
+    border-radius: var(--rs-obj-radius);
     background: #fff;
     padding: 8px 10px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.08);
+    justify-content: space-between;
+    box-shadow: var(--rs-obj-shadow);
     overflow: hidden;
 }
 
@@ -1746,7 +1974,9 @@ body.dark-mode .mps-foot {
 }
 
 /* ?? ?ㅽ겕紐⑤뱶 ??????????????????????????????????????? */
-body.dark-mode .mp-scene { background: #1e1e1e; }
+#mini-pet-sheet { background-color: #fff; }
+body.dark-mode #mini-pet-sheet { background-color: #1e1e1e; }
+body.dark-mode .mp-scene { background: transparent; }
 body.dark-mode .mp-table { border-color: #444; }
 body.dark-mode .mht-cell { border-color: #444; color: #d4d4d4; }
 body.dark-mode .mht-even .mht-cell { background: #2a2a2a; }
@@ -1786,19 +2016,19 @@ body.dark-mode .pattie-speech::before { border-top-color: #2a2a2a; }
 
 /* Trend chart panel */
 .mp-trend {
-    position: relative;
-    left: auto;
-    top: auto;
-    min-width: 0;
-    width: auto;
-    height: 150px;
-    border: 1px solid #c8c6c4;
+    position: absolute;
+    left: 80px;    /* H col left */
+    top: 0;
+    width: 160px;  /* H+I = 2×80px */
+    height: 132px; /* = rows 8–13 */
+    border: 1px solid var(--rs-tbl-inner);
+    border-radius: var(--rs-obj-radius);
     background: #fff;
     padding: 10px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    box-shadow: 2px 2px 6px rgba(0,0,0,0.08);
+    justify-content: space-between;
+    box-shadow: var(--rs-obj-shadow);
 }
 .mp-trend-svg {
     display: block;
@@ -1828,63 +2058,116 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
    ReadMe Sheet v2 (rm-* prefix)
    ===================================================== */
 .rm-sheet {
-    display: flex;
-    align-items: flex-start;
-    gap: 0;
-    padding: 25px 40px 60px;
+    position: relative;
     font-size: 12px;
     font-family: 'Segoe UI', Calibri, sans-serif;
     color: #333;
+    min-width: 1840px;
+    min-height: 704px;
+    background-color: #fff;
+    background-image:
+        linear-gradient(to right, var(--rs-grid) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--rs-grid) 1px, transparent 1px);
+    background-size: var(--rs-col-w) var(--rs-row-h);
 }
-.rm-col-main {
-    width: 720px;
-    flex-shrink: 0;
+
+/* ── Absolute positioned blocks ───────────────────── */
+.rm-block {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: transparent;
 }
-.rm-col-side {
+
+/* Main phrase: starts at B column, row 2 top, spans through row 3 bottom */
+.rm-main-phrase {
+    position: absolute;
+    left: 80px;
+    top: 22px;
+    width: 1440px;
+    height: 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 12px;
+    border-left: 4px solid #217346;
+    background: rgba(226, 240, 217, 0.82);
+    color: #1f3328;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.rm-main-phrase-title {
+    font-size: 18px;
+    line-height: 22px;
+    font-weight: 800;
+    font-style: italic;
+}
+
+.rm-main-phrase-sub {
+    font-size: 13px;
+    line-height: 18px;
+    font-weight: 700;
+    color: #217346;
+}
+
+/* Left-side: B ~ J column (left=80px, width=720px) */
+.rm-block-kpi,
+.rm-block-rank,
+.rm-block-notes {
+    left: 80px;
     width: 720px;
-    flex-shrink: 0;
+}
+
+/* Right-side: keep current x/width (left=800px, width=720px, padding-left=24px) */
+.rm-block-sop,
+.rm-block-guide,
+.rm-block-tabguide {
+    left: 800px;
+    width: 720px;
     padding-left: 24px;
 }
-.rm-col-side .rm-sop-title,
-.rm-col-side .rm-sop-body,
-.rm-col-side .rm-guide-item,
-.rm-col-side .rm-note-item {
-    white-space: nowrap;
-}
+
+/* Row coordinates (row-h = 22px; top = (row-1)*22, height = span*22) */
+.rm-block-kpi      { top:  88px; height: 176px; } /* rows  5-12 */
+.rm-block-rank     { top: 286px; height: 220px; } /* rows 14-23 */
+.rm-block-notes    { top: 528px; height: 132px; } /* rows 25-30 */
+.rm-block-sop      { top:  88px; height: 242px; } /* rows  5-15 */
+.rm-block-guide    { top: 352px; height: 132px; } /* rows 17-22 */
+.rm-block-tabguide { top: 506px; height: 154px; } /* rows 24-30 */
 
 /* Section headers */
 .rm-section-hd {
     padding: 5px 10px;
     font-weight: 700;
     font-size: 13px;
-    border: 1px solid #a9d18e;
-    margin-top: 20px;
-    first-of-type { margin-top: 0; }
+    flex-shrink: 0;
 }
-.rm-sheet .rm-section-hd:first-child,
-.rm-col-main .rm-section-hd:first-child,
-.rm-col-side .rm-section-hd:first-child { margin-top: 0; }
 .rm-hd-green {
     background: #d9ead3;
     color: #217346;
-    border-color: #a9d18e;
+    border: 1px solid #a9d18e;
 }
 .rm-hd-caution {
     background: #fff2cc;
     color: #c00000;
-    border-color: #ffd966;
+    border: 1px solid #ffd966;
     font-weight: 700;
 }
 
 /* ── KPI cards ───────────────────────────────────── */
 .rm-kpi-row {
     display: flex;
+    flex: 1;
     border: 1px solid #c6e0b4;
     border-top: none;
 }
 .rm-kpi-card {
     flex: 1;
-    padding: 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 14px 10px;
     border-right: 1px solid #c6e0b4;
     background: #fff;
 }
@@ -1893,18 +2176,19 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     font-size: 11px;
     font-weight: 700;
     color: #217346;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
     border-bottom: 1px solid #d9ead3;
     text-transform: uppercase;
     letter-spacing: 0.02em;
 }
 .rm-kpi-val {
-    min-height: 44px;
+    flex: 1;
+    min-height: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 6px 0;
+    margin: 4px 0;
 }
 .rm-need-login {
     font-size: 12px;
@@ -1922,17 +2206,17 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 .rm-kpi-desc {
     font-size: 11px;
     color: #333;
-    margin-top: 4px;
+    margin-top: 3px;
     line-height: 1.35;
 }
 .rm-kpi-sub {
     font-size: 10px;
     color: #888;
-    margin-top: 3px;
+    margin-top: 2px;
     line-height: 1.3;
 }
 
-/* ── 랭킹 현황 ───────────────────────────────────── */
+/* ── 실적장표 ────────────────────────────────────── */
 .rm-hd-flex {
     display: flex;
     align-items: center;
@@ -1957,6 +2241,7 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 .rm-rank-tab.active { background: #217346; color: #fff; border-color: #217346; }
 .rm-rank-row {
     display: flex;
+    flex: 1;
     border: 1px solid #c6e0b4;
     border-top: none;
 }
@@ -2025,33 +2310,40 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 
 /* ── SOP ─────────────────────────────────────────── */
 .rm-sop {
+    flex: 1;
     background: #fff;
     border: 1px solid #c6e0b4;
     border-top: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 .rm-sop-item {
-    padding: 7px 10px;
+    padding: 6px 10px;
 }
-.rm-sop-item:last-child { border-bottom: none; }
 .rm-sop-title {
     font-weight: 700;
     color: #1f3864;
     font-size: 12px;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
 }
 .rm-sop-body {
     font-style: italic;
     color: #444;
     font-size: 11px;
-    line-height: 1.5;
+    line-height: 1.4;
     padding-left: 8px;
 }
 
-/* ── 시트 안내 ────────────────────────────────────── */
+/* ── 시트 안내 / 탭 안내 ──────────────────────────── */
 .rm-guide {
+    flex: 1;
     background: #fff;
     border: 1px solid #c6e0b4;
     border-top: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 .rm-guide-item {
     display: grid;
@@ -2059,7 +2351,6 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     height: 25px;
     align-items: center;
 }
-.rm-guide-item:last-child { border-bottom: none; }
 .rm-guide-label {
     font-weight: 600;
     color: #1f3864;
@@ -2082,21 +2373,35 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
     padding-left: 8px;
     font-size: 12px;
     color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+.rm-guide-emphasis {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+}
+/* Tab guide: five rows inside a 154px block */
+.rm-block-tabguide .rm-guide-item { height: 24px; }
 
 /* ── 참고사항 ─────────────────────────────────────── */
 .rm-notes {
+    flex: 1;
     border: 1px solid #ffd966;
     border-top: none;
     background: #fffef2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
 }
 .rm-note-item {
-    padding: 5px 10px;
+    padding: 4px 10px;
     font-size: 11px;
     color: #7f6000;
     font-weight: 600;
     border-bottom: 1px solid #ffd966;
-    min-height: 25px;
     display: flex;
     align-items: center;
     line-height: 1.4;
@@ -2104,7 +2409,20 @@ body.dark-mode .g2048-size-btn.active { background-color: #1a365d !important; co
 .rm-note-item:last-child { border-bottom: none; }
 
 /* ── Dark mode ────────────────────────────────────── */
-body.dark-mode .rm-sheet { color: #d4d4d4; }
+body.dark-mode .rm-sheet {
+    color: #d4d4d4;
+    background-color: #1e1e1e;
+    background-image:
+        linear-gradient(to right, #3e3e3e 1px, transparent 1px),
+        linear-gradient(to bottom, #3e3e3e 1px, transparent 1px);
+}
+body.dark-mode .rm-block { background-color: transparent; }
+body.dark-mode .rm-main-phrase {
+    background: rgba(31, 78, 47, 0.86);
+    border-left-color: #70ad47;
+    color: #d9ead3;
+}
+body.dark-mode .rm-main-phrase-sub { color: #b7e1c0; }
 body.dark-mode .rm-hd-green { background: #1f4e2f; color: #b7e1c0; border-color: #2f6f44; }
 body.dark-mode .rm-hd-caution { background: #4d3b13; color: #f98080; border-color: #b8860b; }
 body.dark-mode .rm-kpi-row { border-color: #2f6f44; }
@@ -2302,7 +2620,7 @@ body.dark-mode .ob-select { background: #3a3a3a; border-color: #555; color: #d4d
 /* =====================================================
    Minime Setup Modal
    ===================================================== */
-.ms-modal { width: 460px; }
+.ms-modal { width: 460px; border-radius: 10px; overflow: hidden; }
 .ms-char-row {
     display: flex;
     gap: 16px;
@@ -2423,6 +2741,27 @@ body.dark-mode .ms-char-name { color: #d4d4d4; }
 body.dark-mode .ms-char-lock-hint { color: #f88; }
 body.dark-mode .ms-foot { background: #aaa; }
 
+/* 캐릭터 카드 hover 툴팁 */
+.ms-char-tooltip-popup {
+    position: fixed;
+    background: rgba(34, 34, 34, 0.92);
+    color: #fff;
+    font-size: 11px;
+    line-height: 1.6;
+    padding: 8px 12px;
+    border-radius: 6px;
+    pointer-events: none;
+    z-index: 9999;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    word-break: keep-all;
+    max-width: 220px;
+}
+body.dark-mode .ms-char-tooltip-popup {
+    background: rgba(80, 80, 80, 0.96);
+    color: #eee;
+}
+
 /* =====================================================
    Minime sprite: character type variants
    ===================================================== */
@@ -2482,220 +2821,7 @@ body.dark-mode .mps-body-b { background:
    Mobile numpad (hidden on desktop)
    ===================================================== */
 .mobile-numpad { display: none; }
-
-/* =====================================================
-   Tablet responsive — 769px ~ 1300px
-   ReadMe 시트 2컬럼을 세로 배치로 전환
-   ===================================================== */
-@media (max-width: 1300px) and (min-width: 769px) {
-    .rm-sheet { flex-direction: column; padding: 0 8px 24px; }
-    .rm-col-main, .rm-col-side { width: 100%; min-width: 0; }
-    .rm-col-side { padding-left: 0; }
-    .rm-col-side .rm-sop-title,
-    .rm-col-side .rm-sop-body,
-    .rm-col-side .rm-guide-item,
-    .rm-col-side .rm-note-item { white-space: normal; }
-}
-
-/* =====================================================
-   Mobile responsive — max 768px
-   ===================================================== */
-@media (max-width: 1100px) and (min-width: 769px) {
-    .fg-link-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    .fg-hero { grid-template-columns: 1fr; min-height: auto; padding: 28px; gap: 20px; }
-}
-
-@media (max-width: 768px) {
-    /* Unlock page scroll */
-    body {
-        overflow-y: auto;
-        overflow-x: hidden;
-    }
-    #excel-app {
-        height: auto;
-        min-height: 100svh;
-    }
-
-    /* P1: remove desktop-sized padding from sheet layout */
-    .sheet-layout { padding: 12px 8px; gap: 0; }
-
-    /* P2: mobile action bar (ticket + finish button) */
-    .game-mobile-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 7px 10px;
-        background: #f0f7f1;
-        border: 1px solid #c6e0b4;
-        margin-bottom: 8px;
-        font-size: 12px;
-        color: #444;
-    }
-
-    /* P5: hide decorative Excel chrome that wastes vertical space */
-    .formula-bar { display: none; }
-    .status-bar  { display: none; }
-
-    /* P6: hide non-interactive window control decorations */
-    .window-controls > span { display: none; }
-
-    /* Larger tap targets for sheet tabs */
-    .tab { padding: 8px 14px; font-size: 13px; }
-    .tabs { -webkit-overflow-scrolling: touch; }
-
-    /* Login button stays reachable */
-    .window-controls { gap: 10px; }
-    .account-button { padding: 4px 10px; font-size: 13px; }
-
-    #file-sheet { height: auto; overflow-y: visible; padding: 16px; }
-    .fg-hero,
-    .fg-link-grid { grid-template-columns: 1fr; }
-    .fg-link-grid { grid-template-rows: none; }
-    .fg-hero { min-height: auto; padding: 24px; gap: 18px; margin-bottom: 16px; }
-    .fg-hero h1 { font-size: 24px; }
-    .fg-hero p { font-size: 15px; }
-    .fg-link-grid a { padding: 18px; min-height: 0; }
-    .fg-card-foot { margin-top: 12px; padding-top: 10px; }
-
-    /* P4: typing game input — prevent iOS auto-zoom (requires font-size ≥ 16px) */
-    .tg-input {
-        font-size: 16px;
-        touch-action: manipulation;
-        min-height: 44px;
-    }
-    .tg-start-btn { min-height: 44px; width: 100%; }
-    .tg-cat-btn   { min-height: 36px; padding: 6px 14px; }
-    .tg-skip-btn  { min-width: 64px; }
-
-    /* ReadMe sheet padding + stack columns */
-    .rm-sheet { padding: 0 4px 32px; flex-direction: column; }
-    .rm-col-main, .rm-col-side { width: 100%; }
-    .rm-col-side { padding-left: 0; }
-
-    /* Hide decorative Excel chrome */
-    .menu-tabs,
-    .toolbar,
-    .column-headers,
-    .corner-header,
-    .row-headers { display: none !important; }
-
-    /* Release fixed-height scroll lock */
-    .spreadsheet-container {
-        overflow: visible;
-        flex-grow: 0;
-        height: auto;
-    }
-    .spreadsheet-body {
-        overflow: visible;
-        height: auto;
-        flex-grow: 0;
-    }
-    .grid-content {
-        display: block;
-        overflow: visible;
-        height: auto;
-        flex-grow: 0;
-        width: 100%;
-    }
-    .sheet-view {
-        position: relative !important;
-        left: auto !important;
-        top: auto !important;
-        width: 100%;
-        height: auto !important;
-    }
-    .review-sheet-wrap {
-        width: calc(100vw - 24px);
-        height: calc(100svh - 180px);
-        margin: 12px;
-    }
-    .review-panel-header {
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    /* README: stack KPI / ranking cards */
-    .rm-kpi-row,
-    .rm-rank-row { flex-direction: column; }
-    .rm-kpi-card { border-right: none !important; border-bottom: 1px solid #c6e0b4; }
-    .rm-rank-card { border-right: none !important; border-bottom: 1px solid #c6e0b4; }
-
-    /* Hide right-side fake-dashboard panels */
-    .fake-dashboard { display: none !important; }
-
-    .mp-scene {
-        display: grid;
-        gap: 18px;
-        min-width: 0;
-        min-height: 860px;
-    }
-    .mp-table:nth-of-type(1),
-    .mp-dashboard-main-section,
-    .mp-chart {
-        position: relative;
-        left: auto;
-        top: auto;
-        width: 100%;
-    }
-    .mp-analysis-row {
-        grid-template-columns: 1fr;
-    }
-
-    /* 2048: JS sets grid-template via initBoard(); just fix cell height */
-    #game2048-grid .excel-cell {
-        height: revert !important;
-        font-size: 20px !important;
-        font-weight: bold;
-        justify-content: center !important;
-    }
-
-    /* Sudoku: fit 9 cells across ~360px = 38px each */
-    #sudoku-grid {
-        grid-template-columns: repeat(9, 38px) !important;
-        grid-template-rows: repeat(9, 38px) !important;
-    }
-    #sudoku-grid .excel-cell {
-        width: 38px !important;
-        height: 38px !important;
-        font-size: 16px !important;
-    }
-
-    /* Mobile numpad */
-    .mobile-numpad {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        padding: 14px 12px;
-        background: #f0f4f0;
-        border-top: 1px solid #c6e0b4;
-        max-width: 380px;
-        margin: 0 auto 16px;
-    }
-    .mobile-numpad-btn {
-        padding: 14px 0;
-        font-size: 20px;
-        font-weight: 600;
-        border: 1px solid #b0c8a0;
-        border-radius: 8px;
-        background: #fff;
-        cursor: pointer;
-        text-align: center;
-        user-select: none;
-        -webkit-tap-highlight-color: transparent;
-        touch-action: manipulation;
-    }
-    .mobile-numpad-btn:active { background: #d4e8c2; border-color: #4CAF50; }
-    .mobile-numpad-btn.del-btn {
-        grid-column: span 3;
-        padding: 12px 0;
-        font-size: 16px;
-        background: #fff8e1;
-        border-color: #f0c040;
-    }
-    .mobile-numpad-btn.del-btn:active { background: #ffe082; border-color: #f0a000; }
-}
+.mobile-zoom-controls { display: none; }
 
 /* Dark mode mobile extras */
 body.dark-mode .game-mobile-bar { background: #1f3f2a; border-color: #2f6f44; color: #aaa; }
@@ -2703,6 +2829,8 @@ body.dark-mode .mobile-numpad { background: #2a2a2a; border-color: #444; }
 body.dark-mode .mobile-numpad-btn { background: #3a3a3a; border-color: #555; color: #d4d4d4; }
 body.dark-mode .mobile-numpad-btn:active { background: #1f4e2f; border-color: #4CAF50; }
 body.dark-mode .mobile-numpad-btn.del-btn { background: #3d3520; border-color: #ffa000; color: #ffd54f; }
+body.dark-mode .mobile-zoom-controls { background: #2a2a2a; border-color: #444; color: #d4d4d4; }
+body.dark-mode .mobile-zoom-btn { background: #3a3a3a; border-color: #555; color: #d4d4d4; }
 body.dark-mode .rm-kpi-card { border-bottom-color: #2f6f44; }
 body.dark-mode .rm-rank-card { border-bottom-color: #2f6f44; }
 
@@ -2767,14 +2895,16 @@ body.dark-mode .ob-consent-row a { color: #6dba8a; }
 
 /* ── Typing Game ──────────────────────────────────────────────── */
 .game-grid.tg {
-    flex: 1;
+    flex: none;
     display: flex;
     flex-direction: column;
-    padding: 16px 20px;
+    padding: 16px 0;
     min-width: 0;
     overflow-y: auto;
     align-self: flex-start;
     background: #fff;
+    width: 400px;
+    box-sizing: border-box;
 }
 .tg-title {
     font-size: 15px;
@@ -2877,6 +3007,8 @@ body.dark-mode .tg-ticket-info { color: #aaa; }
     color: #1a1a1a;
     line-height: 1.6;
     word-break: keep-all;
+    overflow-wrap: break-word;
+    white-space: normal;
     flex: 1;
 }
 
@@ -3032,17 +3164,19 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 /* 위치: 토닥이 맵(mp-chart) 왼쪽, 같은 top 기준 */
 .mp-manage-box {
     position: absolute;
-    left: 0;
-    top: 360px;
-    width: 388px;
-    min-height: 230px;
-    border: 1px solid #c9d7e3;
+    left: 80px;
+    top: 308px;    /* row 15 = 14×22px */
+    width: 400px;  /* B~F = 5×80px */
+    height: 264px; /* rows 16–27 = 12×22px, 330+264=594=27×22 */
+    border: 1px solid var(--rs-obj-border);
+    border-radius: var(--rs-obj-radius);
     background: #ffffff;
-    padding: 12px 14px 14px;
+    padding: 10px 14px 12px;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 4px 14px rgba(31,78,121,0.10);
+    justify-content: space-between;
+    gap: 4px;
+    box-shadow: var(--rs-obj-shadow);
     font-size: 11px;
     box-sizing: border-box;
     overflow: hidden;
@@ -3090,7 +3224,7 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     position: absolute;
     left: 0; top: 0;
     height: 100%;
-    background: linear-gradient(90deg, #70ad47, #a9d18e);
+    background: linear-gradient(90deg, #a9d18e, #70ad47);
     border-radius: 4px;
     transition: width 0.5s ease-out;
 }
@@ -3134,6 +3268,11 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     transition: background 0.12s;
 }
 .mp-buy-btn:hover { background: #d9ead3; }
+.mp-buy-btn-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
 
 /* 말걸기 nested box */
 .mp-talk-box {
@@ -3175,16 +3314,13 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 .mp-apple-hud {
     display: flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     font-size: 10px;
     color: #44546a;
-    background: rgba(255,255,255,0.85);
-    border: 1px solid #d0dce8;
-    border-radius: 10px;
-    padding: 2px 6px;
 }
 .mp-apple-hud-icon { display: block; }
-.mp-apple-hud-count { font-weight: bold; }
+.mp-apple-hud-x { font-weight: bold; line-height: 1; }
+.mp-apple-hud-count { font-weight: bold; min-width: 12px; text-align: left; }
 
 .mp-feed-btn {
     font-size: 10px;
@@ -3215,7 +3351,7 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
     position: absolute;
     z-index: 136;
     image-rendering: pixelated;
-    transition: top 0.35s cubic-bezier(0.55, 0, 1, 0.45);
+    transition: top 0.35s cubic-bezier(0.3, 0, 0.8, 0.6);
     pointer-events: none;
 }
 .pattie-apple-landed--settled {
@@ -3224,16 +3360,9 @@ body.dark-mode .tg-rank-table td { border-color: #333; color: #ccc; }
 .pattie-apple-pop {
     position: absolute;
     z-index: 137;
-    width: 24px;
-    height: 24px;
-    background: url('/public/assets/apple/apple_pop.png') no-repeat center / contain;
-    animation: apple-pop-play 0.9s steps(6) forwards;
+    overflow: hidden;
     pointer-events: none;
-}
-@keyframes apple-pop-play {
-    0%   { opacity: 1; transform: scale(1); }
-    50%  { opacity: 1; transform: scale(1.4); }
-    100% { opacity: 0; transform: scale(0.8); }
+    /* width/height/background은 JS(_playApplePop)에서 직접 설정 */
 }
 
 /* 구매 모달 */
@@ -3326,15 +3455,213 @@ body.dark-mode .mp-purchase-title { color: #90cdf4; }
 body.dark-mode .mp-qty-btn { background: #3a3a3a; border-color: #555; color: #d4d4d4; }
 body.dark-mode .mp-qty-val { color: #d4d4d4; }
 body.dark-mode .mp-purchase-total { color: #90cdf4; }
-body.dark-mode .mp-apple-hud { background: rgba(45,45,45,0.85); border-color: #555; color: #aaa; }
+body.dark-mode .mp-apple-hud { color: #aaa; }
 body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
 
-/* 반응형: 관리박스도 mp-chart처럼 static으로 전환 */
-@media (max-width: 900px) {
-    .mp-manage-box {
-        position: relative;
-        left: auto;
-        top: auto;
+/* =====================================================
+   Mobile Media Queries
+   ===================================================== */
+@media (max-width: 768px) {
+    /* ── App frame ── */
+    #excel-app {
+        padding-bottom: 44px; /* room for fixed sheet-tabs (tabs row only) */
+    }
+
+    /* ── Mobile extras ── */
+    .game-mobile-bar { display: flex; }
+    .mobile-numpad   { display: grid; }
+
+    .mobile-zoom-controls {
+        position: fixed;
+        right: 8px;
+        bottom: 8px;
+        z-index: 99999;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid #c8c6c4;
+        border-radius: 4px;
+        background: rgba(243, 242, 241, 0.94);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+    }
+    .mobile-zoom-controls[hidden] { display: none; }
+    .mobile-zoom-btn {
+        width: 28px;
+        height: 26px;
+        border: 1px solid #a19f9d;
+        border-radius: 3px;
+        background: #fff;
+        color: #333;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .mobile-zoom-value {
+        min-width: 38px;
+        text-align: center;
+        font-size: 11px;
+        color: inherit;
+    }
+
+    #sudoku-sheet .sheet-layout {
+        gap: 20px;
+        padding: 22px 16px 64px;
+        align-items: flex-start;
+    }
+    #sudoku-sheet .game-main-column {
+        align-items: center;
+        gap: 12px;
+    }
+    #sudoku-sheet .sudoku-mobile-numpad {
+        grid-template-columns: repeat(3, 80px);
+        grid-auto-rows: 32px;
+        width: 240px;
+        align-self: center;
+        gap: 0;
+        border-top: 1px solid #d2d0ce;
+        border-left: 1px solid #d2d0ce;
+        background: #fff;
+    }
+    #sudoku-sheet .sudoku-mobile-numpad .mobile-numpad-btn {
+        width: 80px;
+        height: 32px;
+        border: 0;
+        border-right: 1px solid #d2d0ce;
+        border-bottom: 1px solid #d2d0ce;
+        border-radius: 0;
+        background: #fff;
+        color: #1f1f1f;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    #sudoku-sheet .sudoku-mobile-numpad .mobile-numpad-btn:active {
+        background: #e2f0d9;
+    }
+    #sudoku-sheet .sudoku-mobile-numpad .del-btn {
+        grid-column: 1 / -1;
+        width: 240px;
+        background: #fffef2;
+        color: #8a5a00;
+    }
+
+    /* ── .ribbon-top is now a standalone #excel-app flex child (HTML restructured).
+       It is never inside header.ribbon, so it has no scroll-context coupling.   ── */
+
+    /* ── Ribbon wrapper (menu-tabs + toolbar only).
+       No container-level overflow: each child owns its horizontal scroll.       ── */
+    .ribbon { overflow: visible; }
+
+    /* ── Toolbar: restored, scrolls horizontally within its own context ── */
+    .toolbar {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap;
+    }
+    .toolbar::-webkit-scrollbar { height: 0; display: none; }
+    .tool-group { flex-shrink: 0; }
+
+    .menu-tabs {
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;   /* Firefox */
+    }
+    .menu-tabs::-webkit-scrollbar { height: 0; display: none; }
+    .menu-tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        min-width: max-content;
+    }
+
+    /* ── Bottom sheet-tabs: fixed, compact ── */
+    .sheet-tabs {
+        position: fixed;
+        bottom: 0;
+        left: 0;
         width: 100%;
+        z-index: 1000;
+        background: #f3f2f1;
+        border-top: 1px solid #c8c6c4;
+    }
+    /* Hide non-essential chrome on mobile */
+    .sheet-tabs .tab-controls { display: none; }
+    .sheet-tabs + .status-bar,
+    .sheet-tabs .status-bar   { display: none; }
+    .sheet-tabs .tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        scrollbar-width: none;
+        min-height: 32px;
+    }
+    .sheet-tabs .tabs::-webkit-scrollbar { height: 0; display: none; }
+    .sheet-tabs .tab {
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    /* ── File-tab sheet ── */
+    #file-sheet {
+        width: 100%;
+        min-width: 0;
+        max-width: 100vw;
+        padding: 16px 14px 76px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        background-size: 40px 22px;
+    }
+
+    /* ── File-tab hero (single column) ── */
+    .fg-hero {
+        width: 100%;
+        max-width: none;
+        grid-template-columns: 1fr;
+        padding: 24px 18px;
+        gap: 18px;
+        min-height: 0;
+        align-items: start;
+        margin: 0 0 18px;
+        border-radius: 8px;
+    }
+    .fg-hero img {
+        width: 100%;
+        max-width: 280px;
+        max-height: none;
+        justify-self: center;
+    }
+    .fg-hero img.fg-hero-logo {
+        max-width: 300px;
+        max-height: 300px;
+        padding: 2px;
+    }
+    .fg-hero h1 {
+        font-size: 28px;
+        line-height: 1.15;
+        word-break: keep-all;
+    }
+    .fg-hero p {
+        font-size: 15px;
+        line-height: 1.65;
+    }
+
+    /* ── File-tab link cards (1 column, no overflow) ── */
+    .fg-link-grid {
+        width: 100%;
+        max-width: none;
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin: 18px 0 0;
+    }
+    .fg-link-grid a {
+        width: 100%;
+        min-height: auto;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        padding: 18px 16px 16px;
     }
 }
+

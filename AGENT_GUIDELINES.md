@@ -49,6 +49,35 @@ Make the smallest change that solves the problem.
 - Commit messages explain **why**, not what — the diff shows what
 - Restructuring goes in a separate commit from a bug fix
 
+### CSS / Visual Regression Checks
+
+- Before fixing a disappeared grid, border, or background, compare the last known good commit with `git diff <good>..HEAD -- style.css index.html`.
+- Verify computed style in the browser. For grid issues, check nonzero `clientWidth/clientHeight`, expected `backgroundImage`, and whether parent wrappers are covering the target.
+- Do not add opaque backgrounds to broad positioning wrappers unless the design explicitly requires it. Put backgrounds on real content panels, not on layout containers.
+- For ReadMe specifically: `.rm-sheet` owns the grid and must have explicit paintable dimensions; `.rm-block` must remain transparent.
+- For Pattie terrain specifically: use the shared chart surface model; do not patch pet and snack coordinates independently.
+
+### Desktop / Mobile Layout Contract
+
+Before any UI change, classify the change as one of:
+- **Shared**: copy, data, image source, color token, or behavior that must apply to both desktop and mobile.
+- **Desktop-only**: Excel canvas, wide grid, desktop spacing, or horizontal layout that must not force mobile into desktop dimensions.
+- **Mobile-only**: `@media (max-width: 768px)`, touch targets, fixed bottom tabs, mobile file-tab cards, or viewport overflow handling.
+
+Rules:
+- If you edit `style.css`, `index.html`, `src/layout/excelLayout.js`, `.sheet-view`, `.grid-content`, `.spreadsheet-*`, `.fg-*`, ribbon tabs, or bottom sheet tabs, you must check whether the change affects both desktop and mobile.
+- Do not remove mobile overrides unless you replace them with an equivalent verified rule in the same change.
+- Global `min-width`, `height: 100%`, `overflow`, and `position: absolute` changes are high-risk. Verify their mobile effect before committing.
+- Desktop fixes must not be declared done until mobile has either been verified or explicitly shown to be unaffected.
+- Answer mobile layout questions with measured browser facts, not CSS inference. Prefer values like viewport width, computed grid columns, card width, and overflow status.
+
+### Static Page Regression Guards
+
+- Do not wholesale rewrite `public/*.html` pages for copy, logo, or SEO edits. Preserve existing anchors, mockups, scripts, and feature-specific sections unless the user explicitly asks to remove them.
+- Before editing `public/faq.html`, compare recent history with `git log --oneline -- public/faq.html` and inspect the existing file. The FAQ must keep the friend referral section at `#friend-referral`.
+- The referral FAQ card is linked from Kitty lock help (`/faq#friend-referral`) and must keep its dynamic mockup DOM and CSS hooks: `referral-card`, `mock-window`, `mock-mouse`, `mock-settings-modal`, `mock-referral-input`, `mock-btn-referral-save`, and `mock-success-screen`.
+- After touching `public/faq.html`, `public/refresheet-static.css`, `src/minime/minimeSetup.js`, `style.css`, `src/worker/index.js`, `src/layout/excelLayout.js`, `docs/migrations/008_unlockables_referrals.sql`, or `HANDOFF.md`, run `npm run test:static`. This catches accidental removal of protected static content, NewGame lock policy regressions, file-tab mobile regressions, and text encoding regressions.
+
 ---
 
 ## 5. Goal-Driven Execution
@@ -106,6 +135,10 @@ Canonical files:
 ## 9. Multi-Agent Coordination
 
 Multiple agents work on this repo. You are not the only one.
+
+- 기본 모드는 Orchestrated Mode입니다.
+- `ORCHESTRATION.md`가 존재하면 해당 routing/mode rules를 따릅니다.
+- 단, `AGENT_GUIDELINES.md`의 Simplicity / Surgical Changes / Goal-Driven Execution / Documentation Discipline 규칙이 항상 우선합니다.
 
 **During work:**
 - Read another agent's code before overwriting it

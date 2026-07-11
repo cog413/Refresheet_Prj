@@ -148,7 +148,13 @@ For current sprite filenames, see `public/assets/corgi/manifest.json`.
 
 ## Management Sheet / Current Cautions
 
-- Bar landing correction applies only to bar surfaces: `bar.top - size + 6`; floor surface math must stay unchanged.
+- Chart terrain/surface math now goes through `src/patties/chartSurfaceModel.js`. Do not reintroduce separate bar/floor/snack magic numbers in `PattieRoamingController` or `snackTerrainResolver`.
+- Bar terrain must be treated as one surface per `mp-bar-pair`; online/offline child bars are visual details only. If you query individual `[data-pattie-terrain='chart-bar']` bars, group them by parent pair before computing surfaces.
+- Visual contact offsets are centralized in `chartSurfaceModel.js` (`FLOOR_BOTTOM_INSET`, `BAR_PET_FOOT_INSET`, apple bottom insets). Adjust there only, then verify both pet feet and apple landing.
+- Snack movement speed is snack-only. `SNACK_SPEED_DURATION_SCALE` and `SNACK_WALK_IN_DISTANCE_PX` live in `PattieRoamingController`; do not change global walk speed to tune feeding.
+- `apple_idle..png` is the real filename. The double dot is intentional and matches existing sprite naming. Do not rename it to `apple_idle.png`.
+- Pattie hover outline is intentionally hidden for mouse hover; keep keyboard `:focus-visible` affordance if changing focus styles.
+- Bar landing correction applies only through the surface model; do not revive the old inline `bar.top - size + 6` formula.
 - Sleep is locked for two decision cycles after entering sleep; do not re-pick state until the lock expires.
 - Sheet/card sleep and idle weights are intentionally increased; keep totals normalized by reducing walk, not terrain jump/climb behavior.
 - `src/pet/miniPet.js` builds the management dashboard DOM: sales table on the left; `mp-dashboard-main-section` on the right; project table first; `mp-analysis-row` below it with monthly trend and realtime analysis. **After v1.4.0**: `#mp-manage-box`(관리박스) is inserted between `mp-dashboard-main-section` and `#mp-chart`.
@@ -162,6 +168,21 @@ For current sprite filenames, see `public/assets/corgi/manifest.json`.
 - `apple_idle..png` — 파일명에 점 두 개(`..`) 주의. 기존 `mong_walk..png`와 동일 패턴.
 
 ---
+
+## ReadMe Sheet Grid Rules
+
+These rules prevent the repeated ReadMe grid regression seen after the 2026-06-04 edits.
+
+- `#readme-sheet` contains `.rm-sheet`; the actual grid background for the ReadMe page must live on `.rm-sheet`.
+- `.rm-sheet` must have a real paintable area. Keep an explicit width/min-width large enough for the absolutely positioned blocks (`min-width: 1600px` currently) and `min-height: 640px`.
+- `.rm-block` is a positioning container only. It must stay `background-color: transparent`; otherwise the large absolute blocks cover the sheet grid.
+- Put opaque backgrounds only on the real content panels/cards (`.rm-kpi-card`, `.rm-rank-card`, `.rm-sop`, `.rm-guide`, `.rm-notes`) and headers, not on `.rm-block`.
+- Use `var(--rs-grid)` for sheet grid lines. `var(--rs-hd-border)` is for row/column headers and is visually heavier.
+- If the grid "disappears", inspect computed style before patching:
+  - `.rm-sheet.clientWidth` should be nonzero.
+  - `.rm-sheet.backgroundImage` should contain two linear gradients.
+  - `.rm-block.backgroundColor` should be transparent.
+- Do not fix ReadMe grid by adding backgrounds to every wrapper; that usually hides the grid further.
 
 ## 파일 탭 / File Guide Sheet
 
@@ -202,6 +223,27 @@ AdSense 심사에서 요구하는 핵심 조건:
 - JS에서 `display: flex`로 열고, 일반 시트 탭 클릭 시 `display: none`으로 자동 닫힘
 - `updateFormulaBarForSheet('file')` → `=GUIDE.INDEX("서비스_안내")`
 
+### Desktop / Mobile Contract
+
+The file tab has a deliberate split contract:
+
+- Desktop file tab may live inside the Excel sheet canvas and coexist with the global `.sheet-view` desktop model.
+- Mobile file tab must render as a viewport-width guide page, not as a scaled 1840px spreadsheet canvas.
+- The global `.sheet-view { min-width: 1840px; }` is for desktop/game/readme sheet geometry. It must not leak into mobile `#file-sheet`.
+
+Mobile `#file-sheet` invariants:
+
+- `#file-sheet` inside `@media (max-width: 768px)` must keep `min-width: 0`, `max-width: 100vw`, and `overflow-x: hidden`.
+- `.fg-hero` must keep `grid-template-columns: 1fr`.
+- `.fg-link-grid` must keep `grid-template-columns: 1fr`.
+- File guide cards must stack vertically and fit inside the mobile viewport. In a 390px viewport, card width should be viewport-sized, not desktop-canvas-sized.
+
+Verification requirement:
+
+- After editing `style.css`, `index.html`, `src/layout/excelLayout.js`, `.sheet-view`, `.grid-content`, `.spreadsheet-*`, or `.fg-*`, verify the file tab at mobile width before saying it is fixed.
+- Use measured browser/computed-style facts. Example: viewport `390px`, `#file-sheet` around viewport width, `.fg-link-grid` one column, card width inside viewport, no horizontal overflow.
+- Run `npm run test:static` after touching protected layout or policy files; this guards the file-tab mobile contract and NewGame lock contract.
+
 ---
 
 ## Review Tab / Comments
@@ -225,7 +267,7 @@ AdSense 심사에서 요구하는 핵심 조건:
 - NewGame is a temporary copied Sudoku placeholder at `src/games/newgame/newGame.js`.
 - NewGame sheet DOM uses `#newgame-sheet` and `#newgame-grid`; tab key is `data-sheet="newgame"` and unlockable key is `new_game`.
 - NewGame tab must remain directly after SDK in the bottom sheet tabs.
-- NewGame is locked by backend unlock state until the signed-in user has at least 2 valid referrals.
+- NewGame is always locked for every user while it is a placeholder, regardless of referrals, manual unlock rows, or admin status.
 - Lock state APIs:
   - `GET /api/unlockables`
   - `GET /api/unlockables/check?item_key=new_game`
@@ -235,7 +277,7 @@ AdSense 심사에서 요구하는 핵심 조건:
 - D1 schema source: `docs/migrations/008_unlockables_referrals.sql`.
 - This project uses `users.user_id TEXT`; do not copy schemas that reference `users(id)`.
 - Referral email is immutable after insert, normalized lowercase, must match an existing user, and cannot be the current user's email.
-- NewGame score saves use `game_type='new_game'`; Worker rejects the score if the item is still locked.
+- NewGame score saves use `game_type='new_game'`; Worker rejects the score because `new_game` is in the always-locked set.
 
 ---
 
@@ -276,7 +318,7 @@ After setting secrets: redeploy the Pages project.
 ### Apply QA Seed Migration
 
 ```powershell
-npx.cmd wrangler d1 execute DB --remote --file=./docs/migrations/006_qa_seed.sql
+npx.cmd wrangler d1 execute DB --remote --file=./docs/preview/006_qa_seed.sql
 ```
 
 Apply to the **preview** D1 database only. Verify:
@@ -327,3 +369,9 @@ git log --oneline -10
 ```
 
 Other agents commit to this repo. Never assume file state matches memory.
+
+**Multi-Agent Rules:**
+- 멀티 에이전트 작업 시 `ORCHESTRATION.md`를 함께 읽습니다.
+- commit/push/deploy 전 user 승인이 필요합니다.
+- migration/schema/auth/deploy 변경은 항상 approval-required 입니다.
+- `#SMCP#` workflow는 아래 Branch Strategy를 따릅니다.

@@ -5,6 +5,7 @@ import { SnackAction } from './snackInteractionState.js';
 import { planPathToSnack } from './snackPathPlanner.js';
 import { isPetFaceTouchingApple } from './snackCollision.js';
 import { waitMs } from './snackAnimations.js';
+import { buildChartSurfaceModel } from './chartSurfaceModel.js';
 
 let controller = null;
 
@@ -13,6 +14,8 @@ const DEFAULT_PROFILE = {
     character_key: 'mong',
     equipped_item_keys: [],
 };
+const SNACK_SPEED_DURATION_SCALE = 0.5;
+const SNACK_WALK_IN_DISTANCE_PX = 21;
 
 export async function initPattieWorld(root) {
     if (!root) return null;
@@ -90,11 +93,11 @@ export class PattieRoamingController {
         this.speechBubble.className = 'pattie-speech';
         this.root.appendChild(this.speechBubble);
         this.bindEvents();
-        this.placeAtFirstZone();
-        this.start();
     }
 
     attach(root) {
+        const rootChanged = this.root !== root;
+        if (rootChanged) this.hasPlaced = false;
         this.root = root;
         this.root.classList.add('pattie-world');
         if (this.sprite && !this.root.contains(this.sprite.el)) this.root.appendChild(this.sprite.el);
@@ -543,6 +546,24 @@ export class PattieRoamingController {
             this.y = m.surface.petY;
         }
 
+        if (m.mode === 'run' && !m.walkedIn) {
+            const remaining = Math.hypot(m.endX - this.x, m.endY - this.y);
+            if (remaining <= SNACK_WALK_IN_DISTANCE_PX) {
+                m.mode = 'walk';
+                m.walkedIn = true;
+                m.startX = this.x;
+                m.startY = this.y;
+                m.duration = clamp(
+                    remaining * this.config.movement.walkDurationPerPx * SNACK_SPEED_DURATION_SCALE,
+                    400,
+                    4667,
+                );
+                m.startedAt = performance.now();
+                this.mode = 'walk';
+                this.sprite.play('walk', { restart: true, frameDurationMs: this.config.movement.walkFrameDurationMs });
+            }
+        }
+
         if (t >= 1) {
             this.x = m.endX;
             this.y = m.endY;
@@ -591,12 +612,12 @@ export class PattieRoamingController {
         const isJump = action.type === SnackAction.JUMP_TO;
         const mode = isJump
             ? (dy < 0 ? 'jump' : 'hopDown')
-            : (Math.abs(dx) > 80 ? 'run' : 'walk');
+            : (distance > 50 ? 'run' : 'walk');
         const duration = isJump
             ? clamp(distance * 34, 900, 1800)
             : mode === 'run'
-                ? clamp(Math.abs(dx) * this.config.movement.runDurationPerPx, 1400, 6000)
-                : clamp(Math.abs(dx) * this.config.movement.walkDurationPerPx, 1800, 7000);
+                ? clamp(Math.abs(dx) * this.config.movement.runDurationPerPx * SNACK_SPEED_DURATION_SCALE, 700, 3000)
+                : clamp(Math.abs(dx) * this.config.movement.walkDurationPerPx * SNACK_SPEED_DURATION_SCALE, 900, 3500);
 
         this.direction = dx >= 0 ? 1 : -1;
         this.mode = mode;
@@ -668,7 +689,14 @@ export class PattieRoamingController {
     }
 
     async holdSnackAnimation(animationName, durationMs, { direction = this.direction } = {}) {
-        this.freezeForSnack(direction);
+        // freezeForSnack()을 쓰면 내부 setMode('idle') → sprite.play('idle')이 비동기로 실행되어
+        // sprite.play(animationName)과 경쟁 상태가 발생, idle이 surprise를 덮어쓸 수 있음
+        this.actionLock = true;
+        this.terrainMotion = null;
+        this.snackMotion = null;
+        this.decelerating = false;
+        this.pendingHappy = false;
+        this.direction = direction;
         this.mode = animationName;
         await this.sprite.play(animationName, { restart: true, once: false, next: animationName });
         await waitMs(durationMs);
@@ -730,10 +758,11 @@ export class PattieRoamingController {
         const size = this.config.movement.spriteSize;
         const width = this.root.clientWidth || this.root.getBoundingClientRect().width;
         const height = this.root.clientHeight || this.root.getBoundingClientRect().height;
+        const floor = this.getChartSurfaces().find((surface) => surface.kind === 'floor');
         const minX = 34;
         const maxX = Math.max(minX, width - size - 34);
         this.x = randomBetween(minX, maxX);
-        this.y = Math.max(0, height - size - 16);
+        this.y = floor?.y ?? Math.max(0, height - size - 15);
         this.direction = Math.random() < 0.5 ? -1 : 1;
         this.terrainMotion = null;
         this.jumpMotion = null;
@@ -772,7 +801,7 @@ export class PattieRoamingController {
     }
 
     findNearestBar() {
-        const bars = this.getSortedBars();
+        const bars = this.getGroupedChartBars();
         if (!bars.length) return null;
         const size = this.config.movement.spriteSize;
         const centerX = this.x + size / 2;
@@ -781,29 +810,14 @@ export class PattieRoamingController {
 
     getChartSurfaces() {
         if (!this.getZones().find((zone) => zone.id === 'chart-zone')) return [];
-        const size = this.config.movement.spriteSize;
-        const bounds = this.getLocalChartBounds();
-
-        // Terrain calculation uses chart-local coordinates so page/excel scrolling cannot shift the pet.
-        const floor = {
-            id: 'chart-floor',
-            kind: 'floor',
-            minX: bounds.left + 14,
-            maxX: bounds.right - size - 14,
-            y: bounds.bottom - size - 16,
-        };
-        const floorY = floor.y;
-        const bars = this.getSortedBars().map((bar, index) => ({
-            id: `bar-${index}`,
-            kind: 'bar',
-            minX: bar.pairLeft + 1,
-            maxX: bar.pairLeft + bar.pairWidth - size - 1,
-            y: bar.top - size + 6, // Sprite has transparent foot padding; bar surfaces only.
-        })).filter((surface) => {
-            const heightFromFloor = Math.abs(surface.y - floorY);
-            return surface.maxX >= surface.minX && heightFromFloor <= this.config.movement.maxBarHeightFromFloorPx;
-        });
-        return [floor, ...bars];
+        return buildChartSurfaceModel({ controller: this, mapEl: this.root }).map(surface => ({
+            id: surface.id,
+            kind: surface.kind,
+            minX: surface.minX,
+            maxX: surface.maxX,
+            y: surface.petY,
+            surfaceY: surface.surfaceY,
+        }));
     }
 
     findNearestSurface(surfaces) {
@@ -833,8 +847,29 @@ export class PattieRoamingController {
             .sort((a, b) => a.left - b.left);
     }
 
+    getGroupedChartBars() {
+        const groups = new Map();
+        Array.from(this.root.querySelectorAll(this.config.terrainRules.chartBar.selector)).forEach((bar) => {
+            const pair = bar.parentElement || bar;
+            if (!groups.has(pair)) groups.set(pair, []);
+            groups.get(pair).push(bar);
+        });
+
+        return Array.from(groups.entries()).map(([pair, bars]) => {
+            const pairRect = this.getLocalRect(pair);
+            const barRects = bars.map(bar => this.getLocalRect(bar)).filter(rect => rect.width > 0 && rect.height > 0);
+            if (!barRects.length) return null;
+            return {
+                left: pairRect.left,
+                width: pairRect.width,
+                top: Math.min(...barRects.map(rect => rect.top)),
+                height: Math.max(...barRects.map(rect => rect.bottom)) - Math.min(...barRects.map(rect => rect.top)),
+            };
+        }).filter(Boolean).sort((a, b) => a.left - b.left);
+    }
+
     findNextBarPlatform() {
-        const bars = this.getSortedBars();
+        const bars = this.getGroupedChartBars();
         if (!bars.length) return null;
         const size = this.config.movement.spriteSize;
         this.chartBarIndex += this.direction;
@@ -849,7 +884,7 @@ export class PattieRoamingController {
         const target = bars[this.chartBarIndex];
         return {
             x: target.left + target.width / 2 - size / 2,
-            y: target.top - size + 6,
+            y: target.top - size + 4,
         };
     }
 

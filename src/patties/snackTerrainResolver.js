@@ -1,3 +1,5 @@
+import { buildChartSurfaceModel } from './chartSurfaceModel.js';
+
 export function getMapLocalPointFromMouse(event, mapEl) {
     const rect = mapEl.getBoundingClientRect();
     return {
@@ -19,67 +21,43 @@ export function clampPointToMap(point, mapEl, size) {
 }
 
 export function getSolidSurfaces({ controller, mapEl, appleSize }) {
-    const petSize = controller?.config?.movement?.spriteSize || 32;
-    const bounds = controller?.getLocalChartBounds?.() || {
-        left: 0,
-        top: 0,
-        right: mapEl.clientWidth,
-        bottom: mapEl.clientHeight,
-    };
-    const floorPetSurface = controller?.getChartSurfaces?.().find(s => s.kind === 'floor');
-    const floorPetY = floorPetSurface?.y ?? Math.max(0, bounds.bottom - petSize - 16);
-    const floorY = floorPetY + petSize;
-
-    const surfaces = [{
-        id: 'base_floor',
-        kind: 'floor',
-        minX: bounds.left + appleSize / 2,
-        maxX: bounds.right - appleSize / 2,
-        surfaceY: floorY,
-        petY: floorPetY,
-    }];
-
-    const bars = controller?.getSortedBars?.() || [];
-    bars.forEach((bar, index) => {
-        if (bar.width <= 0 || bar.height <= 2) return;
-        const petY = bar.top - petSize + 6;
-        const heightFromFloor = Math.abs(petY - floorPetY);
-        if (heightFromFloor > (controller.config?.movement?.maxBarHeightFromFloorPx || 132)) return;
-        surfaces.push({
-            id: `bar-${index}`,
-            kind: 'bar',
-            minX: bar.left + appleSize / 2,
-            maxX: bar.right - appleSize / 2,
-            surfaceY: bar.top,
-            petY,
-        });
-    });
-
-    return surfaces;
+    return buildChartSurfaceModel({ controller, mapEl, appleSize }).map(surface => ({
+        id: surface.snackId,
+        kind: surface.kind,
+        minX: surface.snackMinX,
+        maxX: surface.snackMaxX,
+        surfaceY: surface.surfaceY,
+        petY: surface.petY,
+        appleY: surface.appleY,
+    }));
 }
 
 export function resolveSnackLandingPoint({ controller, mapEl, dropX, dropY, appleSize }) {
+    if (isSnackDebugEnabled()) console.log('[PattieSnack] snack dropStart:', { x: Math.round(dropX), y: Math.round(dropY) });
     const surfaces = getSolidSurfaces({ controller, mapEl, appleSize });
     const fallback = surfaces.find(s => s.kind === 'floor') || {
         id: 'base_floor',
         minX: appleSize / 2,
         maxX: (mapEl.clientWidth || 0) - appleSize / 2,
-        surfaceY: (mapEl.clientHeight || appleSize) - 16,
-        petY: (mapEl.clientHeight || appleSize) - appleSize - 16,
+        surfaceY: (mapEl.clientHeight || appleSize) - 15,
+        petY: (mapEl.clientHeight || appleSize) - appleSize - 15,
+        appleY: (mapEl.clientHeight || appleSize) - appleSize - 13,
     };
     const candidates = surfaces
         .filter(surface => dropX >= surface.minX && dropX <= surface.maxX)
         .filter(surface => surface.surfaceY >= dropY)
         .sort((a, b) => a.surfaceY - b.surfaceY);
     const surface = candidates[0] || fallback;
+    if (isSnackDebugEnabled()) console.log('[PattieSnack] selectedSurface:', { id: surface.id, y: Math.round(surface.surfaceY) });
     const centerX = clamp(dropX, surface.minX, surface.maxX);
     const point = {
         x: centerX - appleSize / 2,
-        y: surface.surfaceY - appleSize,
+        y: surface.appleY ?? surface.surfaceY - appleSize + 2,
         centerX,
         centerY: surface.surfaceY - appleSize / 2,
         surface,
     };
+    if (isSnackDebugEnabled()) console.log('[PattieSnack] landingPoint:', { x: Math.round(point.x), y: Math.round(point.y) });
     debugSnackSurface(point);
     return point;
 }

@@ -5,7 +5,7 @@ import {
     resolveSnackLandingPoint,
 } from './snackTerrainResolver.js';
 import { getSnackApproachTarget } from './snackCollision.js';
-import { SNACK_ANIMATION_MS, waitForAnimationEnd } from './snackAnimations.js';
+import { SNACK_ANIMATION_MS } from './snackAnimations.js';
 
 const APPLE_IDLE_SRC = '/public/assets/apple/apple_idle..png';
 const APPLE_SIZE = 24;
@@ -35,6 +35,7 @@ export class PattieApple {
         if (this.state !== SnackState.IDLE || this.processing) return false;
         this.transition(SnackState.AIMING_SNACK);
         this.feedMode = true;
+        this._preloadPop();
         this._createPreview();
         document.addEventListener('mousemove', this._boundMouseMove);
         this.mapEl.addEventListener('click', this._boundClick);
@@ -162,14 +163,18 @@ export class PattieApple {
         el.className = 'pattie-apple-landed pattie-apple-landed--falling';
         el.width = APPLE_SIZE;
         el.height = APPLE_SIZE;
+        // 클릭한 위치에서 낙하 시작: 프리뷰 위치와 일치시킴
+        const dropStartTop = Math.round(point.y - APPLE_SIZE / 2);
         el.style.left = `${Math.round(landing.x)}px`;
-        el.style.top = `${-APPLE_SIZE}px`;
+        el.style.top = `${dropStartTop}px`;
         this.mapEl.appendChild(el);
         this.landedEl = el;
 
+        // 낙하 거리 = 클릭 위치 → 착지 위치 (위로 이동하는 경우 MIN 적용)
+        const fallDistance = Math.max(0, landing.y - dropStartTop);
         const fallDuration = Math.max(
             SNACK_ANIMATION_MS.DROP_MIN,
-            Math.abs(landing.y + APPLE_SIZE) * SNACK_ANIMATION_MS.DROP_PER_PX,
+            fallDistance * SNACK_ANIMATION_MS.DROP_PER_PX,
         );
         el.style.transitionDuration = `${fallDuration}ms`;
         requestAnimationFrame(() => {
@@ -181,11 +186,22 @@ export class PattieApple {
         this._setTimer(() => this._onLanded(), fallDuration + 40);
     }
 
-    _onLanded() {
+    async _onLanded() {
         if (!this.landedEl || !this.appleState) return;
         this.transition(SnackState.SNACK_LANDED);
         this.landedEl.classList.remove('pattie-apple-landed--falling');
         this.landedEl.classList.add('pattie-apple-landed--settled');
+
+        this.transition(SnackState.PET_SURPRISE);
+        await this.ctrl.holdSnackAnimation('surprise', SNACK_ANIMATION_MS.SURPRISE);
+
+        if (this.state !== SnackState.PET_SURPRISE || !this.appleState) {
+            this.ctrl.actionLock = false;
+            this.ctrl.setMode?.('idle');
+            return;
+        }
+
+        this.ctrl.actionLock = false;
         this._movePetToSnack();
     }
 
@@ -210,23 +226,13 @@ export class PattieApple {
             return;
         }
 
-        const popEl = document.createElement('div');
-        popEl.className = 'pattie-apple-pop';
-        popEl.style.left = this.landedEl.style.left;
-        popEl.style.top = this.landedEl.style.top;
-        this.mapEl.appendChild(popEl);
-        this.popEl = popEl;
-        this.landedEl.remove();
+        const landedLeft = this.landedEl.style.left;
+        const landedTop = this.landedEl.style.top;
+        const popPromise = this._playApplePop(landedLeft, landedTop);
+        await nextFrame();
+        this.landedEl?.remove();
         this.landedEl = null;
-
-        await waitForAnimationEnd(popEl, SNACK_ANIMATION_MS.APPLE_POP);
-        popEl.remove();
-        this.popEl = null;
-
-        this.transition(SnackState.PET_SURPRISE);
-        await this.ctrl.holdSnackAnimation('surprise', SNACK_ANIMATION_MS.SURPRISE, {
-            direction: approach.direction,
-        });
+        await popPromise;
 
         this.transition(SnackState.PET_HAPPY_AFTER_SNACK);
         const happyDuration = this._happyDurationMs();
@@ -242,6 +248,69 @@ export class PattieApple {
         this._removeApple();
         this.transition(SnackState.IDLE);
         this._resetFeedButton();
+    }
+
+    // apple_pop.png: 450×66, 7프레임(64×64 content), sourcePadX/Y=1
+    // PattieSprite와 동일한 방식으로 background-position 스텝핑
+    _playApplePop(left, top) {
+        const FRAME_COUNT = 7;
+        const FRAME_W = 64;
+        const FRAME_H = 64;
+        const PAD_X = 1;
+        const PAD_Y = 1;
+        const IMAGE_W = 450;
+        const IMAGE_H = 66;
+        const FRAME_MS = 300;
+        const scale = APPLE_SIZE / FRAME_W; // 24/64 = 0.375
+
+        return new Promise(resolve => {
+            const outer = document.createElement('div');
+            outer.className = 'pattie-apple-pop';
+            outer.style.left = left;
+            outer.style.top = top;
+            outer.style.width = `${APPLE_SIZE}px`;
+            outer.style.height = `${APPLE_SIZE}px`;
+
+            const inner = document.createElement('div');
+            inner.style.cssText = [
+                `width:${FRAME_W}px`,
+                `height:${FRAME_H}px`,
+                `transform-origin:0 0`,
+                `transform:scale(${scale})`,
+                `background-image:url('/public/assets/apple/apple_pop.png')`,
+                `background-size:${IMAGE_W}px ${IMAGE_H}px`,
+                `background-repeat:no-repeat`,
+                `image-rendering:pixelated`,
+            ].join(';');
+            outer.appendChild(inner);
+            this.mapEl.appendChild(outer);
+            this.popEl = outer;
+
+            let frame = 0;
+            const applyFrame = () => {
+                inner.style.backgroundPosition = `-${PAD_X + frame * FRAME_W}px -${PAD_Y}px`;
+            };
+            applyFrame();
+
+            const advance = () => {
+                if (!this.popEl) return; // cancel됨
+                frame += 1;
+                if (frame < FRAME_COUNT) {
+                    applyFrame();
+                    this._setTimer(advance, FRAME_MS);
+                } else {
+                    outer.remove();
+                    if (this.popEl === outer) this.popEl = null;
+                    resolve();
+                }
+            };
+            this._setTimer(advance, FRAME_MS);
+        });
+    }
+
+    _preloadPop() {
+        const img = new Image();
+        img.src = '/public/assets/apple/apple_pop.png';
     }
 
     _happyDurationMs() {
@@ -308,4 +377,8 @@ export class PattieApple {
         this.state = SnackState.IDLE;
         this.processing = false;
     }
+}
+
+function nextFrame() {
+    return new Promise(resolve => requestAnimationFrame(resolve));
 }

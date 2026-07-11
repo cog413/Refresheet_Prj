@@ -45,6 +45,11 @@
         "jump": {
           "src": "/public/assets/kitty/cabul_junp.png",
           "frameDurationMs": 140
+        },
+        "surprise": {
+          "src": "/public/assets/kitty/cabul_surprise.png",
+          "frameDurationMs": 400,
+          "showBubble": true
         }
       }
     }

@@ -2,10 +2,12 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MicroSnack - Refresheet</title>
-    <meta name="description" content="Refresheet는 스프레드시트 UI에서 즐기는 미니 게임과 오피스 리프레시 앱입니다. SDK·2048·타자 게임, 미니미 육성, 실적 랭킹을 제공합니다.">
+    <meta name="description" content="Refresheet는 스프레드시트 UI에서 즐기는 미니 게임과 오피스 Refresh App입니다. SDK·2048·타자 게임, 미니미 육성, 실적 랭킹을 제공합니다.">
     <link rel="stylesheet" href="style.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6690431013497746"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <div id="loading-screen">
@@ -17,19 +19,19 @@
     </div>
 
     <div id="excel-app" style="display:none;">
-        <header class="ribbon">
-            <div class="ribbon-top">
-                <div class="title-bar">
-                    <span class="excel-icon">📗</span>
-                    <span class="file-name">MicroSnack - Refresheet</span>
-                </div>
-                <div class="window-controls">
-                    <button class="account-button" id="login-button" type="button" title="Google 로그인">로그인</button>
-                    <span>—</span>
-                    <span>□</span>
-                    <span>✕</span>
-                </div>
+        <div class="ribbon-top">
+            <div class="title-bar">
+                <span class="excel-icon"><img src="/src/logo/RefresheetLogo.png" alt="Logo" style="height: 18px; vertical-align: text-bottom; margin-right: 2px; border-radius: 3px; border: 1px solid white; background-color: white; padding: 0px; box-sizing: border-box;"></span>
+                <span class="file-name">MicroSnack - Refresheet</span>
             </div>
+            <div class="window-controls">
+                <button class="account-button" id="login-button" type="button" title="Google 로그인">로그인</button>
+                <span>—</span>
+                <span>□</span>
+                <span>✕</span>
+            </div>
+        </div>
+        <header class="ribbon">
             <div class="menu-tabs">
                 <span class="menu-tab" id="file-menu-tab">파일</span>
                 <span class="menu-tab active" id="home-menu-tab">홈</span>
@@ -82,10 +84,13 @@
                     <div id="readme-sheet" class="sheet-view active">
                         <div class="rm-sheet" aria-label="Refresheet 안내 시트">
 
-                            <!-- 좌측 컬럼: KPI + 실적장표 -->
-                            <div class="rm-col-main">
+                            <div class="rm-main-phrase" aria-label="Refresheet 핵심 안내">
+                                <div class="rm-main-phrase-title">점심먹고 10분, 업무Sheet안에서 누리는 휴식 Refresheet.</div>
+                                <div class="rm-main-phrase-sub">about us : 화면 좌상단의 [파일] 탭을 클릭.</div>
+                            </div>
 
-                                <!-- 1. KPI 현황 -->
+                            <!-- KPI 영역 (rows 5-12) -->
+                            <div class="rm-block rm-block-kpi">
                                 <div class="rm-section-hd rm-hd-green">KPI(Key Performance Index) 현황</div>
                                 <div class="rm-kpi-row">
                                     <div class="rm-kpi-card">
@@ -109,12 +114,14 @@
                                         <div class="rm-kpi-val" id="kpi-care-val">
                                             <span class="rm-need-login">로그인 필요</span>
                                         </div>
-                                        <div class="rm-kpi-desc">미니미를 챙긴 정도</div>
-                                        <div class="rm-kpi-sub">(밥걸기 / 먹이주기 / 꾸미기 중 1회 이상)</div>
+                                        <div class="rm-kpi-desc">토닥이 행복점수</div>
+                                        <div class="rm-kpi-sub">(토닥이기, 간식주기, 말걸기로 토닥이 케어)</div>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-kpi -->
 
-                                <!-- 2. 실적 장표 -->
+                            <!-- 실적장표 영역 (rows 14-23) -->
+                            <div class="rm-block rm-block-rank">
                                 <div class="rm-section-hd rm-hd-green rm-hd-flex">
                                     <span>실적 장표</span>
                                     <span class="rm-rank-tabs">
@@ -139,18 +146,26 @@
                                         <div class="rm-rank-list" id="rank-company-list"></div>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-rank -->
 
-                            </div><!-- /.rm-col-main -->
+                            <!-- 참고사항 영역 (rows 25-30, 좌 하단) -->
+                            <div class="rm-block rm-block-notes">
+                                <div class="rm-section-hd rm-hd-caution">참고사항</div>
+                                <div class="rm-notes">
+                                    <div class="rm-note-item">※ 게임은 시간당 3티켓이 제공되며 매 정시에 갱신됩니다.</div>
+                                    <div class="rm-note-item">※ 일부 기능은 로그인 후 이용 가능합니다.</div>
+                                    <div class="rm-note-item">※ 마우스를 올렸을 때 활성화 되는 버튼만 진짜입니다 (예 : 홈/검토/보기 탭, 로그인버튼 등)</div>
+                                    <div class="rm-note-item">※ 위기의 순간이 온다면 Esc를 눌러보세요 (공백화면으로 긴급전환)</div>
+                                </div>
+                            </div><!-- /.rm-block-notes -->
 
-                            <!-- 우측 컬럼: SOP + 시트안내 + 참고사항 -->
-                            <div class="rm-col-side">
-
-                                <!-- 3. SOP -->
+                            <!-- SOP 영역 (rows 5-15) -->
+                            <div class="rm-block rm-block-sop">
                                 <div class="rm-section-hd rm-hd-green">SOP(Statement of Purpose)</div>
                                 <div class="rm-sop">
                                     <div class="rm-sop-item">
                                         <div class="rm-sop-title">&lt;제1조. 누구나 휴식할 권리가 있다&gt;</div>
-                                        <div class="rm-sop-body">지치고 단조로운 일상 속, Refresheet가 잠깐의 쉼이 되길 바랍니다. 게임도 하고, 미니미에게 오늘의 응원도 받아보세요.</div>
+                                        <div class="rm-sop-body">지치고 단조로운 일상 속, Refresheet가 잠깐의 쉼이 되길 바랍니다. 게임도 하고, 토닥이에게 오늘의 응원도 받아보세요.</div>
                                     </div>
                                     <div class="rm-sop-item">
                                         <div class="rm-sop-title">&lt;제2조. 우리가 쉬는 건, 추진력을 얻기 위함이다&gt;</div>
@@ -158,21 +173,23 @@
                                     </div>
                                     <div class="rm-sop-item">
                                         <div class="rm-sop-title">&lt;제3조. 누군가를 아끼는 마음이 나를 살린다&gt;</div>
-                                        <div class="rm-sop-body">게임 포인트로 미니미를 키워보세요. 먹이고, 꾸미고, 아껴주며 하루를 버틸 힘을 얻어요.</div>
+                                        <div class="rm-sop-body">게임 포인트로 토닥이를 키워보세요. 먹이고, 꾸미고, 아껴주며 하루를 버틸 힘을 얻어요.</div>
                                     </div>
                                     <div class="rm-sop-item">
                                         <div class="rm-sop-title">&lt;제4조. 우리는 혼자가 아니다&gt;</div>
                                         <div class="rm-sop-body">같은 하루를 버티는 사람들이 있습니다. 회사별 점수 랭킹에서 확인해보세요.</div>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-sop -->
 
-                                <!-- 4. 시트 안내 -->
+                            <!-- 시트 안내 영역 (rows 17-22) -->
+                            <div class="rm-block rm-block-guide">
                                 <div class="rm-section-hd rm-hd-green">시트 안내</div>
                                 <div class="rm-guide">
                                     <div class="rm-guide-item">
                                         <span class="rm-guide-label">관리시트</span>
                                         <span class="rm-guide-sep">:</span>
-                                        <span class="rm-guide-text">미니미 관리시트</span>
+                                        <span class="rm-guide-text">토닥이 관리시트</span>
                                     </div>
                                     <div class="rm-guide-item">
                                         <span class="rm-guide-label">2048</span>
@@ -190,17 +207,39 @@
                                         <span class="rm-guide-text">1분 안에 문장을 빠르고 정확하게 입력해보세요</span>
                                     </div>
                                 </div>
+                            </div><!-- /.rm-block-guide -->
 
-                                <!-- 5. 참고사항 -->
-                                <div class="rm-section-hd rm-hd-caution">참고사항</div>
-                                <div class="rm-notes">
-                                    <div class="rm-note-item">※ 게임은 시간당 3티켓이 제공되며 매 정시에 갱신됩니다.</div>
-                                    <div class="rm-note-item">※ 일부 기능은 로그인 후 이용 가능합니다.</div>
-                                    <div class="rm-note-item">※ 마우스를 올렸을 때 반응하는 버튼만 진짜입니다 (예 : 홈/검토/보기 탭, 로그인버튼 등)</div>
-                                    <div class="rm-note-item">※ 위기의 순간이 온다면 Esc를 눌러보세요 (공백화면으로 긴급전환)</div>
+                            <!-- 탭 안내 영역 (rows 24-30) -->
+                            <div class="rm-block rm-block-tabguide">
+                                <div class="rm-section-hd rm-hd-green">탭 및 주요 버튼 안내</div>
+                                <div class="rm-guide">
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">파일</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">Refresheet에 대한 설명 블로그입니다. 자세한 설명이 나와있어요</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">홈</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">Refresheet의 기본화면입니다. 다양한 게임을 즐겨보세요</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">검토</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">사용자들의 의견을 자유롭게 나누는 공간입니다. 운영자에게도 의견을 보낼 수 있어요.</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">보기</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">화이트모드와 다크모드를 전환할 수 있습니다. 운영자는 화이트모드를 추천해요.</span>
+                                    </div>
+                                    <div class="rm-guide-item">
+                                        <span class="rm-guide-label">ESC</span>
+                                        <span class="rm-guide-sep">:</span>
+                                        <span class="rm-guide-text">위기는 언제나 찾아옵니다. 키보드 esc는 사용자의 긴급탈출을 돕습니다.</span>
+                                    </div>
                                 </div>
-
-                            </div><!-- /.rm-col-side -->
+                            </div><!-- /.rm-block-tabguide -->
 
                         </div>
                     </div>
@@ -222,16 +261,7 @@
                                     <div class="fake-table-cell label">최종 확정 공지</div><div class="fake-table-cell value">11/30</div>
                                 </div>
                                 <div class="fake-table">
-                                    <div class="fake-table-header">결재 대기 문서</div>
-                                    <div class="fake-table-cell label">소프트웨어 라이선스 구매</div><div class="fake-table-cell value" style="color:red">긴급</div>
-                                    <div class="fake-table-cell label">11월 팀 워크샵 기안</div><div class="fake-table-cell value">대기</div>
-                                    <div class="fake-table-cell label">신규 입사자 PC 신청</div><div class="fake-table-cell value">진행</div>
-                                    <div class="fake-table-cell label">비품 구매 요청서</div><div class="fake-table-cell value">대기</div>
-                                    <div class="fake-table-cell label">출장비 정산 (이○○)</div><div class="fake-table-cell value" style="color:#217346">완료</div>
-                                    <div class="fake-table-cell label">11월 예산 집행 보고</div><div class="fake-table-cell value" style="color:#ed7d31">검토</div>
-                                </div>
-                                <div class="fake-table">
-                                    <div class="fake-table-header">금주 업무 집중도 (%)</div>
+                                    <div class="fake-table-header">업무 집중도 (%)</div>
                                     <div class="fake-table-cell label">월요일</div><div class="fake-table-cell value" style="color:#217346">88.4</div>
                                     <div class="fake-table-cell label">화요일</div><div class="fake-table-cell value" style="color:#217346">76.2</div>
                                     <div class="fake-table-cell label">수요일</div><div class="fake-table-cell value" style="color:#217346">91.7</div>
@@ -261,15 +291,6 @@
                                     <div class="fake-table-cell label">UAT 검수</div><div class="fake-table-cell value">미착수</div>
                                     <div class="fake-table-cell label">릴리즈 배포</div><div class="fake-table-cell value">미착수</div>
                                     <div class="fake-table-cell label total">전체 해결된 Task 수</div><div class="fake-table-cell value total" id="sudoku-progress-display">0 / 81</div>
-                                </div>
-                                <div class="fake-table">
-                                    <div class="fake-table-header">개인 데이터 처리 현황</div>
-                                    <div class="fake-table-cell label">금일 처리 건수</div><div class="fake-table-cell value">1,247</div>
-                                    <div class="fake-table-cell label">누적 오류 건수</div><div class="fake-table-cell value" style="color:#c00000">23</div>
-                                    <div class="fake-table-cell label">오류율 (%)</div><div class="fake-table-cell value" style="color:#217346">1.84</div>
-                                    <div class="fake-table-cell label">처리 속도 (건/h)</div><div class="fake-table-cell value">155.9</div>
-                                    <div class="fake-table-cell label">SLA 준수율</div><div class="fake-table-cell value" style="color:#217346">99.2%</div>
-                                    <div class="fake-table-cell label total">이번 달 총 처리</div><div class="fake-table-cell value total">24,830</div>
                                 </div>
                                 <div class="fake-table">
                                     <div class="fake-table-header">팀원별 처리 현황 (건)</div>
@@ -323,18 +344,6 @@
                                     <div class="fake-table-cell label total">파이프라인 합계 (건)</div><div class="fake-table-cell value total">8</div>
                                 </div>
                                 <div class="fake-table">
-                                    <div class="fake-table-header">4월 운영비 집행 현황 (천원)</div>
-                                    <div class="fake-table-cell label">인건비</div><div class="fake-table-cell value">24,300</div>
-                                    <div class="fake-table-cell label">외주용역</div><div class="fake-table-cell value">8,500</div>
-                                    <div class="fake-table-cell label">마케팅·홍보</div><div class="fake-table-cell value">3,200</div>
-                                    <div class="fake-table-cell label">복리후생</div><div class="fake-table-cell value">1,840</div>
-                                    <div class="fake-table-cell label">소모품·비품</div><div class="fake-table-cell value">680</div>
-                                    <div class="fake-table-cell label">IT 인프라</div><div class="fake-table-cell value">2,340</div>
-                                    <div class="fake-table-cell label">교육훈련비</div><div class="fake-table-cell value">960</div>
-                                    <div class="fake-table-cell label">기타 운영</div><div class="fake-table-cell value">1,100</div>
-                                    <div class="fake-table-cell label total">4월 합계</div><div class="fake-table-cell value total">42,920</div>
-                                </div>
-                                <div class="fake-table">
                                     <div class="fake-table-header">월별 목표 달성률 (%)</div>
                                     <div class="fake-table-cell label">1월</div><div class="fake-table-cell value" style="color:#217346">94.2</div>
                                     <div class="fake-table-cell label">2월</div><div class="fake-table-cell value" style="color:#c00000">88.7</div>
@@ -358,7 +367,6 @@
                                     <div class="fake-table-cell label">연간 목표 (천원)</div><div class="fake-table-cell value">190,150</div>
                                     <div class="fake-table-cell label">현재 달성률</div><div class="fake-table-cell value" style="color:#ed7d31">71.1%</div>
                                     <div class="fake-table-cell label">전년 동기 대비</div><div class="fake-table-cell value" style="color:#217346">+8.4%</div>
-                                    <div class="fake-table-cell label total">총 누적 실적 (추진력)</div><div class="fake-table-cell value total" id="fake-score-display">0</div>
                                 </div>
                                 <div class="fake-chart">
                                     <div class="chart-title">월별 매출 달성률 추이</div>
@@ -370,7 +378,6 @@
                                         <div class="bar-container"><div class="bar" style="height: 55%;"></div><span>5월</span></div>
                                         <div class="bar-container"><div class="bar" style="height: 47%;"></div><span>6월</span></div>
                                         <div class="bar-container"><div class="bar bar-green" style="height: 83%;"></div><span>7월</span></div>
-                                        <div class="bar-container"><div class="bar" id="fake-score-bar" style="height: 5%;"></div><span>Score</span></div>
                                     </div>
                                 </div>
                                 <div class="fake-table">
@@ -397,14 +404,6 @@
                                     <div class="fake-table-cell label">월간 목표</div><div class="fake-table-cell value" style="color:#217346">달성</div>
                                     <div class="fake-table-cell label total">종합 역량 지수</div><div class="fake-table-cell value total">B+</div>
                                 </div>
-                                <div class="fake-table">
-                                    <div class="fake-table-header">분기별 교육 이수율 (%)</div>
-                                    <div class="fake-table-cell label">1분기</div><div class="fake-table-cell value" style="color:#217346">98.2</div>
-                                    <div class="fake-table-cell label">2분기</div><div class="fake-table-cell value" style="color:#217346">95.7</div>
-                                    <div class="fake-table-cell label">3분기</div><div class="fake-table-cell value" style="color:#ed7d31">88.1</div>
-                                    <div class="fake-table-cell label">4분기 (목표)</div><div class="fake-table-cell value">100.0</div>
-                                    <div class="fake-table-cell label total">연간 평균</div><div class="fake-table-cell value total" style="color:#217346">94.0</div>
-                                </div>
                             </div>
                             <div id="typing-grid" class="game-grid tg"></div>
                             <div class="fake-dashboard side-right">
@@ -416,6 +415,14 @@
                                     <div class="fake-table-cell label">기획팀</div><div class="fake-table-cell value">B</div>
                                     <div class="fake-table-cell label">재무팀</div><div class="fake-table-cell value" style="color:#217346">A+</div>
                                     <div class="fake-table-cell label total">전사 평균</div><div class="fake-table-cell value total" style="color:#217346">A-</div>
+                                </div>
+                                <div class="fake-table">
+                                    <div class="fake-table-header">분기별 교육 이수율 (%)</div>
+                                    <div class="fake-table-cell label">1분기</div><div class="fake-table-cell value" style="color:#217346">98.2</div>
+                                    <div class="fake-table-cell label">2분기</div><div class="fake-table-cell value" style="color:#217346">95.7</div>
+                                    <div class="fake-table-cell label">3분기</div><div class="fake-table-cell value" style="color:#ed7d31">88.1</div>
+                                    <div class="fake-table-cell label">4분기 (목표)</div><div class="fake-table-cell value">100.0</div>
+                                    <div class="fake-table-cell label total">연간 평균</div><div class="fake-table-cell value total" style="color:#217346">94.0</div>
                                 </div>
                             </div>
                         </div>
@@ -448,10 +455,10 @@
                         <section class="fg-hero">
                             <div>
                                 <p class="fg-eyebrow">Refresheet 안내 센터</p>
-                                <h1>짧은 리프레시를 위한 서비스 가이드</h1>
-                                <p>Refresheet의 철학, 토닥이 세계관, 마이크로 브레이크 방식, 자주 묻는 질문을 한곳에서 확인할 수 있습니다.</p>
+                                <h1>점심 먹고 5~10분, Refresh를 위한 Sheet가이드</h1>
+                                <p>Refresheet는 여러분의 업무 Sheet와 닮은 공간에서 짧은 휴식을 통해 업무 생산성 높이는 서비스입니다. Refresheet의 철학, 토닥이 세계관, 자주 묻는 질문을 한 곳에서 확인해보세요.</p>
                             </div>
-                            <img src="/public/assets/static-site/workspace-grid.svg" alt="Refresheet의 스프레드시트풍 작업 공간 안내 이미지">
+                            <img class="fg-hero-logo" src="/src/logo/RefresheetLogo.png" alt="Refresheet 로고">
                         </section>
                         <section class="fg-link-grid" aria-label="Refresheet 서비스 안내 링크">
                             <a href="/about" target="_blank" rel="noopener noreferrer">
@@ -480,8 +487,8 @@
                             </a>
                             <a href="/focus-refresh" target="_blank" rel="noopener noreferrer">
                                 <div class="fg-card-top"><span class="fg-card-badge">FOCUS</span></div>
-                                <div class="fg-card-title">집중 리프레시</div>
-                                <div class="fg-card-desc">게임을 짧고 가볍게 설계한 이유와 리프레시 효과를 극대화하는 방법입니다.</div>
+                                <div class="fg-card-title">Focus Refresh</div>
+                                <div class="fg-card-desc">게임을 짧고 가볍게 설계한 이유와 Refresh 효과를 극대화하는 방법입니다.</div>
                                 <div class="fg-card-foot"><span class="fg-card-read">4 min read</span><span class="fg-card-arr">↗</span></div>
                             </a>
                             <a href="/faq" target="_blank" rel="noopener noreferrer">
@@ -506,7 +513,7 @@
                 <div class="tab" data-sheet="game2048">2048</div>
                 <div class="tab" data-sheet="sudoku">SDK</div>
                 <div class="tab" data-sheet="typing">Reference</div>
-                <div class="tab tab-locked" data-sheet="newgame" data-unlockable-key="new_game" data-locked="true" data-lock-reason="친구추천 2명 달성 시 이용할 수 있습니다" title="친구추천 2명 달성 시 이용할 수 있습니다"><span class="tab-lock-icon">🔒</span>NewGame</div>
+                <div class="tab tab-locked" data-sheet="newgame" data-unlockable-key="new_game" data-locked="true" data-lock-reason="새로운 게임을 준비중입니다" title="새로운 게임을 준비중입니다"><span class="tab-lock-icon">🔒</span>NewGame</div>
                 <div class="tab add-tab">+</div>
             </div>
             <div class="status-bar">
@@ -515,6 +522,19 @@
                 <span class="zoom-slider">- [========|==] + 100%</span>
             </div>
         </footer>
+
+        <div id="Data_Visual_Widget" class="stealth-ad" aria-label="실시간 지표 분석 광고 영역">
+            <div class="ad-header">실시간 지표 분석</div>
+            <div class="ad-content">
+                <!-- basic_unit -->
+                <ins class="adsbygoogle"
+                     style="display:block"
+                     data-ad-client="ca-pub-6690431013497746"
+                     data-ad-slot="1097545546"
+                     data-ad-format="auto"
+                     data-full-width-responsive="true"></ins>
+            </div>
+        </div>
 
     </div>
 

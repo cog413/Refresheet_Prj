@@ -16,16 +16,28 @@ export function initExcelLayout() {
         }
     }
 
-    // 2. Generate Row Headers (1 to 100)
+    // 2. Generate Row Headers — enough to fill viewport, not a fixed 100
     const rowHeaders = document.getElementById('row-headers');
     if (rowHeaders) {
-        for (let i = 1; i <= 100; i++) {
+        const rowCount = Math.ceil(window.innerHeight / 22) + 4;
+        for (let i = 1; i <= rowCount; i++) {
             const header = document.createElement('div');
             header.className = 'row-header';
             header.textContent = i;
             rowHeaders.appendChild(header);
         }
     }
+
+    // Sync row/column header scroll with grid content
+    const gridContent = document.getElementById('grid-content');
+    if (gridContent && rowHeaders) {
+        gridContent.addEventListener('scroll', () => {
+            rowHeaders.scrollTop = gridContent.scrollTop;
+            if (colHeaders) colHeaders.scrollLeft = gridContent.scrollLeft;
+        });
+    }
+
+    initMobileSpreadsheetZoom();
 
     // 3. View tab toggles dark mode.
     const fileMenuTab = document.getElementById('file-menu-tab');
@@ -99,7 +111,7 @@ export function initExcelLayout() {
             fileMenuTab.classList.add('active');
             sheetViews.forEach(sheet => {
                 const isFile = sheet.id === 'file-sheet';
-                sheet.style.display = isFile ? 'flex' : 'none';
+                sheet.style.display = isFile ? 'block' : 'none';
                 sheet.classList.toggle('active', isFile);
             });
             updateFormulaBarForSheet('file');
@@ -135,7 +147,7 @@ export function initExcelLayout() {
             formulaInput.value = '=SUDOKU.INIT(A1:I9)';
             currentCell.textContent = 'A1';
         } else if (sheetId === 'newgame') {
-            formulaInput.value = '=NEWGAME.LOCKED("친구추천 2명")';
+            formulaInput.value = '=NEWGAME.LOCKED("준비중")';
             currentCell.textContent = 'A1';
         } else if (sheetId === 'game2048') {
             formulaInput.value = '=SUM(A1:D4)*2048';
@@ -195,5 +207,114 @@ export function initExcelLayout() {
         showSheetLockToast.timer = setTimeout(() => {
             toast.classList.remove('visible');
         }, 2200);
+    }
+
+    function initMobileSpreadsheetZoom() {
+        const appEl = document.getElementById('excel-app');
+        const gridContent = document.getElementById('grid-content');
+        if (!appEl || !gridContent) return;
+
+        const mobileQuery = window.matchMedia('(max-width: 768px)');
+        const MIN_SCALE = 0.5;
+        const MAX_SCALE = 1.6;
+        const STEP = 0.1;
+        let scale = 1;
+        let pinchStartDistance = 0;
+        let pinchStartScale = 1;
+
+        // Controls appended to body so they're NOT inside the scaled #excel-app
+        const controls = document.createElement('div');
+        controls.className = 'mobile-zoom-controls';
+        controls.innerHTML = `
+            <button type="button" class="mobile-zoom-btn" data-zoom="out" aria-label="Zoom out">-</button>
+            <span class="mobile-zoom-value">100%</span>
+            <button type="button" class="mobile-zoom-btn" data-zoom="in" aria-label="Zoom in">+</button>
+        `;
+        document.body.appendChild(controls);
+
+        controls.addEventListener('click', (event) => {
+            const action = event.target?.dataset?.zoom;
+            if (!action || !mobileQuery.matches) return;
+            setScale(scale + (action === 'in' ? STEP : -STEP), true);
+        });
+
+        // Pinch listener on the whole app to capture gestures anywhere on screen
+        appEl.addEventListener('touchstart', (event) => {
+            if (!mobileQuery.matches || event.touches.length !== 2) return;
+            pinchStartDistance = getTouchDistance(event.touches);
+            pinchStartScale = scale;
+        }, { passive: true });
+
+        appEl.addEventListener('touchmove', (event) => {
+            if (!mobileQuery.matches || event.touches.length !== 2 || !pinchStartDistance) return;
+            event.preventDefault();
+            const nextDistance = getTouchDistance(event.touches);
+            setScale(pinchStartScale * (nextDistance / pinchStartDistance), false);
+        }, { passive: false });
+
+        appEl.addEventListener('touchend', (event) => {
+            if (event.touches.length < 2) pinchStartDistance = 0;
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+            if (mobileQuery.matches) setScale(scale, false);
+            else resetZoom();
+        });
+
+        document.addEventListener('click', (event) => {
+            const tab = event.target?.closest?.('.tab[data-sheet]');
+            if (tab) setTimeout(() => setScale(scale, false), 0);
+        });
+
+        resetZoom();
+
+        function setScale(nextScale, centerViewport) {
+            if (!mobileQuery.matches) {
+                resetZoom();
+                return;
+            }
+            const previous = scale;
+            scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, nextScale));
+            applyScale();
+            updateControls();
+
+            if (centerViewport && previous !== scale) {
+                const ratio = scale / previous;
+                gridContent.scrollLeft = (gridContent.scrollLeft + gridContent.clientWidth / 2) * ratio - gridContent.clientWidth / 2;
+                gridContent.scrollTop  = (gridContent.scrollTop  + gridContent.clientHeight / 2) * ratio - gridContent.clientHeight / 2;
+            }
+        }
+
+        function resetZoom() {
+            scale = 1;
+            applyScale();
+            updateControls();
+        }
+
+        function applyScale() {
+            if (!mobileQuery.matches || scale === 1) {
+                appEl.style.transform      = '';
+                appEl.style.transformOrigin = '';
+                appEl.style.width          = '';
+                appEl.style.height         = '';
+                return;
+            }
+            // Scale the entire app from top-left; compensate dimensions so it still fills the viewport
+            appEl.style.transformOrigin = '0 0';
+            appEl.style.transform       = `scale(${scale})`;
+            appEl.style.width           = `${100 / scale}vw`;
+            appEl.style.height          = `${100 / scale}dvh`;
+        }
+
+        function updateControls() {
+            controls.hidden = !mobileQuery.matches;
+            controls.querySelector('.mobile-zoom-value').textContent = `${Math.round(scale * 100)}%`;
+        }
+
+        function getTouchDistance(touches) {
+            const dx = touches[0].clientX - touches[1].clientX;
+            const dy = touches[0].clientY - touches[1].clientY;
+            return Math.hypot(dx, dy);
+        }
     }
 }

@@ -9,6 +9,7 @@ export class PattieSprite {
         this.frameTimer = null;
         this.el = document.createElement('div');
         this.el.className = 'pattie-sprite';
+        this.el.style.visibility = 'hidden';
         this.el.tabIndex = 0;
         this.el.setAttribute('role', 'button');
         this.el.setAttribute('aria-label', 'Pattie');
@@ -16,7 +17,11 @@ export class PattieSprite {
         this.baseEl.className = 'pattie-sprite-base';
         this.itemLayer = document.createElement('div');
         this.itemLayer.className = 'pattie-item-layer';
-        this.el.append(this.baseEl, this.itemLayer);
+        this.bubbleEl = document.createElement('div');
+        this.bubbleEl.className = 'pattie-surprise-bubble';
+        this.bubbleEl.textContent = '?!!';
+        this.bubbleEl.style.display = 'none';
+        this.el.append(this.baseEl, this.itemLayer, this.bubbleEl);
     }
 
     async mount(parent) {
@@ -89,6 +94,7 @@ export class PattieSprite {
         // Outer element: collision/layout box stays at renderWidth × renderHeight
         this.el.style.width = `${renderWidth}px`;
         this.el.style.height = `${renderHeight}px`;
+        this.bubbleEl.style.display = this.animation?.showBubble ? 'block' : 'none';
         // Inner layer: renders at native frame size (no backgroundSize scaling).
         // CSS transform: scale() downscales via GPU compositor — avoids sub-pixel math artifacts.
         this.baseEl.style.width = `${width}px`;
@@ -103,6 +109,9 @@ export class PattieSprite {
 
     setPosition(x, y, direction = 1) {
         this.el.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) scaleX(${direction < 0 ? -1 : 1})`;
+        this.el.style.visibility = 'visible';
+        // counter-flip bubble so text always reads left-to-right
+        this.bubbleEl.style.transform = direction < 0 ? 'scaleX(-1)' : '';
     }
 
     destroy() {

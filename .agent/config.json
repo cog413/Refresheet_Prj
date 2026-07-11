@@ -1,0 +1,16 @@
+{
+  "backend": "cli",
+  "api_fallback_enabled": true,
+  "agents": {
+    "claude": {
+      "command": ["powershell.exe", "-NoProfile", "-Command", "claude", "-p"],
+      "input_mode": "argument",
+      "stdin_fallback": true
+    },
+    "codex": {
+      "command": ["powershell.exe", "-NoProfile", "-Command", "codex", "exec"],
+      "input_mode": "argument",
+      "stdin_fallback": true
+    }
+  }
+}

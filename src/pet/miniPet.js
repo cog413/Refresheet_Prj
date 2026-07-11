@@ -70,7 +70,9 @@ async function startScene() {
         bar.style.height = '0%';
         setTimeout(() => {
             bar.style.transition = 'height .7s ease-out';
-            bar.style.height = `${bar.dataset.h}%`;
+            bar.style.height = bar.classList.contains('mp-bar-offline')
+                ? `${parseFloat(bar.dataset.h) * 0.68}%`
+                : `${bar.dataset.h}%`;
         }, i * 70);
     });
     const chart = document.getElementById('mp-chart');
@@ -83,6 +85,7 @@ async function startScene() {
     }
     await waitForVisibleChart(chart);
     updateChartTitle(world.profile.nickname);
+    world.hasPlaced = false;
     world.placeAtFirstZone();
     world.start();
 
@@ -141,7 +144,7 @@ function updateChartTitle(nickname) {
     const titleEl = document.getElementById('mp-chart-title');
     if (!titleEl) return;
     const name = truncateName(nickname || 'Mong');
-    titleEl.textContent = `주간 매출 추이  ·  프로덕트명 : ${name}`;
+    titleEl.textContent = `프로젝트 명 : ${name}`;
 }
 
 function truncateName(name) {
@@ -205,11 +208,9 @@ function buildManageBox() {
     const petDesc = el('div', 'mp-manage-row mp-manage-desc');
     petDesc.innerHTML = `<p class="mp-desc-text"><strong>토닥여주기</strong> : 토닥이를 마우스로 클릭해보세요. 토닥이가 행복해져요. 단, 행복점수가 오르는 것은 1일 3회</p>`;
 
-    // 4) 간식주기 설명 + 구매 버튼
+    // 4) 간식주기 설명
     const feedDesc = el('div', 'mp-manage-row mp-manage-desc');
-    feedDesc.innerHTML = `
-        <p class="mp-desc-text"><strong>간식주기</strong> : 토닥이 맵에는 토닥이 간식주기 옵션이 있어요. 간식주기를 누르고 맵 원하는 곳에 떨어뜨려보세요. 토닥이는 간식을 먹으면 행복점수가 많이 올라요.</p>
-        <button class="mp-buy-btn" id="mp-buy-apple-btn">먹이 구매하기</button>`;
+    feedDesc.innerHTML = `<p class="mp-desc-text"><strong>간식주기</strong> : 토닥이 맵에는 토닥이 간식주기 옵션이 있어요. 간식주기를 누르고 맵 원하는 곳에 떨어뜨려보세요. 토닥이는 간식을 먹으면 행복점수가 많이 올라요.</p>`;
 
     // 5) 말걸기 설명
     const talkDesc = el('div', 'mp-manage-row mp-manage-desc');
@@ -220,11 +221,6 @@ function buildManageBox() {
 
     box.append(pointsRow, happySection, petDesc, feedDesc, talkDesc, talkBox);
 
-    // 구매 팝업 연결
-    box.addEventListener('click', e => {
-        if (e.target.id === 'mp-buy-apple-btn') openPurchaseModal();
-    });
-
     return box;
 }
 
@@ -233,7 +229,6 @@ function buildTalkBox() {
     box.innerHTML = `
         <div class="mp-talk-buttons">
             <button class="mp-talk-btn" id="btn-pet-stress">스트레스</button>
-            <button class="mp-talk-btn" id="btn-pet-manager">팀장</button>
             <button class="mp-talk-btn" id="btn-pet-tired">피곤함</button>
             <button class="mp-talk-btn" id="btn-pet-hard">힘든 날</button>
             <button class="mp-talk-btn" id="btn-pet-encourage">응원</button>
@@ -337,7 +332,7 @@ function updateAppleHUD() {
     const state = getEconomyState();
     const qty = state.inventory.apple || 0;
     const el = document.getElementById('mp-apple-hud-count');
-    if (el) el.textContent = `× ${qty}`;
+    if (el) el.textContent = qty;
     // 간식주기 버튼 활성/비활성
     const feedBtn = document.getElementById('mp-feed-btn');
     if (feedBtn) feedBtn.disabled = qty <= 0;
@@ -396,7 +391,7 @@ function buildWeeklySalesChart() {
 
     const title = el('div', 'mp-chart-title');
     title.id = 'mp-chart-title';
-    title.textContent = '주간 매출 추이';
+    title.textContent = '프로젝트 명';
     const legend = el('div', 'mp-chart-legend');
     legend.innerHTML = `
         <span><i class="mp-dot mp-dot-online"></i>온라인</span>
@@ -429,11 +424,14 @@ function buildWeeklySalesChart() {
     mapActions.innerHTML = `
         <div class="mp-apple-hud">
             <img src="/public/assets/apple/apple_idle..png" class="mp-apple-hud-icon" width="18" height="18" alt="사과">
-            <span class="mp-apple-hud-count" id="mp-apple-hud-count">× 0</span>
+            <span class="mp-apple-hud-x">×</span>
+            <span class="mp-apple-hud-count" id="mp-apple-hud-count">0</span>
         </div>
-        <button class="mp-feed-btn" id="mp-feed-btn" disabled>간식주기</button>`;
+        <button class="mp-feed-btn" id="mp-feed-btn" disabled>간식주기</button>
+        <button class="mp-buy-btn" id="mp-buy-snack-btn">간식구매</button>`;
 
     mapActions.addEventListener('click', e => {
+        if (e.target.id === 'mp-buy-snack-btn') { openPurchaseModal(); return; }
         if (e.target.id === 'mp-feed-btn' || e.target.closest('#mp-feed-btn')) {
             e.preventDefault();
             e.stopPropagation();

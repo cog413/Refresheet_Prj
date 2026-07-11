@@ -12,6 +12,8 @@ const DIFFICULTY_LABEL = { '1': '쉬움', '2': '쉬움+', '3': '보통', '4': '�
 
 const DIFFICULTY_MULT = { '1': 0.85, '2': 1.0, '3': 1.15, '4': 1.32, '5': 1.55 };
 const EXPECTED_SECONDS = { '1': 240, '2': 360, '3': 480, '4': 660, '5': 840 };
+const SCORE_MULTIPLIER = 0.25;
+const SCORE_BAR_MAX = 4500;
 
 // Offline fallback — same shape as a sudoku_puzzles row
 const FALLBACK = {
@@ -188,12 +190,25 @@ export async function initSudoku() {
         ticketSpan.className = 'sudoku-ticket-cell';
         footer.appendChild(ticketSpan);
 
+        const btnGroup = document.createElement('div');
+        btnGroup.style.display = 'flex';
+        btnGroup.style.gap = '5px';
+
+        const restartBtn = document.createElement('button');
+        restartBtn.type = 'button';
+        restartBtn.className = 'game-restart-btn';
+        restartBtn.textContent = '새 게임';
+        restartBtn.addEventListener('click', confirmRestartGame);
+        btnGroup.appendChild(restartBtn);
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'game-finish-btn';
         btn.textContent = '작업 종료';
         btn.addEventListener('click', confirmFinishRound);
-        footer.appendChild(btn);
+        btnGroup.appendChild(btn);
+
+        footer.appendChild(btnGroup);
 
         table.appendChild(footer);
         return table;
@@ -207,12 +222,25 @@ export async function initSudoku() {
         ticketSpan.className = 'sudoku-ticket-cell';
         bar.appendChild(ticketSpan);
 
+        const btnGroup = document.createElement('div');
+        btnGroup.style.display = 'flex';
+        btnGroup.style.gap = '5px';
+
+        const restartBtn = document.createElement('button');
+        restartBtn.type = 'button';
+        restartBtn.className = 'game-restart-btn';
+        restartBtn.textContent = '새 게임';
+        restartBtn.addEventListener('click', confirmRestartGame);
+        btnGroup.appendChild(restartBtn);
+
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'game-finish-btn';
         btn.textContent = '작업 종료';
         btn.addEventListener('click', confirmFinishRound);
-        bar.appendChild(btn);
+        btnGroup.appendChild(btn);
+
+        bar.appendChild(btnGroup);
 
         return bar;
     }
@@ -345,33 +373,12 @@ export async function initSudoku() {
         if (roundFinalized) return;
         if (!selectedCell) return;
 
-        // Start timer on first keystroke
-        if (!startTime) startTime = Date.now();
-
         if (/^[1-9]$/.test(e.key)) {
-            if (!selectedCell.classList.contains('fixed')) {
-                const r = parseInt(selectedCell.dataset.row);
-                const c = parseInt(selectedCell.dataset.col);
-                if (isValidMove(r, c, e.key)) {
-                    selectedCell.textContent = e.key;
-                    selectedCell.classList.add('user-input');
-                    // Re-highlight same numbers after entry
-                    selectCell(selectedCell);
-                    checkProgress();
-                } else {
-                    mistakeCount++;
-                    if (modal) modal.style.display = 'flex';
-                }
-            }
+            enterSelectedValue(e.key);
         }
 
         if (e.key === 'Backspace' || e.key === 'Delete') {
-            if (!selectedCell.classList.contains('fixed')) {
-                selectedCell.textContent = '';
-                selectedCell.classList.remove('user-input', 'same-number');
-                container.querySelectorAll('.same-number').forEach(c => c.classList.remove('same-number'));
-                if (formulaInput) formulaInput.value = '';
-            }
+            clearSelectedValue();
         }
 
         let r = parseInt(selectedCell.dataset.row);
@@ -384,6 +391,34 @@ export async function initSudoku() {
             const next = container.querySelector(`.excel-cell[data-row="${r}"][data-col="${c}"]`);
             if (next) selectCell(next);
         }
+    }
+
+    function enterSelectedValue(value) {
+        if (roundFinalized || !selectedCell || selectedCell.classList.contains('fixed')) return;
+        if (!startTime) startTime = Date.now();
+
+        const r = parseInt(selectedCell.dataset.row);
+        const c = parseInt(selectedCell.dataset.col);
+        if (isValidMove(r, c, value)) {
+            selectedCell.textContent = value;
+            selectedCell.classList.add('user-input');
+            // Re-highlight same numbers after entry
+            selectCell(selectedCell);
+            checkProgress();
+        } else {
+            mistakeCount++;
+            if (modal) modal.style.display = 'flex';
+        }
+    }
+
+    function clearSelectedValue() {
+        if (roundFinalized || !selectedCell || selectedCell.classList.contains('fixed')) return;
+        if (!startTime) startTime = Date.now();
+
+        selectedCell.textContent = '';
+        selectedCell.classList.remove('user-input', 'same-number');
+        container.querySelectorAll('.same-number').forEach(c => c.classList.remove('same-number'));
+        if (formulaInput) formulaInput.value = '';
     }
 
     function checkProgress() {
@@ -410,6 +445,46 @@ export async function initSudoku() {
     function onWin() {
         if (roundFinalized || submitInProgress) return;
         finalizeRound(calculateScore(), 'complete');
+    }
+
+    async function confirmRestartGame() {
+        if (!roundFinalized && startTime) {
+            const confirmed = await showRestartConfirm();
+            if (!confirmed) return;
+        }
+        await loadPuzzle(currentDifficulty);
+    }
+
+    function showRestartConfirm() {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'modal-overlay game-restart-modal';
+            overlay.innerHTML = `
+                <div class="excel-modal">
+                    <div class="modal-header">
+                        <span>Refresheet</span>
+                        <span class="modal-close" data-action="cancel">✕</span>
+                    </div>
+                    <div class="modal-content">
+                        <div class="modal-icon">⚠️</div>
+                        <div class="modal-text">진행 중인 게임을 포기하고 새 게임을 시작하시겠습니까?<br>(현재 점수는 기록되지 않습니다)</div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="modal-btn retry" data-action="restart">새 게임 시작(N)</button>
+                        <button class="modal-btn cancel" data-action="cancel">취소(C)</button>
+                    </div>
+                </div>`;
+            const close = (value) => {
+                overlay.remove();
+                resolve(value);
+            };
+            overlay.addEventListener('click', (event) => {
+                const action = event.target?.dataset?.action;
+                if (action === 'restart') close(true);
+                if (action === 'cancel') close(false);
+            });
+            document.body.appendChild(overlay);
+        });
     }
 
     async function confirmFinishRound() {
@@ -470,7 +545,7 @@ export async function initSudoku() {
 
     function calculateIntermediateScore() {
         const mult = DIFFICULTY_MULT[currentDifficulty] || 1;
-        return Math.round(countCorrectUserCells() * mult);
+        return Math.round(countCorrectUserCells() * mult * SCORE_MULTIPLIER);
     }
 
     function countCorrectUserCells() {
@@ -524,7 +599,7 @@ export async function initSudoku() {
         const timeAdjustment = Math.round(base * timeRatio);
         const mistakePenalty = mistakeCount * 80;
         const mult = DIFFICULTY_MULT[currentDifficulty] || 1.0;
-        return Math.max(1000, Math.round((base + timeAdjustment - mistakePenalty) * mult));
+        return Math.max(250, Math.round((base + timeAdjustment - mistakePenalty) * mult * SCORE_MULTIPLIER));
     }
 
     function resetScoreUI() {
@@ -539,12 +614,11 @@ export async function initSudoku() {
     }
 
     function updateScoreUI(finalScore) {
-        const MAX_SCORE = 18000;
         const scoreDisplay = document.getElementById('sudoku-score-display');
         if (scoreDisplay) scoreDisplay.textContent = finalScore.toLocaleString();
 
         const scoreBar = document.getElementById('sudoku-score-bar');
-        if (scoreBar) scoreBar.style.height = `${Math.min(100, Math.max(5, (finalScore / MAX_SCORE) * 100))}%`;
+        if (scoreBar) scoreBar.style.height = `${Math.min(100, Math.max(5, (finalScore / SCORE_BAR_MAX) * 100))}%`;
 
         // Sub bars: difficulty, speed, accuracy
         const elapsed = startTime ? Math.floor((Date.now() - startTime) / 1000) : 600;
@@ -584,25 +658,25 @@ export async function initSudoku() {
 
     function buildMobileNumpad() {
         const pad = document.createElement('div');
-        pad.className = 'mobile-numpad';
+        pad.className = 'mobile-numpad sudoku-mobile-numpad';
 
-        for (let n = 1; n <= 9; n++) {
+        [7, 8, 9, 4, 5, 6, 1, 2, 3].forEach(n => {
             const btn = document.createElement('button');
             btn.className = 'mobile-numpad-btn';
             btn.textContent = String(n);
             btn.type = 'button';
             btn.addEventListener('click', () => {
-                document.dispatchEvent(new KeyboardEvent('keydown', { key: String(n), bubbles: true }));
+                enterSelectedValue(String(n));
             });
             pad.appendChild(btn);
-        }
+        });
 
         const del = document.createElement('button');
         del.className = 'mobile-numpad-btn del-btn';
-        del.textContent = '⌫ 지우기';
         del.type = 'button';
+        del.textContent = '지우기';
         del.addEventListener('click', () => {
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Backspace', bubbles: true }));
+            clearSelectedValue();
         });
         pad.appendChild(del);
 

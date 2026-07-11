@@ -54,10 +54,10 @@ function parsePuzzleStr(str) {
 async function checkNewGameUnlocked() {
     try {
         const res = await fetch('/api/unlockables/check?item_key=new_game', { credentials: 'include' });
-        if (!res.ok) return { is_locked: true, lock_reason: '친구추천 2명 달성 시 이용할 수 있습니다' };
+        if (!res.ok) return { is_locked: true, lock_reason: '새로운 게임을 준비중입니다' };
         return res.json();
     } catch {
-        return { is_locked: true, lock_reason: '친구추천 2명 달성 시 이용할 수 있습니다' };
+        return { is_locked: true, lock_reason: '새로운 게임을 준비중입니다' };
     }
 }
 

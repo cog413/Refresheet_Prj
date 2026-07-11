@@ -21,8 +21,6 @@ import { initGameRankingTables } from './games/gameRankingTable.js';
 window.loginPopupModule = { showLoginPopup, goToLogin, showAlertPopup, showUserSettings };
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('Refresheet Project v1.4.0 Initializing...');
-
     // 0. Loading Screen Logic
     setTimeout(() => {
         const loadingScreen = document.getElementById('loading-screen');
@@ -30,6 +28,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loadingScreen && excelApp) {
             loadingScreen.style.display = 'none';
             excelApp.style.display = 'flex';
+
+            // AdSense push는 #excel-app이 visible해진 뒤에 실행해야 슬롯 크기가 측정됨
+            setTimeout(() => {
+                const insEl = document.querySelector('#Data_Visual_Widget .adsbygoogle');
+                if (insEl) {
+                    const rect = insEl.getBoundingClientRect();
+                    console.log('[AdSense] slot dimensions at push:', rect.width, 'x', rect.height);
+                }
+                (window.adsbygoogle = window.adsbygoogle || []).push({});
+            }, 100);
         }
     }, 2500);
 

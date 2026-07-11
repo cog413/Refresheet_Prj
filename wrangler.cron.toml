@@ -1,0 +1,15 @@
+name = "refresheet-seed-cron"
+main = "src/worker/cron.js"
+compatibility_date = "2026-05-04"
+
+# Runs daily at 11:00 KST (02:00 UTC).
+# Week 1 (days 0-6):  full activity per profile.
+# Week 2 (days 7-13): 50% activity, lower score ceilings.
+# Day 14+:            halve virtual user points once, then idle.
+[triggers]
+crons = ["0 2 * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "db_game_info"
+database_id = "5c560a75-93a5-4414-88fc-0bd8e9ff4e26"

@@ -2,7 +2,6 @@ import { changeHappiness } from '../patties/pattieEconomy.js';
 
 const BUTTON_TYPES = {
     'btn-pet-stress': 'STRESS',
-    'btn-pet-manager': 'MANAGER',
     'btn-pet-tired': 'TIRED',
     'btn-pet-hard': 'HARD',
     'btn-pet-encourage': 'ENCOURAGE',

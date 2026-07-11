@@ -3,8 +3,9 @@ const SESSION_TTL_SECONDS = 60 * 60 * 24 * 14;
 const GOOGLE_AUTH_URL = 'https://accounts.google.com/o/oauth2/v2/auth';
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token';
 const GOOGLE_USERINFO_URL = 'https://openidconnect.googleapis.com/v1/userinfo';
-const MASTER_ADMIN_EMAIL = 'jhchae9080@gmail.com';
+const MASTER_ADMIN_EMAILS = new Set(['jhchae9080@gmail.com', 'hyeyoon525@gmail.com']);
 const GLOBAL_HOURLY_PLAY_LIMIT = 3;
+const ALWAYS_LOCKED_UNLOCKABLES = new Set(['new_game']);
 let reviewSchemaReady = false;
 
 export default {
@@ -112,6 +113,9 @@ export default {
             }
             if (url.pathname === '/api/games/typing/ranking' && request.method === 'GET') {
                 return handleTypingRanking(request, env);
+            }
+            if (url.pathname === '/api/games/sudoku/next' && request.method === 'GET') {
+                return handleSudokuNext(request, env);
             }
             if (url.pathname === '/api/dev-login' && request.method === 'POST') {
                 return handleDevLogin(request, env);
@@ -394,18 +398,52 @@ async function handleSaveAvatar(request, env) {
     return withCors(json({ ok: true, nickname, character_type: characterType }));
 }
 
+async function ensurePattieCharactersSchema(db) {
+    try {
+        await db.prepare(`
+            CREATE TABLE IF NOT EXISTS pattie_characters (
+                user_id        TEXT NOT NULL,
+                character_key  TEXT NOT NULL,
+                nickname       TEXT NOT NULL,
+                equipped_item_keys TEXT DEFAULT '[]',
+                updated_at     TEXT,
+                PRIMARY KEY (user_id, character_key)
+            )
+        `).run();
+    } catch {}
+}
+
 async function handleGetPattie(request, env) {
     const session = await getSessionUser(getDb(env), request);
-    if (!session) return withCors(json({ authenticated: false, pattie: null }));
+    if (!session) return withCors(json({ authenticated: false, pattie: null, characters: [] }));
 
-    const avatar = await getDb(env).prepare(
+    const db = getDb(env);
+    await ensurePattieCharactersSchema(db);
+
+    const avatar = await db.prepare(
         `SELECT nickname, character_type, character_key, equipped_item_keys, last_minime_at
          FROM avatars WHERE user_id=?`
     ).bind(session.user_id).first();
 
+    if (!avatar) return withCors(json({ authenticated: true, pattie: null, characters: [] }));
+
+    const normalized = normalizePattieRow(avatar);
+
+    // 기존 유저 온더플라이 마이그레이션: pattie_characters에 없으면 avatars 데이터로 시드
+    await db.prepare(
+        `INSERT OR IGNORE INTO pattie_characters (user_id, character_key, nickname, equipped_item_keys, updated_at)
+         VALUES (?, ?, ?, ?, ?)`
+    ).bind(session.user_id, normalized.character_key, normalized.nickname,
+        JSON.stringify(normalized.equipped_item_keys), new Date().toISOString()).run();
+
+    const chars = await db.prepare(
+        `SELECT character_key, nickname, equipped_item_keys FROM pattie_characters WHERE user_id=?`
+    ).bind(session.user_id).all();
+
     return withCors(json({
         authenticated: true,
-        pattie: avatar ? normalizePattieRow(avatar) : null,
+        pattie: normalized,
+        characters: (chars.results || []).map(normalizePattieCharacterRow),
     }));
 }
 
@@ -423,6 +461,7 @@ async function handleSavePattie(request, env) {
     if (!nickname) return withCors(json({ error: 'nickname required' }, 400));
 
     const db = getDb(env);
+    await ensurePattieCharactersSchema(db);
 
     if (characterKey === 'cabul') {
         await ensureUnlockSchema(db);
@@ -435,6 +474,7 @@ async function handleSavePattie(request, env) {
     const itemJson = JSON.stringify(equippedItems);
     const characterType = characterKey;
     const stmts = [
+        // 활성 캐릭터 정보 (avatars: 현재 활성 캐릭터 추적용)
         db.prepare(
             `INSERT INTO avatars (user_id, nickname, character_type, character_key, equipped_item_keys, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -445,6 +485,15 @@ async function handleSavePattie(request, env) {
                equipped_item_keys=excluded.equipped_item_keys,
                updated_at=excluded.updated_at`
         ).bind(session.user_id, nickname, characterType, characterKey, itemJson, now, now),
+        // 캐릭터별 개별 데이터 (pattie_characters: 캐릭터 수 무관하게 확장)
+        db.prepare(
+            `INSERT INTO pattie_characters (user_id, character_key, nickname, equipped_item_keys, updated_at)
+             VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT(user_id, character_key) DO UPDATE SET
+               nickname=excluded.nickname,
+               equipped_item_keys=excluded.equipped_item_keys,
+               updated_at=excluded.updated_at`
+        ).bind(session.user_id, characterKey, nickname, itemJson, now),
     ];
 
     for (const itemKey of equippedItems) {
@@ -457,9 +506,15 @@ async function handleSavePattie(request, env) {
     }
 
     await db.batch(stmts);
+
+    const chars = await db.prepare(
+        `SELECT character_key, nickname, equipped_item_keys FROM pattie_characters WHERE user_id=?`
+    ).bind(session.user_id).all();
+
     return withCors(json({
         ok: true,
         pattie: { nickname, character_type: characterType, character_key: characterKey, equipped_item_keys: equippedItems },
+        characters: (chars.results || []).map(normalizePattieCharacterRow),
     }));
 }
 
@@ -475,6 +530,16 @@ async function handlePattieItems(request, env) {
     ).all();
 
     return withCors(json({ authenticated: true, items: rows.results || [] }));
+}
+
+function normalizePattieCharacterRow(row) {
+    let equipped = [];
+    try { equipped = row.equipped_item_keys ? JSON.parse(row.equipped_item_keys) : []; } catch {}
+    return {
+        character_key: row.character_key,
+        nickname: row.nickname,
+        equipped_item_keys: Array.isArray(equipped) ? equipped : [],
+    };
 }
 
 function normalizePattieRow(row) {
@@ -589,7 +654,7 @@ async function handleTodayScores(request, env) {
          WHERE user_id = ? AND played_at >= ? AND played_at < ?`
     ).bind(session.user_id, hourStart, hourEnd);
 
-    const [rows, avatar, hourlyRow] = await Promise.all([
+    const [rows, avatar, hourlyRow, happinessRow] = await Promise.all([
         db.prepare(
             `SELECT game_type, score, played_at, duration_seconds
              FROM game_scores
@@ -599,16 +664,20 @@ async function handleTodayScores(request, env) {
         db.prepare(`SELECT last_minime_at FROM avatars WHERE user_id=?`)
             .bind(session.user_id).first(),
         hourlyStmt.first(),
+        db.prepare(`SELECT current_score FROM pet_happiness_state WHERE user_id=?`)
+            .bind(session.user_id).first(),
     ]);
 
     const lastMinimeAt = avatar?.last_minime_at || null;
     const minimeCaredToday = lastMinimeAt && lastMinimeAt >= todayStart;
     const hourlyPlaysUsed = hourlyRow?.cnt ?? 0;
+    const happinessScore = happinessRow?.current_score ?? 0;
 
     return withCors(json({
         authenticated: true,
         scores: rows.results || [],
         minime_cared_today: Boolean(minimeCaredToday),
+        happiness_score: happinessScore,
         hourly_plays_used: hourlyPlaysUsed,
         hourly_plays_remaining: Math.max(0, GLOBAL_HOURLY_PLAY_LIMIT - hourlyPlaysUsed),
         hourly_plays_limit: GLOBAL_HOURLY_PLAY_LIMIT,
@@ -1253,7 +1322,7 @@ function normalizeText(value, maxLength) {
 }
 
 function isMasterAdmin(session) {
-    return Boolean(session?.email && session.email.toLowerCase() === MASTER_ADMIN_EMAIL);
+    return Boolean(session?.email && MASTER_ADMIN_EMAILS.has(session.email.toLowerCase()));
 }
 
 async function handleGetUnlockables(request, env) {
@@ -1387,7 +1456,7 @@ async function ensureUnlockSchema(db) {
         db.prepare(`INSERT INTO unlockable_items (
             item_key, item_type, display_name, lock_type, lock_value, lock_reason, is_active
         ) VALUES (
-            'new_game', 'sheet', 'NewGame', 'referral', '2', '친구추천 2명 달성 시 이용할 수 있습니다', 1
+            'new_game', 'sheet', 'NewGame', 'disabled', NULL, '새로운 게임을 준비중입니다', 1
         )
         ON CONFLICT(item_key) DO UPDATE SET
             item_type=excluded.item_type,
@@ -1421,6 +1490,9 @@ async function getUnlockState(db, session, itemKey, item = null) {
     ).bind(itemKey).first();
     if (!row) {
         return { item_key: itemKey, is_locked: true, lock_reason: '잠금 정보를 찾을 수 없습니다.' };
+    }
+    if (ALWAYS_LOCKED_UNLOCKABLES.has(row.item_key)) {
+        return { ...row, is_locked: true, lock_reason: row.lock_reason || '새로운 게임을 준비중입니다' };
     }
     if (row.lock_type === 'none') return { ...row, is_locked: false, lock_reason: null };
     if (!session) return { ...row, is_locked: true };
@@ -1926,6 +1998,54 @@ async function handleHappinessDailyClose(request, env) {
         achieved_daily_goal: achieved,
         message: achieved ? '토닥이 아껴주기 달성!' : '내일도 토닥이와 함께해요',
     }));
+}
+
+// ── Sudoku game handler ──────────────────────────────────────────────────────
+
+async function handleSudokuNext(request, env) {
+    const url = new URL(request.url);
+    const difficulty = url.searchParams.get('difficulty') || '3';
+    const validDifficulties = new Set(['1', '2', '3', '4', '5']);
+    const safeLevel = validDifficulties.has(difficulty) ? difficulty : '3';
+
+    const rawExclude = url.searchParams.get('exclude') || '';
+    const excludeIds = rawExclude
+        ? rawExclude.split(',').map(s => s.trim()).filter(Boolean).slice(0, 200)
+        : [];
+
+    const db = getDb(env);
+
+    let row = null;
+
+    if (excludeIds.length > 0) {
+        const placeholders = excludeIds.map(() => '?').join(',');
+        const result = await db.prepare(
+            `SELECT puzzle_id, difficulty, puzzle, solution
+               FROM sudoku_puzzles
+              WHERE difficulty = ? AND is_active = 1
+                AND puzzle_id NOT IN (${placeholders})
+              ORDER BY RANDOM()
+              LIMIT 1`
+        ).bind(safeLevel, ...excludeIds).first();
+        row = result;
+    }
+
+    // Fallback: ignore exclude list if no unseen puzzles remain
+    if (!row) {
+        row = await db.prepare(
+            `SELECT puzzle_id, difficulty, puzzle, solution
+               FROM sudoku_puzzles
+              WHERE difficulty = ? AND is_active = 1
+              ORDER BY RANDOM()
+              LIMIT 1`
+        ).bind(safeLevel).first();
+    }
+
+    if (!row) {
+        return withCors(json({ error: 'no_puzzle_available', difficulty: safeLevel }, 404));
+    }
+
+    return withCors(json({ ...row, is_active: 1 }));
 }
 
 // ── Typing game handlers ────────────────────────────────────────────────────
