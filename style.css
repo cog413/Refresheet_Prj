@@ -1230,11 +1230,6 @@ body.dark-mode .newgame-locked-notice {
     overflow: hidden;
 }
 
-.ad-content .adsbygoogle {
-    width: 100%;
-    height: 122px;
-}
-
 /* Dark Mode Overrides */
 /* File guide sheet — dark mode */
 body.dark-mode #file-sheet { background: #181f1b; }
