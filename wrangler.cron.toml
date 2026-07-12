@@ -3,9 +3,10 @@ main = "src/worker/cron.js"
 compatibility_date = "2026-05-04"
 
 # Runs daily at 11:00 KST (02:00 UTC).
+# Repeats forever in rolling 14-day cycles (never goes idle):
 # Week 1 (days 0-6):  full activity per profile.
 # Week 2 (days 7-13): 50% activity, lower score ceilings.
-# Day 14+:            halve virtual user points once, then idle.
+# Cycle boundary:      decay virtual user points once, then cycle repeats.
 [triggers]
 crons = ["0 2 * * *"]
 

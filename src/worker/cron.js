@@ -4,10 +4,10 @@
  * Deploy:   npx wrangler deploy --config wrangler.cron.toml
  * Schedule: daily 02:00 UTC (11:00 KST)  →  wrangler.cron.toml [triggers]
  *
- * Timeline:
- *   Days  0–6  (week 1)  full activity per profile
- *   Days  7–13 (week 2)  50% activity, 80% score ceiling
- *   Day  14+             halve virtual-user points once, then idle forever
+ * Timeline (repeats forever in rolling 14-day cycles — never goes idle):
+ *   Days  0–6  of cycle  (week 1)  full activity per profile
+ *   Days  7–13 of cycle  (week 2)  50% activity, 80% score ceiling
+ *   Cycle boundary       decay virtual-user point balances, then cycle repeats
  *
  * Safety guarantees:
  *   - Only touches rows WHERE users.is_virtual = 1
@@ -21,7 +21,8 @@
 
 // ─── constants ───────────────────────────────────────────────────────────────
 
-const SEED_WINDOW_DAYS      = 14;
+const SEED_WINDOW_DAYS      = 14;   // length of one repeating activity/decay cycle
+const CYCLE_DECAY_FACTOR    = 0.5;  // point-balance decay applied at each cycle boundary
 const WEEK2_ACTIVITY_FACTOR = 0.5;
 const WEEK2_SCORE_FACTOR    = 0.8;  // week-2 score ceiling multiplier
 const HOURLY_PLAY_LIMIT     = 3;    // matches GLOBAL_HOURLY_PLAY_LIMIT
@@ -111,6 +112,150 @@ const SEED_PROFILES = [
         days:  'npc_todaki', prob: 0.60, cap: 2,
         games: ['sudoku', '2048'],
         hours: [12, 13],
+    },
+
+    // ── 14 additional seed accounts (3x roster expansion) ─────────────────
+    {
+        userId: 'seed_usr_song_lg',
+        isNpc:  false, skill: 0.40,
+        days:  'all', prob: 0.40, cap: 2,
+        games: ['sudoku', 'typing_game'],
+        hours: [19, 20, 21],
+    },
+    {
+        userId: 'seed_usr_han_sk',
+        isNpc:  false, skill: 0.55,
+        days:  'weekday', prob: 0.50, cap: 3,
+        games: ['2048', 'sudoku'],
+        hours: [11, 12],
+    },
+    {
+        userId: 'seed_usr_baek_coupang',
+        isNpc:  false, skill: 0.70,
+        days:  'all', prob: 0.55, cap: 3,
+        games: ['sudoku', '2048'],
+        hours: [9, 10],
+    },
+    {
+        userId: 'seed_usr_woo_baemin',
+        isNpc:  false, skill: 0.85,
+        days:  'weekday', prob: 0.60, cap: 4,
+        games: ['typing_game', '2048'],
+        hours: [18, 19],
+    },
+    {
+        userId: 'seed_usr_shin_toss',
+        isNpc:  false, skill: 1.00,
+        days:  'weekday', prob: 0.70, cap: 5,
+        games: ['sudoku', 'sudoku', 'sudoku'],
+        hours: [9, 10, 11],
+    },
+    {
+        userId: 'seed_usr_ahn_carrot',
+        isNpc:  false, skill: 0.40,
+        days:  'all', prob: 0.35, cap: 2,
+        games: ['2048'],
+        hours: [15, 16],
+    },
+    {
+        userId: 'seed_usr_jang_krafton',
+        isNpc:  false, skill: 0.70,
+        days:  'weekday', prob: 0.55, cap: 3,
+        games: ['2048', '2048', 'typing_game'],
+        hours: [13, 14],
+    },
+    {
+        userId: 'seed_usr_ryu_nexon',
+        isNpc:  false, skill: 0.55,
+        days:  'all', prob: 0.45, cap: 3,
+        games: ['2048', '2048', '2048'],
+        hours: [20, 21, 22],
+    },
+    {
+        userId: 'seed_usr_moon_ncsoft',
+        isNpc:  false, skill: 0.85,
+        days:  'weekday', prob: 0.60, cap: 4,
+        games: ['sudoku', 'typing_game'],
+        hours: [16, 17],
+    },
+    {
+        userId: 'seed_usr_ko_cjenm',
+        isNpc:  false, skill: 0.40,
+        days:  'weekday', prob: 0.40, cap: 2,
+        games: ['typing_game'],
+        hours: [8, 9],
+    },
+    {
+        userId: 'seed_usr_yang_lotte',
+        isNpc:  false, skill: 0.70,
+        days:  'weekday', prob: 0.50, cap: 3,
+        games: ['sudoku', '2048'],
+        hours: [12, 13],
+    },
+    {
+        userId: 'seed_usr_bae_gs',
+        isNpc:  false, skill: 0.55,
+        days:  'all', prob: 0.45, cap: 3,
+        games: ['2048', 'sudoku'],
+        hours: [7, 8, 22, 23],
+    },
+    {
+        userId: 'seed_usr_hong_shinhan',
+        isNpc:  false, skill: 1.00,
+        days:  'weekday', prob: 0.65, cap: 4,
+        games: ['sudoku', 'sudoku', 'sudoku', 'sudoku'],
+        hours: [10, 11],
+    },
+    {
+        userId: 'seed_usr_nam_posco',
+        isNpc:  false, skill: 0.85,
+        days:  'weekday', prob: 0.55, cap: 3,
+        games: ['typing_game', '2048'],
+        hours: [14, 15],
+    },
+
+    // ── 6 additional NPC accounts — skill capped at 0.60 ───────────────────
+    {
+        userId: 'npc_usr_hr_bot',
+        isNpc:  true, skill: 0.60,
+        days:  'npc_qa', prob: 0.80, cap: 4,
+        games: ['typing_game', 'typing_game', '2048'],
+        hours: [9, 13, 17],
+    },
+    {
+        userId: 'npc_usr_sales_bot',
+        isNpc:  true, skill: 0.60,
+        days:  'npc_kim', prob: 1.00, cap: 3,
+        games: ['sudoku', '2048'],
+        hours: [15],
+    },
+    {
+        userId: 'npc_usr_night_owl',
+        isNpc:  true, skill: 0.60,
+        days:  'npc_todaki', prob: 0.60, cap: 2,
+        games: ['sudoku', 'typing_game'],
+        hours: [23, 0, 1],
+    },
+    {
+        userId: 'npc_usr_intern_bot',
+        isNpc:  true, skill: 0.60,
+        days:  'npc_qa', prob: 0.80, cap: 4,
+        games: ['2048', '2048', 'sudoku'],
+        hours: [10, 16],
+    },
+    {
+        userId: 'npc_usr_cs_bot',
+        isNpc:  true, skill: 0.60,
+        days:  'npc_kim', prob: 1.00, cap: 3,
+        games: ['typing_game', '2048'],
+        hours: [11, 14],
+    },
+    {
+        userId: 'npc_usr_weekend_bot',
+        isNpc:  true, skill: 0.60,
+        days:  'npc_todaki', prob: 0.60, cap: 2,
+        games: ['2048', 'sudoku'],
+        hours: [13, 15],
     },
 ];
 
@@ -241,35 +386,39 @@ async function runSeedCron(env) {
 
     const daysSinceStart = diffDays(startRow.value, todayKst);
 
-    // ── Day 14+: apply point decay once, then idle ────────────────────────────
-    if (daysSinceStart >= SEED_WINDOW_DAYS) {
-        const decayRow = await db.prepare(
-            `SELECT value FROM seed_config WHERE key = 'seed.decay_applied'`
-        ).first();
+    // ── Rolling 14-day cycle: never goes idle, just repeats forever ───────────
+    // cycleIndex counts completed cycles; dayInCycle (0–13) drives week1/week2.
+    const cycleIndex = Math.floor(daysSinceStart / SEED_WINDOW_DAYS);
+    const dayInCycle  = daysSinceStart % SEED_WINDOW_DAYS;
 
-        if (!decayRow) {
-            // Halve current_points and point_balance for all virtual users.
-            // total_earned_points stays intact (audit trail).
+    // At each new cycle boundary, decay virtual-user point balances once so
+    // accumulated activity doesn't let them dominate rankings indefinitely.
+    // total_earned_points stays intact (audit trail); only current_points decays.
+    if (cycleIndex > 0) {
+        const lastDecayRow = await db.prepare(
+            `SELECT value FROM seed_config WHERE key = 'seed.last_decay_cycle'`
+        ).first();
+        const lastDecayCycle = lastDecayRow ? parseInt(lastDecayRow.value, 10) : -1;
+
+        if (cycleIndex > lastDecayCycle) {
             await db.batch([
                 db.prepare(`
                     UPDATE user_points
-                       SET current_points = MAX(0, current_points / 2),
+                       SET current_points = MAX(0, CAST(current_points * ? AS INTEGER)),
                            updated_at     = ?
                      WHERE user_id IN (SELECT user_id FROM users WHERE is_virtual = 1)
-                `).bind(nowIso),
+                `).bind(CYCLE_DECAY_FACTOR, nowIso),
                 db.prepare(`
                     INSERT INTO seed_config (key, value, updated_at)
-                    VALUES ('seed.decay_applied', ?, ?)
-                `).bind(todayKst, nowIso),
+                    VALUES ('seed.last_decay_cycle', ?, ?)
+                    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at
+                `).bind(String(cycleIndex), nowIso),
             ]);
-            return { status: 'decay_applied', day: daysSinceStart };
         }
-
-        return { status: 'idle_after_decay', day: daysSinceStart };
     }
 
-    // ── Week 1 / 2 factors ────────────────────────────────────────────────────
-    const isWeek2       = daysSinceStart >= 7;
+    // ── Week 1 / 2 factors (repeats every cycle) ───────────────────────────────
+    const isWeek2       = dayInCycle >= 7;
     const activityFactor = isWeek2 ? WEEK2_ACTIVITY_FACTOR : 1.0;
     const weekFactor     = isWeek2 ? WEEK2_SCORE_FACTOR    : 1.0;
 
@@ -341,6 +490,8 @@ async function runSeedCron(env) {
     return {
         status:         'ok',
         day:            daysSinceStart,
+        cycle:          cycleIndex,
+        dayInCycle,
         week:           isWeek2 ? 2 : 1,
         activityFactor,
         weekFactor,
