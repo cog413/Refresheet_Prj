@@ -238,6 +238,18 @@ Mobile `#file-sheet` invariants:
 - `.fg-link-grid` must keep `grid-template-columns: 1fr`.
 - File guide cards must stack vertically and fit inside the mobile viewport. In a 390px viewport, card width should be viewport-sized, not desktop-canvas-sized.
 
+### Mobile File-Tab Chrome (v1.5.0)
+
+On mobile, the file tab must feel like a native guide page, not a squeezed-down PC spreadsheet. **This applies only to the file tab.** Game/ReadMe/review sheets must keep the full Excel-disguise chrome on mobile exactly as on desktop (ribbon, toolbar, formula bar, column/row headers, pinch-zoom) — do not extend any of the rules below to those sheets.
+
+Mechanism:
+
+- `excelLayout.js`'s `#file-menu-tab` click handler adds `document.body.classList.add('file-tab-active')`.
+- `showAppWorkspace()` (called by every other tab handler — regular tabs, `#home-menu-tab`, `#review-menu-tab`) removes it. Any new sheet/tab entry point must call `showAppWorkspace()` (or otherwise clear `file-tab-active`) or the chrome will stay hidden after navigating away from the file tab.
+- CSS lives inside the existing `@media (max-width: 768px)` block in `style.css`, scoped under `body.file-tab-active`: hides `.toolbar`, `.formula-bar`, `.column-headers`, `.row-headers`, `.corner-header`, the decorative (non-functional) `.menu-tabs` entries (`:not([id])` — i.e. everything except 파일/홈/검토/보기), `.mobile-zoom-controls`, and the fake `.status-bar .zoom-slider` text.
+- `.ribbon-top` (title bar + login button) and the functional menu tabs (파일/홈/검토/보기) stay visible — 검토 and 보기 have no equivalent in the bottom `sheet-tabs` bar, so hiding the whole ribbon would remove real functionality.
+- The bottom `sheet-tabs` bar (ReadMe/관리시트/2048/SDK/...) is never touched — it's the mobile file tab's only navigation back into the app.
+
 Verification requirement:
 
 - After editing `style.css`, `index.html`, `src/layout/excelLayout.js`, `.sheet-view`, `.grid-content`, `.spreadsheet-*`, or `.fg-*`, verify the file tab at mobile width before saying it is fixed.

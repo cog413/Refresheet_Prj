@@ -70,6 +70,7 @@ Rules:
 - Global `min-width`, `height: 100%`, `overflow`, and `position: absolute` changes are high-risk. Verify their mobile effect before committing.
 - Desktop fixes must not be declared done until mobile has either been verified or explicitly shown to be unaffected.
 - Answer mobile layout questions with measured browser facts, not CSS inference. Prefer values like viewport width, computed grid columns, card width, and overflow status.
+- The file tab is the one deliberate exception to "game sheets keep desktop chrome on mobile": on mobile it hides the ribbon/toolbar/formula-bar/grid-header chrome via `body.file-tab-active` (see HANDOFF.md § Mobile File-Tab Chrome). Do not generalize this hiding to game/ReadMe/review sheets — those must keep full desktop chrome on mobile.
 
 ### Static Page Regression Guards
 

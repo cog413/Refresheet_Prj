@@ -109,6 +109,7 @@ export function initExcelLayout() {
                 if (tab !== viewMenuTab) tab.classList.remove('active');
             });
             fileMenuTab.classList.add('active');
+            document.body.classList.add('file-tab-active');
             sheetViews.forEach(sheet => {
                 const isFile = sheet.id === 'file-sheet';
                 sheet.style.display = isFile ? 'block' : 'none';
@@ -165,7 +166,8 @@ export function initExcelLayout() {
     }
 
     function showAppWorkspace() {
-        // all chrome elements remain visible at all times — no-op
+        // Leaving the file tab: restore desktop-style chrome (mobile file-tab mode is opt-in only).
+        document.body.classList.remove('file-tab-active');
     }
 
     // Initialize formula bar for first sheet
