@@ -174,7 +174,7 @@ Must remain compatible with existing HANDOFF.md #CHCK# policy.
 
 ### `#SMCP#`
 
-Sub/Main Commit & Push workflow.
+Sub/Main Commit, Push & Deploy workflow.
 
 Meaning:
 1. Commit changes to main
@@ -183,14 +183,16 @@ Meaning:
 4. Merge main into sub
 5. Push sub
 6. Return to main
+7. Deploy (`wrangler pages deploy .`)
 
 Rules:
-- Never execute automatically without explicit user approval
+- Saying `#SMCP#` IS the explicit user approval for all seven steps, including deploy — no separate per-step confirmation is needed once invoked
 - Summarize changed files first
-- Require successful build/test verification first
+- Require successful build/test verification first (e.g. `npm run test:static`)
 - Stop on merge conflict
 - Report conflicts instead of improvising
 - `git checkout --theirs <file>` allowed only when main is clearly canonical
+- Deploy runs only after main and sub are both pushed cleanly; if deploy fails, report the error and stop rather than retrying blindly
 
 Must follow HANDOFF.md Branch Strategy.
 
