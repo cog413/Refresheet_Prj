@@ -3499,6 +3499,24 @@ body.dark-mode .mp-feed-btn { background: #2a1a0a; border-color: #e67e22; }
         color: inherit;
     }
 
+    /* ── Stealth-ad: keep the fixed 240x92 box intact on mobile.
+       Ad creatives sometimes inject elements (iframes) sized/positioned
+       to escape overflow:hidden. A transform makes .stealth-ad the CSS
+       containing block for any position:fixed descendants, and clamping
+       every descendant to 100% keeps the whole thing pinned to the box. */
+    .stealth-ad {
+        transform: translateZ(0);
+    }
+    .stealth-ad * {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        box-sizing: border-box !important;
+    }
+    .ad-content iframe {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
     #sudoku-sheet .sheet-layout {
         gap: 20px;
         padding: 22px 16px 64px;
